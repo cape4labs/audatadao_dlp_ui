@@ -1,4 +1,3 @@
-import { AuthProvider } from "@/app/providers/AuthProvider";
 import { Toaster } from "@/components/ui/sonner";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
@@ -16,24 +15,22 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Google Drive Connector",
-  description: "Connect your Google account and view your information",
+  title: "VANA DLP Wallet Connector",
+  description: "Connect your wallet and contribute data to the VANA network",
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <AuthProvider>
-          <Providers>{children}</Providers>
-          <Toaster />
-        </AuthProvider>
+        <Providers>{children}</Providers>
+        <Toaster />
       </body>
     </html>
   );

@@ -1,64 +1,159 @@
-# Vana DLP UI Template
+# VANA DLP UI Template
 
-This is a generic UI for uploading data to a Data Liquidity Pool (DLP). This app enables users to contribute data to the Vana network while maintaining privacy through client-side encryption.
-
-## How It Works
-
-1. Connect your EVM compatible wallet, which holds some $VANA tokens
-2. Login to your Google Drive or Dropbox for data storage
-3. Drag and drop your data, which is encrypted client-side before being stored in your personal storage
-4. A transaction is written on-chain, which DLP validators will pick up to verify your file
-5. The Satya Network (using Trusted Execution Environment) validates your contribution
+A Next.js application for VANA Data Liquidity Pool integration with wallet authentication, user onboarding, and audio file uploads.
 
 ## Features
 
-- Secure wallet connection with Wagmi and Para
-- Client-side encryption using OpenPGP before any data leaves your browser
-- Integration with Google Drive and Dropbox for personal storage
-- On-chain transaction writing using Vana smart contracts
-- TEE-based data validation through the Satya Network
-- Responsive UI built with modern components
+- **Wallet Authentication**: Connect EVM wallets (MetaMask, Coinbase Wallet)
+- **User Onboarding**: Collect user information (country, birth date, IT-related status)
+- **Audio File Upload**: Upload .ogg files to refiner backend
+- **IPFS Storage**: Encrypted data storage on blockchain
+- **Modern UI**: Built with Tailwind CSS and Radix UI components
 
-## Prerequisites
+## Tech Stack
 
-- Node.js (version 16 or newer)
-- Yarn package manager
-- An EVM-compatible wallet with $VANA tokens
-- Google Drive or Dropbox account
+- **Frontend**: Next.js 15, React 19, TypeScript
+- **Authentication**: Wagmi, Viem, Zustand
+- **UI**: Tailwind CSS, Radix UI, Lucide React
+- **File Upload**: react-dropzone
+- **Notifications**: Sonner
+- **Blockchain**: VANA Network integration
 
 ## Getting Started
 
-```bash
-# First, install the dependencies
-yarn install
+1. **Install dependencies**:
+   ```bash
+   npm install
+   ```
 
-# Copy .env.example to .env
-cp .env.example .env
+2. **Set up environment variables**:
+   ```bash
+   cp env.example .env.local
+   ```
+   Then edit `.env.local` with your configuration.
 
-# Run the development server
-yarn dev
+3. **Run the development server**:
+   ```bash
+   npm run dev
+   ```
+
+4. **Open your browser** and navigate to `http://localhost:3000`
+
+## Environment Variables
+
+Create a `.env.local` file with the following variables:
+
+```env
+# Backend API Configuration
+BACKEND_API_URL=https://your_backend_api_url_here
+BACKEND_API_KEY=your_backend_api_key_here
+
+# Refiner API Configuration (для загрузки .ogg файлов)
+REFINER_API_URL=https://your_refiner_api_url_here
+REFINER_API_KEY=your_refiner_api_key_here
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the app running.
+## API Endpoints
 
-## Client-side encryption
+### Wallet Registration
+- `POST /api/wallet/register` - Register wallet connection
+- `GET /api/wallet/register?address={address}` - Get wallet data
 
-The Vana network strives to ensure personal data remains private, and is only shared with trusted parties. You can read more about how a DLP uses client-side encryption to protect user data [here](https://docs.vana.org/docs/data-privacy).
+### User Onboarding
+- `POST /api/user/onboarding` - Submit onboarding data
+- `GET /api/user/onboarding?walletAddress={address}` - Get onboarding status
 
-## Data Validation
+### File Upload
+- `POST /api/refine/upload` - Upload .ogg files to refiner
+- `GET /api/refine/upload?walletAddress={address}` - Get uploaded files
 
-Data submitted to the Vana network is validated using a Proof of Contribution system through the Satya Network, which consists of highly confidential nodes running on special hardware. The validation process ensures:
+## Project Structure
 
-1. Your encrypted data is securely decrypted within a trusted execution environment (Intel TDX)
-2. Custom validation logic for your DLP runs against the data
-3. Attestations are generated and proofs are written on-chain
+```
+├── app/
+│   ├── api/                    # API routes
+│   │   ├── wallet/            # Wallet registration
+│   │   ├── user/              # User onboarding
+│   │   └── refine/            # File upload to refiner
+│   ├── auth/                  # Authentication components
+│   ├── components/            # UI components
+│   ├── contribution/          # File upload components
+│   ├── profile/              # User profile components
+│   └── providers/            # React providers
+├── components/               # Shared UI components
+├── lib/                     # Utilities and configurations
+├── contracts/               # Blockchain contract addresses
+└── types/                   # TypeScript type definitions
+```
 
-For more details about how data validation works on Vana, see the [data validation documentation](https://docs.vana.org/docs/data-validation).
+## User Flow
 
-## Learn more
+1. **Connect Wallet**: User connects their EVM wallet
+2. **Onboarding**: New users complete onboarding survey
+3. **File Upload**: Users upload .ogg audio files
+4. **Processing**: Files are sent to refiner backend
+5. **Storage**: Encrypted data stored on IPFS
 
-You can find out more about building a data liquidity pool with Vana [here](https://docs.vana.org/docs/how-to-create-a-data-liquidity-pool).
+## TODO: Backend Integration
+
+### Required Backend Endpoints
+
+#### 1. Wallet Registration
+Create endpoint: `POST /api/wallets`
+- Accepts: `{ address, chainId, connectedAt, lastActivity }`
+- Returns: `{ success: true, walletId }`
+
+#### 2. User Onboarding
+Create endpoint: `POST /api/users/onboarding`
+- Accepts: `{ walletAddress, country, birthMonth, birthYear, isItRelated }`
+- Returns: `{ success: true, onboardingId }`
+
+#### 3. Refiner Integration
+Create endpoint: `POST /api/refine/upload`
+- Accepts: FormData with file and metadata
+- Returns: `{ success: true, fileId, processingStatus }`
+
+### Integration Steps
+
+1. **Update environment variables** in `.env.local`
+2. **Uncomment integration code** in API routes
+3. **Test endpoints** with your backend
+4. **Handle errors** appropriately
+5. **Add authentication** if required
+
+## Development
+
+### Adding New Features
+- Create components in `app/components/`
+- Add API routes in `app/api/`
+- Update types in `types/` directory
+- Test with development server
+
+### Backend Integration
+- Configure environment variables
+- Implement API endpoints on your backend
+- Update fetch calls in API routes
+- Test integration thoroughly
+
+## Deployment
+
+1. **Build the application**:
+   ```bash
+   npm run build
+   ```
+
+2. **Deploy to your preferred platform** (Vercel, Netlify, etc.)
+
+3. **Configure environment variables** on your deployment platform
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
 
 ## License
 
-[MIT](LICENSE)
+This project is licensed under the MIT License.
