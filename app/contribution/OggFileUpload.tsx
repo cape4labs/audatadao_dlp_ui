@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { Button } from "@/components/ui/button";
+//import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Upload, FileAudio, Loader2, CheckCircle, AlertCircle } from "lucide-react";
@@ -95,7 +95,7 @@ export function OggFileUpload() {
         }
       }
     } catch (error) {
-      console.log('No onboarding data found, using defaults');
+      console.log('No onboarding data found, using defaults', error);
     }
 
     // Создаем FormData для загрузки файла

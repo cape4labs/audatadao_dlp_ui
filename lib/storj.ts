@@ -53,7 +53,7 @@ export async function uploadAudioToStorj(
       },
     };
 
-    const result = await s3.upload(uploadParams).promise();
+    // const result = await s3.upload(uploadParams).promise();
     
     // Формируем URL для доступа к файлу
     const fileUrl = `https://gateway.storjshare.io/${BUCKET_NAME}/${fileKey}`;

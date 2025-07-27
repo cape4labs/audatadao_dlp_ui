@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { uploadAudioToStorj, createRefinerMetadata } from "@/lib/storj";
+// import { uploadAudioToStorj, createRefinerMetadata } from "@/lib/storj";
 
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
     const file = formData.get('file') as File;
     const walletAddress = formData.get('walletAddress') as string;
-    const userData = formData.get('userData') ? JSON.parse(formData.get('userData') as string) : null;
+    // const userData = formData.get('userData') ? JSON.parse(formData.get('userData') as string) : null;
 
     if (!file || !walletAddress) {
       return NextResponse.json(

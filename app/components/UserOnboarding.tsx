@@ -17,10 +17,10 @@ interface UserOnboardingData {
   isItRelated: "yes" | "no";
 }
 
-interface CountryData {
-  name: string;
-  code: string;
-}
+// interface CountryData {
+//   name: string;
+//   code: string;
+// }
 
 export function UserOnboarding({ onComplete }: { onComplete: () => void }) {
   const { user } = useWalletAuth();
@@ -144,7 +144,7 @@ export function UserOnboarding({ onComplete }: { onComplete: () => void }) {
                   <SelectValue placeholder="Select month" />
                 </SelectTrigger>
                 <SelectContent>
-                  {months.map((month, index) => (
+                  {months.map((month) => (
                     <SelectItem key={month} value={month}>
                       {month}
                     </SelectItem>
