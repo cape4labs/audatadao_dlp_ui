@@ -51,6 +51,7 @@
     "eslint": "^9",
     "eslint-config-next": "15.2.2",
     "gh-pages": "^6.3.0",
+    "pino-pretty": "^13.0.0",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vite": "^6.3.5"
