@@ -108,18 +108,42 @@ Create endpoint: `POST /api/users/onboarding`
 - Accepts: `{ walletAddress, country, birthMonth, birthYear, isItRelated }`
 - Returns: `{ success: true, onboardingId }`
 
-#### 3. Refiner Integration
-Create endpoint: `POST /api/refine/upload`
-- Accepts: FormData with file and metadata
-- Returns: `{ success: true, fileId, processingStatus }`
+### Storj Integration
+
+#### 1. Storj Setup
+- Create Storj account and bucket
+- Configure environment variables:
+  ```env
+  STORJ_ACCESS_KEY=your_storj_access_key
+  STORJ_SECRET_KEY=your_storj_secret_key
+  ```
+- Update bucket name in `lib/storj.ts`
+
+#### 2. Refiner Integration
+- Configure refiner endpoint:
+  ```env
+  REFINER_ID=144
+  REFINEMENT_ENDPOINT=https://your_refiner_endpoint
+  REFINEMENT_ENCRYPTION_KEY=your_encryption_key
+  ```
+- Uncomment integration code in `app/api/refine/upload/route.ts`
 
 ### Integration Steps
 
 1. **Update environment variables** in `.env.local`
-2. **Uncomment integration code** in API routes
-3. **Test endpoints** with your backend
-4. **Handle errors** appropriately
-5. **Add authentication** if required
+2. **Configure Storj bucket** and credentials
+3. **Uncomment integration code** in API routes
+4. **Test file upload flow** with Storj and refiner
+5. **Handle errors** appropriately
+6. **Add authentication** if required
+
+### File Upload Flow
+
+1. **User uploads .ogg file** → Frontend
+2. **File uploaded to Storj** → Backend API
+3. **Metadata created** → User data + file info
+4. **Metadata sent to refiner** → Refiner processes audio
+5. **Result returned** → Success/error response
 
 ## Development
 

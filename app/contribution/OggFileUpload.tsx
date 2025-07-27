@@ -84,11 +84,27 @@ export function OggFileUpload() {
   }, [user?.address]);
 
   const uploadFileToRefiner = async (file: File) => {
+    // Получаем данные пользователя из onboarding (если есть)
+    let userData = null;
+    try {
+      const onboardingResponse = await fetch(`/api/user/onboarding?walletAddress=${user!.address}`);
+      if (onboardingResponse.ok) {
+        const onboardingData = await onboardingResponse.json();
+        if (onboardingData.onboardingData) {
+          userData = onboardingData.onboardingData;
+        }
+      }
+    } catch (error) {
+      console.log('No onboarding data found, using defaults');
+    }
+
     // Создаем FormData для загрузки файла
     const formData = new FormData();
     formData.append('file', file);
     formData.append('walletAddress', user!.address);
-    formData.append('fileType', 'audio/ogg');
+    if (userData) {
+      formData.append('userData', JSON.stringify(userData));
+    }
 
     const response = await fetch('/api/refine/upload', {
       method: 'POST',
