@@ -5,8 +5,9 @@ const nextConfig: NextConfig = {
     unoptimized: true, // иначе будут ошибки с Image-компонентом
   },
   eslint: {
-    ignoreDuringBuilds: true, 
+    ignoreDuringBuilds: true,
   },
+  output: 'standalone', // Необходимо для Docker
 };
 
 export default nextConfig;
