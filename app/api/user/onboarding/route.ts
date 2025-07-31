@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { walletAddress, country, birthMonth, birthYear, isItRelated, submittedAt } = body;
+    const { walletAddress, country, birthMonth, birthYear, isItRelated, location, submittedAt } = body;
 
     // Валидация входных данных
     if (!walletAddress || !country || !birthMonth || !birthYear || !isItRelated) {
@@ -19,6 +19,7 @@ export async function POST(request: NextRequest) {
       birthMonth,
       birthYear,
       isItRelated,
+      location: location || null,
       submittedAt: submittedAt || new Date().toISOString(),
     };
 

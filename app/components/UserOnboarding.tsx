@@ -15,6 +15,12 @@ interface UserOnboardingData {
   birthMonth: string;
   birthYear: string;
   isItRelated: "yes" | "no";
+  location: {
+    latitude: number | null;
+    longitude: number | null;
+    accuracy: number | null;
+    timestamp: string | null;
+  };
 }
 
 // interface CountryData {
@@ -31,6 +37,12 @@ export function UserOnboarding({ onComplete }: { onComplete: () => void }) {
     birthMonth: "",
     birthYear: "",
     isItRelated: "no",
+    location: {
+      latitude: null,
+      longitude: null,
+      accuracy: null,
+      timestamp: null,
+    },
   });
 
   // Определяем местоположение пользователя
@@ -39,7 +51,21 @@ export function UserOnboarding({ onComplete }: { onComplete: () => void }) {
       navigator.geolocation.getCurrentPosition(
         async (position) => {
           try {
-            const { latitude, longitude } = position.coords;
+            const { latitude, longitude, accuracy } = position.coords;
+            const timestamp = new Date(position.timestamp).toISOString();
+            
+            // Сохраняем точные координаты
+            setFormData(prev => ({
+              ...prev,
+              location: {
+                latitude,
+                longitude,
+                accuracy,
+                timestamp,
+              }
+            }));
+
+            // Получаем название страны по координатам
             const response = await fetch(
               `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`
             );
@@ -52,8 +78,17 @@ export function UserOnboarding({ onComplete }: { onComplete: () => void }) {
         },
         (error) => {
           console.error("Geolocation error:", error);
+          // Если геолокация недоступна, показываем сообщение
+          toast.error("Location access denied. Please enter your country manually.");
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 300000 // 5 минут
         }
       );
+    } else {
+      toast.error("Geolocation is not supported by your browser.");
     }
   }, []);
 
@@ -130,8 +165,14 @@ export function UserOnboarding({ onComplete }: { onComplete: () => void }) {
                 required
               />
               {userLocation && (
-                <p className="text-sm text-gray-500">
-                  Detected: {userLocation}
+                <p className="text-sm text-green-600">
+                  ✓ Location detected: {userLocation}
+                </p>
+              )}
+              {formData.location.latitude && formData.location.longitude && (
+                <p className="text-sm text-blue-600">
+                  📍 Coordinates: {formData.location.latitude.toFixed(4)}, {formData.location.longitude.toFixed(4)}
+                  {formData.location.accuracy && ` (Accuracy: ±${Math.round(formData.location.accuracy)}m)`}
                 </p>
               )}
             </div>
