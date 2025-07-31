@@ -31,15 +31,19 @@ Create a `.env.local` file with the following variables:
 BACKEND_API_URL=https://your-backend-api.com
 BACKEND_API_KEY=your-backend-api-key
 
-# Refiner Configuration
-REFINEMENT_ENDPOINT=https://api.refiner.vana.com
-REFINER_ID=your-refiner-id
-REFINEMENT_ENCRYPTION_KEY=your-encryption-key
+# Blockchain Configuration
+NEXT_PUBLIC_DLP_CONTRACT_ADDRESS=0x0161DFbf70a912668dd1B4365b43c1348e8bD3ab
 
 # Storj Configuration (for file storage)
 STORJ_ACCESS_KEY=your-storj-access-key
 STORJ_SECRET_KEY=your-storj-secret-key
 STORJ_BUCKET_NAME=your-bucket-name
+STORJ_ENDPOINT=https://gateway.storjshare.io
+
+# Refiner Configuration
+REFINEMENT_ENDPOINT=https://api.refiner.vana.com
+REFINER_ID=your-refiner-id
+REFINEMENT_ENCRYPTION_KEY=your-encryption-key
 ```
 
 ## API Endpoints
@@ -53,8 +57,10 @@ STORJ_BUCKET_NAME=your-bucket-name
 - `GET /api/user/onboarding?walletAddress=<address>` - Get user data
 
 ### File Upload & Processing
-- `POST /api/refine/upload` - Upload audio file to refiner
-- `GET /api/refine/upload?walletAddress=<address>` - Get uploaded files
+- `POST /api/storj/upload` - Upload audio file to Storj
+- `GET /api/storj/upload?walletAddress=<address>` - Get uploaded files
+- `POST /api/refine/upload` - Send data to refiner for processing
+- `GET /api/refine/upload?walletAddress=<address>` - Get processing status
 
 ## User Flow
 
@@ -63,12 +69,12 @@ STORJ_BUCKET_NAME=your-bucket-name
 3. **Onboarding Survey**: User completes demographic survey (country, birth info, IT background)
 4. **File Upload**: User uploads .ogg voice files via drag & drop
 5. **Processing**: System shows progress through ContributionSteps:
-   - Encrypt & Upload Data
-   - Register on Blockchain
-   - Request Validation
-   - Validate Contribution
-   - Receive Attestation
-6. **Completion**: User sees success message and contribution details
+   - Upload to Storj (decentralized storage)
+   - Register on Blockchain (file hash & metadata)
+   - Request Validation (TEE nodes)
+   - Validate Contribution (proof-of-contribution)
+   - Receive Attestation (blockchain verification)
+6. **Completion**: User sees success message and blockchain transaction hash
 
 ## Development
 
@@ -97,13 +103,17 @@ npm run build
 Update the following files to integrate with your backend:
 - `app/api/wallet/register/route.ts`
 - `app/api/user/onboarding/route.ts`
+- `app/api/storj/upload/route.ts`
 - `app/api/refine/upload/route.ts`
 
 ### Refiner Integration
 The refiner integration is configured in `app/api/refine/upload/route.ts`. Update the endpoint URL and authentication to match your refiner service.
 
 ### File Storage
-Currently configured for Storj but can be adapted for other storage solutions. Update the upload logic in `app/api/refine/upload/route.ts`.
+Currently configured for Storj but can be adapted for other storage solutions. Update the upload logic in `app/api/storj/upload/route.ts`.
+
+### Blockchain Integration
+The blockchain integration uses VANA's DataRegistry contract to register file hashes and metadata. Update the contract addresses in `contracts/addresses.ts` if needed.
 
 ## Supported Wallets
 - MetaMask

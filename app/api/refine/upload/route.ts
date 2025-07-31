@@ -6,7 +6,8 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData();
     const file = formData.get('file') as File;
     const walletAddress = formData.get('walletAddress') as string;
-    // const userData = formData.get('userData') ? JSON.parse(formData.get('userData') as string) : null;
+    const storjUrl = formData.get('storjUrl') as string;
+    const userData = formData.get('userData') ? JSON.parse(formData.get('userData') as string) : null;
 
     if (!file || !walletAddress) {
       return NextResponse.json(
@@ -82,7 +83,7 @@ export async function POST(request: NextRequest) {
     //   console.log('Refiner result:', refinerResult);
     // }
 
-    // Временная интеграция с refiner (замените на реальную)
+    // Интеграция с refiner
     const refinerUrl = process.env.REFINEMENT_ENDPOINT || 'https://api.refiner.example.com';
     const refinerId = process.env.REFINER_ID || 'default-refiner';
     const encryptionKey = process.env.REFINEMENT_ENCRYPTION_KEY || 'demo-key';
@@ -96,12 +97,13 @@ export async function POST(request: NextRequest) {
         },
         body: JSON.stringify({
           refiner_id: refinerId,
-          audio_url: 'https://gateway.storjshare.io/bucket/audio/file.ogg', // Временный URL
+          audio_url: storjUrl, // Используем URL из Storj
           metadata: {
             wallet_address: walletAddress,
             file_name: file.name,
             file_size: file.size,
             uploaded_at: new Date().toISOString(),
+            user_data: userData, // Добавляем данные пользователя
           },
         }),
       });

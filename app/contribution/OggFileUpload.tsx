@@ -1,13 +1,14 @@
 "use client";
 
 import { useState, useCallback } from "react";
-//import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Upload, FileAudio, Loader2, CheckCircle, AlertCircle } from "lucide-react";
 import { useDropzone } from "react-dropzone";
 import { toast } from "sonner";
 import { useWalletAuth } from "@/lib/auth/walletAuth";
+import { useStorjIntegration } from "./hooks/useStorjIntegration";
+import { useBlockchainIntegration } from "./hooks/useBlockchainIntegration";
 
 interface UploadedFile {
   name: string;
@@ -25,6 +26,9 @@ interface UploadStatus {
 
 export function OggFileUpload({ onUploadComplete }: { onUploadComplete: () => void }) {
   const { user } = useWalletAuth();
+  const { uploadToStorj, generateFileHash, isUploading: isStorjUploading } = useStorjIntegration();
+  const { registerDataOnBlockchain, isRegistering, transactionHash } = useBlockchainIntegration();
+  
   const [uploadStatus, setUploadStatus] = useState<UploadStatus>({
     isUploading: false,
     isSuccess: false,
@@ -56,7 +60,32 @@ export function OggFileUpload({ onUploadComplete }: { onUploadComplete: () => vo
 
     try {
       for (const file of oggFiles) {
-        await uploadFileToRefiner(file);
+        // Шаг 1: Загружаем файл в Storj
+        const storjResult = await uploadToStorj(file, user.address);
+        
+        if (!storjResult.success) {
+          throw new Error(storjResult.error || 'Failed to upload to Storj');
+        }
+
+        // Шаг 2: Генерируем метаданные для блокчейна
+        const metadata = JSON.stringify({
+          fileName: file.name,
+          fileSize: file.size,
+          walletAddress: user.address,
+          uploadedAt: new Date().toISOString(),
+          fileType: 'audio/ogg',
+        });
+
+        // Шаг 3: Регистрируем данные в блокчейне
+        await registerDataOnBlockchain({
+          fileHash: storjResult.fileHash,
+          fileUrl: storjResult.fileUrl,
+          metadata: metadata,
+          walletAddress: user.address,
+        });
+
+        // Шаг 4: Отправляем в refiner
+        await uploadFileToRefiner(file, storjResult.fileUrl);
       }
 
       setUploadStatus(prev => ({
@@ -71,20 +100,20 @@ export function OggFileUpload({ onUploadComplete }: { onUploadComplete: () => vo
         }))],
       }));
 
-      toast.success(`${oggFiles.length} file(s) uploaded successfully!`);
+      toast.success(`${oggFiles.length} file(s) processed successfully!`);
       onUploadComplete();
     } catch (error) {
       console.error("Upload error:", error);
       setUploadStatus(prev => ({
         ...prev,
         isUploading: false,
-        error: "Failed to upload files. Please try again.",
+        error: "Failed to process files. Please try again.",
       }));
-      toast.error("Failed to upload files");
+      toast.error("Failed to process files");
     }
-  }, [user?.address]);
+  }, [user?.address, uploadToStorj, registerDataOnBlockchain]);
 
-  const uploadFileToRefiner = async (file: File) => {
+  const uploadFileToRefiner = async (file: File, storjUrl: string) => {
     // Получаем данные пользователя из onboarding (если есть)
     let userData = null;
     try {
@@ -103,6 +132,7 @@ export function OggFileUpload({ onUploadComplete }: { onUploadComplete: () => vo
     const formData = new FormData();
     formData.append('file', file);
     formData.append('walletAddress', user!.address);
+    formData.append('storjUrl', storjUrl);
     if (userData) {
       formData.append('userData', JSON.stringify(userData));
     }
@@ -113,11 +143,11 @@ export function OggFileUpload({ onUploadComplete }: { onUploadComplete: () => vo
     });
 
     if (!response.ok) {
-      throw new Error(`Upload failed: ${response.statusText}`);
+      throw new Error(`Refiner upload failed: ${response.statusText}`);
     }
 
     const result = await response.json();
-    console.log('Upload result:', result);
+    console.log('Refiner upload result:', result);
   };
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -161,9 +191,25 @@ export function OggFileUpload({ onUploadComplete }: { onUploadComplete: () => vo
         {uploadStatus.isSuccess && (
           <Alert>
             <CheckCircle className="h-4 w-4" />
-            <AlertTitle>Upload Successful</AlertTitle>
+            <AlertTitle>Processing Complete</AlertTitle>
             <AlertDescription>
-              {uploadStatus.uploadedFiles.length} file(s) uploaded successfully!
+              {uploadStatus.uploadedFiles.length} file(s) processed successfully!
+              {transactionHash && (
+                <div className="mt-2 text-sm">
+                  <strong>Blockchain Transaction:</strong> {transactionHash}
+                </div>
+              )}
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {(isStorjUploading || isRegistering) && (
+          <Alert>
+            <Loader2 className="h-4 w-4 animate-spin" />
+            <AlertTitle>Processing Files</AlertTitle>
+            <AlertDescription>
+              {isStorjUploading && "Uploading to Storj..."}
+              {isRegistering && "Registering on blockchain..."}
             </AlertDescription>
           </Alert>
         )}
