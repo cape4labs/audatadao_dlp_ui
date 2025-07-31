@@ -29,7 +29,7 @@ export const contributionSteps: Step[] = [
     title: "Encrypt & Upload Data",
     description: "Encrypting and securely storing your data",
     icon: <LockKeyhole className="h-5 w-5" />,
-    statusMessage: "Uploading to Google Drive...",
+    statusMessage: "Uploading to secure storage...",
     signingMessage: "Signing message...",
   },
   {

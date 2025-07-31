@@ -23,7 +23,7 @@ interface UploadStatus {
   uploadedFiles: UploadedFile[];
 }
 
-export function OggFileUpload() {
+export function OggFileUpload({ onUploadComplete }: { onUploadComplete: () => void }) {
   const { user } = useWalletAuth();
   const [uploadStatus, setUploadStatus] = useState<UploadStatus>({
     isUploading: false,
@@ -72,6 +72,7 @@ export function OggFileUpload() {
       }));
 
       toast.success(`${oggFiles.length} file(s) uploaded successfully!`);
+      onUploadComplete();
     } catch (error) {
       console.error("Upload error:", error);
       setUploadStatus(prev => ({

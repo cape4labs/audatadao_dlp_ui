@@ -82,6 +82,40 @@ export async function POST(request: NextRequest) {
     //   console.log('Refiner result:', refinerResult);
     // }
 
+    // Временная интеграция с refiner (замените на реальную)
+    const refinerUrl = process.env.REFINEMENT_ENDPOINT || 'https://api.refiner.example.com';
+    const refinerId = process.env.REFINER_ID || 'default-refiner';
+    const encryptionKey = process.env.REFINEMENT_ENCRYPTION_KEY || 'demo-key';
+
+    try {
+      const refinerResponse = await fetch(`${refinerUrl}/refine`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${encryptionKey}`,
+        },
+        body: JSON.stringify({
+          refiner_id: refinerId,
+          audio_url: 'https://gateway.storjshare.io/bucket/audio/file.ogg', // Временный URL
+          metadata: {
+            wallet_address: walletAddress,
+            file_name: file.name,
+            file_size: file.size,
+            uploaded_at: new Date().toISOString(),
+          },
+        }),
+      });
+
+      if (!refinerResponse.ok) {
+        console.warn('Refiner integration failed, continuing with demo data');
+      } else {
+        const refinerResult = await refinerResponse.json();
+        console.log('Refiner result:', refinerResult);
+      }
+    } catch (error) {
+      console.warn('Refiner integration error:', error);
+    }
+
     // Временные данные для демонстрации
     const uploadData = {
       fileId: `${walletAddress}_${Date.now()}_${file.name}`,

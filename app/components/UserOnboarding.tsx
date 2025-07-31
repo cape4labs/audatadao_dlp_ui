@@ -87,6 +87,9 @@ export function UserOnboarding({ onComplete }: { onComplete: () => void }) {
         throw new Error('Failed to submit onboarding data');
       }
 
+      const result = await response.json();
+      console.log('Onboarding data submitted:', result);
+
       toast.success("Onboarding completed successfully!");
       onComplete();
     } catch (error) {
