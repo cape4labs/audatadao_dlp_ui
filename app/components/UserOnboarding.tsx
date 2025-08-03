@@ -14,13 +14,7 @@ interface UserOnboardingData {
   country: string;
   birthMonth: string;
   birthYear: string;
-  isItRelated: "yes" | "no";
-  location: {
-    latitude: number | null;
-    longitude: number | null;
-    accuracy: number | null;
-    timestamp: string | null;
-  };
+  isItRelated: true | false;
 }
 
 // interface CountryData {
@@ -36,13 +30,7 @@ export function UserOnboarding({ onComplete }: { onComplete: () => void }) {
     country: "",
     birthMonth: "",
     birthYear: "",
-    isItRelated: "no",
-    location: {
-      latitude: null,
-      longitude: null,
-      accuracy: null,
-      timestamp: null,
-    },
+    isItRelated: false,
   });
 
   // Определяем местоположение пользователя
@@ -104,13 +92,12 @@ export function UserOnboarding({ onComplete }: { onComplete: () => void }) {
 
     try {
       const onboardingData = {
-        walletAddress: user?.address,
+        userAddress: user?.address,
         ...formData,
-        submittedAt: new Date().toISOString(),
       };
 
       // Отправляем данные на бэкенд
-      const response = await fetch('/api/user/onboarding', {
+      const response = await fetch('http://audata.space:8000/api/v1/users/metadata', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -169,12 +156,6 @@ export function UserOnboarding({ onComplete }: { onComplete: () => void }) {
                   ✓ Location detected: {userLocation}
                 </p>
               )}
-              {formData.location.latitude && formData.location.longitude && (
-                <p className="text-sm text-blue-600">
-                  📍 Coordinates: {formData.location.latitude.toFixed(4)}, {formData.location.longitude.toFixed(4)}
-                  {formData.location.accuracy && ` (Accuracy: ±${Math.round(formData.location.accuracy)}m)`}
-                </p>
-              )}
             </div>
 
             {/* Birth Month */}
@@ -221,21 +202,21 @@ export function UserOnboarding({ onComplete }: { onComplete: () => void }) {
             <div className="space-y-2">
               <Label>Are you related to IT?</Label>
               <RadioGroup
-                value={formData.isItRelated}
-                onValueChange={(value: "yes" | "no") => 
-                  setFormData(prev => ({ ...prev, isItRelated: value }))
+                value={formData.isItRelated ? "true" : "false"}
+                onValueChange={(value) =>
+                  setFormData(prev => ({ ...prev, isItRelated: value === "true" }))
                 }
               >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="yes" id="yes" />
-                  <Label htmlFor="yes">Yes</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="no" id="no" />
-                  <Label htmlFor="no">No</Label>
-                </div>
-              </RadioGroup>
-            </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="true" id="yes" />
+                <Label htmlFor="yes">Yes</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="false" id="no" />
+                <Label htmlFor="no">No</Label>
+              </div>
+            </RadioGroup>
+          </div>
 
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? "Submitting..." : "Complete Onboarding"}
