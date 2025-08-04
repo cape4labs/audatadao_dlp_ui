@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
 import { useWalletAuth } from "@/lib/auth/walletAuth";
+import { Navigation } from "./Navigation";
 
 interface UserOnboardingData {
   country: string;
@@ -96,7 +97,6 @@ export function UserOnboarding({ onComplete }: { onComplete: () => void }) {
         ...formData,
       };
 
-      // Отправляем данные на бэкенд
       const response = await fetch('http://audata.space:8000/api/v1/users/metadata', {
         method: 'POST',
         headers: {
@@ -104,11 +104,9 @@ export function UserOnboarding({ onComplete }: { onComplete: () => void }) {
         },
         body: JSON.stringify(onboardingData),
       });
-
       if (!response.ok) {
         throw new Error('Failed to submit onboarding data');
       }
-
       const result = await response.json();
       console.log('Onboarding data submitted:', result);
 
@@ -131,99 +129,89 @@ export function UserOnboarding({ onComplete }: { onComplete: () => void }) {
   const years = Array.from({ length: 50 }, (_, i) => currentYear - i);
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Welcome to VANA DLP!</CardTitle>
-          <CardDescription>
-            Please provide some information to help us personalize your experience
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Country */}
-            <div className="space-y-2">
-              <Label htmlFor="country">Country</Label>
-              <Input
-                id="country"
-                value={formData.country}
-                onChange={(e) => setFormData(prev => ({ ...prev, country: e.target.value }))}
-                placeholder="Your country"
-                required
-              />
-              {userLocation && (
-                <p className="text-sm text-green-600">
-                  ✓ Location detected: {userLocation}
-                </p>
-              )}
-            </div>
+    <div className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Country */}
+        <div className="space-y-2">
+          <Label htmlFor="country">Country</Label>
+          <Input
+            id="country"
+            value={formData.country}
+            onChange={(e) => setFormData(prev => ({ ...prev, country: e.target.value }))}
+            placeholder="Your country"
+            required
+          />
+          {userLocation && (
+            <p className="text-sm text-green-600">
+              ✓ Location detected: {userLocation}
+            </p>
+          )}
+        </div>
 
-            {/* Birth Month */}
-            <div className="space-y-2">
-              <Label htmlFor="birthMonth">Birth Month</Label>
-              <Select
-                value={formData.birthMonth}
-                onValueChange={(value) => setFormData(prev => ({ ...prev, birthMonth: value }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select month" />
-                </SelectTrigger>
-                <SelectContent>
-                  {months.map((month) => (
-                    <SelectItem key={month} value={month}>
-                      {month}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+        {/* Birth Month */}
+        <div className="space-y-2">
+          <Label htmlFor="birthMonth">Birth Month</Label>
+          <Select
+            value={formData.birthMonth}
+            onValueChange={(value) => setFormData(prev => ({ ...prev, birthMonth: value }))}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select month" />
+            </SelectTrigger>
+            <SelectContent>
+              {months.map((month) => (
+                <SelectItem key={month} value={month}>
+                  {month}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
-            {/* Birth Year */}
-            <div className="space-y-2">
-              <Label htmlFor="birthYear">Birth Year</Label>
-              <Select
-                value={formData.birthYear}
-                onValueChange={(value) => setFormData(prev => ({ ...prev, birthYear: value }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select year" />
-                </SelectTrigger>
-                <SelectContent>
-                  {years.map((year) => (
-                    <SelectItem key={year} value={year.toString()}>
-                      {year}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+        {/* Birth Year */}
+        <div className="space-y-2">
+          <Label htmlFor="birthYear">Birth Year</Label>
+          <Select
+            value={formData.birthYear}
+            onValueChange={(value) => setFormData(prev => ({ ...prev, birthYear: value }))}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select year" />
+            </SelectTrigger>
+            <SelectContent>
+              {years.map((year) => (
+                <SelectItem key={year} value={year.toString()}>
+                  {year}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
-            {/* IT Related */}
-            <div className="space-y-2">
-              <Label>Are you related to IT?</Label>
-              <RadioGroup
-                value={formData.isItRelated ? "true" : "false"}
-                onValueChange={(value) =>
-                  setFormData(prev => ({ ...prev, isItRelated: value === "true" }))
-                }
-              >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="true" id="yes" />
-                <Label htmlFor="yes">Yes</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="false" id="no" />
-                <Label htmlFor="no">No</Label>
-              </div>
-            </RadioGroup>
+        {/* IT Related */}
+        <div className="space-y-2">
+          <Label>Are you related to IT?</Label>
+          <RadioGroup
+            value={formData.isItRelated ? "true" : "false"}
+            onValueChange={(value) =>
+              setFormData(prev => ({ ...prev, isItRelated: value === "true" }))
+            }
+          >
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="true" id="yes" />
+            <Label htmlFor="yes">Yes</Label>
           </div>
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="false" id="no" />
+            <Label htmlFor="no">No</Label>
+          </div>
+        </RadioGroup>
+      </div>
 
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Submitting..." : "Complete Onboarding"}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+        <Button type="submit" className="w-full" disabled={isLoading}>
+          {isLoading ? "Submitting..." : "Complete Onboarding"}
+        </Button>
+      </form>
     </div>
   );
 } 

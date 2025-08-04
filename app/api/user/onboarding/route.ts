@@ -32,21 +32,21 @@ export async function POST(request: NextRequest) {
     // 4. Обработайте ответ от бэкенда (успех/ошибка)
     //
     // Раскомментируйте и настройте для интеграции с вашим бэкендом:
-    // const backendUrl = process.env.BACKEND_API_URL;
-    // if (backendUrl) {
-    //   const response = await fetch(`${backendUrl}/api/users/onboarding`, {
-    //     method: 'POST',
-    //     headers: {
-    //       'Content-Type': 'application/json',
-    //       'Authorization': `Bearer ${process.env.BACKEND_API_KEY}`,
-    //     },
-    //     body: JSON.stringify(onboardingData),
-    //   });
-    //   
-    //   if (!response.ok) {
-    //     throw new Error('Failed to submit onboarding data to backend');
-    //   }
-    // }
+    const backendUrl = process.env.BACKEND_API_URL;
+    if (backendUrl) {
+      const response = await fetch(`${backendUrl}/api/users/meatadata`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.BACKEND_API_KEY}`,
+        },
+        body: JSON.stringify(onboardingData),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to submit onboarding data to backend');
+      }
+    }
 
     // Логирование для отладки
     console.log('User onboarding data:', onboardingData);
@@ -100,13 +100,7 @@ export async function GET(request: NextRequest) {
     //     return NextResponse.json(onboardingData);
     //   }
     // }
-
-    // Временный ответ для демонстрации
-    return NextResponse.json({
-      walletAddress,
-      hasCompletedOnboarding: false,
-      onboardingData: null,
-    });
+    return NextResponse.json({ error: "Onboarding backend not configured" }, { status: 500 });
 
   } catch (error) {
     console.error("Error fetching onboarding data:", error);

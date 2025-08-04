@@ -1,17 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-// import { uploadAudioToStorj, createRefinerMetadata } from "@/lib/storj";
 
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
     const file = formData.get('file') as File;
     const walletAddress = formData.get('walletAddress') as string;
-    const storjUrl = formData.get('storjUrl') as string;
+    const fileId = formData.get('fileId') as string;
     const userData = formData.get('userData') ? JSON.parse(formData.get('userData') as string) : null;
 
-    if (!file || !walletAddress) {
+    if (!file || !walletAddress || !fileId) {
       return NextResponse.json(
-        { error: "Missing required fields: file and walletAddress" },
+        { error: "Missing required fields: file, walletAddress, and fileId" },
         { status: 400 }
       );
     }
@@ -33,133 +32,45 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // TODO: INTEGRATION WITH STORJ AND REFINER
-    // 
-    // 1. Загружаем файл в Storj
-    // 2. Получаем URL файла из Storj
-    // 3. Создаем метаданные для refiner
-    // 4. Отправляем метаданные в refiner
-    //
-    // Раскомментируйте код ниже для интеграции:
-
-    // // Шаг 1: Загружаем файл в Storj
-    // const storjResult = await uploadAudioToStorj(file, walletAddress);
-    // if (!storjResult.success) {
-    //   throw new Error(`Failed to upload to Storj: ${storjResult.error}`);
-    // }
-
-    // // Шаг 2: Создаем метаданные для refiner
-    // const metadata = createRefinerMetadata(
-    //   file, 
-    //   walletAddress, 
-    //   storjResult.fileUrl!, 
-    //   userData
-    // );
-
-    // // Шаг 3: Отправляем метаданные в refiner
-    // const refinerUrl = process.env.REFINEMENT_ENDPOINT;
-    // const refinerId = process.env.REFINER_ID;
-    // const encryptionKey = process.env.REFINEMENT_ENCRYPTION_KEY;
-
-    // if (refinerUrl && refinerId && encryptionKey) {
-    //   const refinerResponse = await fetch(`${refinerUrl}/refine`, {
-    //     method: 'POST',
-    //     headers: {
-    //       'Content-Type': 'application/json',
-    //       'Authorization': `Bearer ${encryptionKey}`,
-    //     },
-    //     body: JSON.stringify({
-    //       refiner_id: refinerId,
-    //       audio_url: storjResult.fileUrl,
-    //       metadata: metadata,
-    //     }),
-    //   });
-
-    //   if (!refinerResponse.ok) {
-    //     throw new Error('Failed to send to refiner');
-    //   }
-
-    //   const refinerResult = await refinerResponse.json();
-    //   console.log('Refiner result:', refinerResult);
-    // }
-
-    // Интеграция с refiner
-    const refinerUrl = process.env.REFINEMENT_ENDPOINT || 'https://api.refiner.example.com';
-    const refinerId = process.env.REFINER_ID || 'default-refiner';
-    const encryptionKey = process.env.REFINEMENT_ENCRYPTION_KEY || 'demo-key';
-
-    try {
-      const refinerResponse = await fetch(`${refinerUrl}/refine`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${encryptionKey}`,
-        },
-        body: JSON.stringify({
-          refiner_id: refinerId,
-          audio_url: storjUrl, // Используем URL из Storj
-          metadata: {
-            wallet_address: walletAddress,
-            file_name: file.name,
-            file_size: file.size,
-            uploaded_at: new Date().toISOString(),
-            user_data: userData, // Добавляем данные пользователя
-          },
-        }),
-      });
-
-      if (!refinerResponse.ok) {
-        console.warn('Refiner integration failed, continuing with demo data');
-      } else {
-        const refinerResult = await refinerResponse.json();
-        console.log('Refiner result:', refinerResult);
-      }
-    } catch (error) {
-      console.warn('Refiner integration error:', error);
-    }
-
-    // Временные данные для демонстрации
-    const uploadData = {
-      fileId: `${walletAddress}_${Date.now()}_${file.name}`,
+    // Создаем метаданные для обработки
+    const metadata = {
+      fileId,
       fileName: file.name,
       fileSize: file.size,
       walletAddress,
       uploadedAt: new Date().toISOString(),
-      storjUrl: 'https://gateway.storjshare.io/bucket/audio/file.ogg', // Пример URL
-      metadata: {
-        audio_length: Math.floor(file.size / 16000).toString(),
-        audio_source: 'web_upload',
-        audio_type: 'speech',
-        user: {
-          user_id: walletAddress,
-          age: '25',
-          country_code: 'en',
-          occupation: 'Developer',
-          language_code: 'en',
-          region: 'Unknown',
-        },
-      },
+      fileType: 'audio/ogg',
+      userData: userData || null,
     };
 
-    console.log('File upload data:', uploadData);
+    // Имитируем обработку файла (в реальном проекте здесь была бы интеграция с refiner)
+    console.log('Processing file:', {
+      fileId,
+      fileName: file.name,
+      fileSize: file.size,
+      walletAddress,
+      userData: userData ? 'present' : 'not present',
+    });
+
+    // Имитируем задержку обработки
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
     return NextResponse.json({
       success: true,
-      message: "File uploaded successfully to Storj and sent to refiner",
+      message: 'File processed successfully',
       data: {
-        fileId: uploadData.fileId,
+        fileId,
         fileName: file.name,
         fileSize: file.size,
-        uploadedAt: uploadData.uploadedAt,
-        storjUrl: uploadData.storjUrl,
-        metadata: uploadData.metadata,
+        processedAt: new Date().toISOString(),
+        status: 'completed',
       },
     });
 
   } catch (error) {
-    console.error("Error uploading file:", error);
+    console.error("Error processing file:", error);
     return NextResponse.json(
-      { error: "Failed to upload file" },
+      { error: "Failed to process file" },
       { status: 500 }
     );
   }
@@ -177,40 +88,16 @@ export async function GET(request: NextRequest) {
       );
     }
 
-                    // TODO: INTEGRATION WITH REFINER BACKEND
-                // Здесь нужно интегрировать с вашим refiner бэкендом для получения списка файлов
-                //
-                // 1. Создайте эндпоинт на вашем refiner бэкенде для получения списка файлов
-                // 2. Раскомментируйте код ниже и замените URL на ваш
-                // 3. Добавьте необходимые заголовки авторизации
-                // 4. Обработайте ответ от refiner
-                //
-                // Раскомментируйте и настройте для интеграции с вашим refiner:
-                // const refinerUrl = process.env.REFINER_API_URL;
-                // if (refinerUrl) {
-                //   const response = await fetch(`${refinerUrl}/files?walletAddress=${walletAddress}`, {
-                //     headers: {
-                //       'Authorization': `Bearer ${process.env.REFINER_API_KEY}`,
-                //     },
-                //   });
-                //
-                //   if (response.ok) {
-                //     const files = await response.json();
-                //     return NextResponse.json(files);
-                //   }
-                // }
-
-    // Временный ответ для демонстрации
+    // Возвращаем список обработанных файлов (в реальном проекте это было бы из базы данных)
     return NextResponse.json({
-      walletAddress,
       files: [],
-      totalFiles: 0,
+      message: 'No processed files found',
     });
 
   } catch (error) {
-    console.error("Error fetching uploaded files:", error);
+    console.error("Error fetching processed files:", error);
     return NextResponse.json(
-      { error: "Failed to fetch uploaded files" },
+      { error: "Failed to fetch processed files" },
       { status: 500 }
     );
   }

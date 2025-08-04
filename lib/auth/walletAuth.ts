@@ -48,7 +48,6 @@ export const useWalletAuth = create<WalletAuthState>()(
         });
 
         try {
-          // Отправляем данные на бэкенд
           const response = await fetch('http://audata.space:8000/api/v1/users/signup', {
             method: 'POST',
             headers: {
@@ -59,12 +58,10 @@ export const useWalletAuth = create<WalletAuthState>()(
               "chainId": String(chainId),
             }),
           });
-
           if (!response.ok) {
             console.error('Failed to register wallet on backend:', response.statusText);
             throw new Error('Failed to register wallet on backend');
           }
-
           const result = await response.json();
           console.log('Wallet registered successfully:', result);
 

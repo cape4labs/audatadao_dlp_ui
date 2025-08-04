@@ -9,28 +9,29 @@ import * as openpgp from "openpgp";
  */
 export async function clientSideEncrypt(
   data: Blob,
-  signature: string
+  password: string
 ): Promise<Blob> {
-  const dataBuffer = await data.arrayBuffer();
-  const message = await openpgp.createMessage({
-    binary: new Uint8Array(dataBuffer),
-  });
+  try {
+    const arrayBuffer = await data.arrayBuffer();
+    const message = await openpgp.createMessage({
+      binary: new Uint8Array(arrayBuffer),
+    });
 
-  const encrypted = await openpgp.encrypt({
-    message,
-    passwords: [signature],
-    format: "binary",
-  });
+    const encrypted = await openpgp.encrypt({
+      message,
+      passwords: [password],
+      format: "binary", // обязательно binary для Blob
+    });
 
-  // Convert WebStream<Uint8Array> to Blob
-  const response = new Response(encrypted as ReadableStream<Uint8Array>);
-  const arrayBuffer = await response.arrayBuffer();
-  const uint8Array = new Uint8Array(arrayBuffer);
+    // Преобразуем WebStream -> ArrayBuffer -> Blob
+    const response = new Response(encrypted as ReadableStream<Uint8Array>);
+    const encryptedBuffer = await response.arrayBuffer();
 
-  const encryptedBlob = new Blob([uint8Array], {
-    type: "application/octet-stream",
-  });
-  return encryptedBlob;
+    return new Blob([encryptedBuffer], { type: "application/octet-stream" });
+  } catch (err) {
+    console.error("Symmetric encryption failed:", err);
+    throw new Error("Failed to encrypt file using symmetric key.");
+  }
 }
 
 /**
