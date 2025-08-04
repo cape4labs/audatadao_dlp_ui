@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useAccount, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { DataRegistry } from '@/contracts/instances/data-registry';
 import { Controller } from '@/contracts/instances/controller';
@@ -45,8 +45,8 @@ export function useBlockchainIntegration() {
       writeContract({
         address: dataRegistry.address,
         abi: dataRegistry.abi,
-        functionName: 'addRefinement',
-        args: [fileHash, metadata, fileUrl],
+        functionName: 'addFile',
+        args: [fileUrl], // Only pass the URL, not the fileHash
         account: address,
       });
 
@@ -59,18 +59,22 @@ export function useBlockchainIntegration() {
   };
 
   // Обработка успешной транзакции
-  if (isSuccess && hash && !transactionHash) {
-    setTransactionHash(hash);
-    setIsRegistering(false);
-    toast.success('Data successfully registered on blockchain!');
-  }
+  React.useEffect(() => {
+    if (isSuccess && hash && !transactionHash) {
+      setTransactionHash(hash);
+      setIsRegistering(false);
+      toast.success('Data successfully registered on blockchain!');
+    }
+  }, [isSuccess, hash, transactionHash]);
 
   // Обработка ошибки
-  if (error) {
-    console.error('Blockchain transaction error:', error);
-    toast.error('Blockchain transaction failed');
-    setIsRegistering(false);
-  }
+  React.useEffect(() => {
+    if (error) {
+      console.error('Blockchain transaction error:', error);
+      toast.error('Blockchain transaction failed');
+      setIsRegistering(false);
+    }
+  }, [error]);
 
   return {
     registerDataOnBlockchain,

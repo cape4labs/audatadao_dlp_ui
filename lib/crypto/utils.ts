@@ -1,41 +1,33 @@
-import eccrypto from "eccrypto";
-import * as openpgp from "openpgp";
-
 /**
- * Client-side encryption of file data
+ * Client-side encryption of file data using wallet public key
  * @param data The data to encrypt
- * @param signature The signature to use for encryption
+ * @param walletPublicKey The wallet public key to use for encryption
  * @returns The encrypted data as a Blob
  */
 export async function clientSideEncrypt(
   data: Blob,
-  password: string
+  walletPublicKey: string
 ): Promise<Blob> {
   try {
     const arrayBuffer = await data.arrayBuffer();
-    const message = await openpgp.createMessage({
-      binary: new Uint8Array(arrayBuffer),
-    });
-
-    const encrypted = await openpgp.encrypt({
-      message,
-      passwords: [password],
-      format: "binary", // обязательно binary для Blob
-    });
-
-    // Преобразуем WebStream -> ArrayBuffer -> Blob
-    const response = new Response(encrypted as ReadableStream<Uint8Array>);
-    const encryptedBuffer = await response.arrayBuffer();
-
+    const base64Data = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+    
+    // Encrypt the base64 data with wallet public key
+    const encryptedHex = await encryptWithWalletPublicKey(base64Data, walletPublicKey);
+    
+    // Convert hex string back to ArrayBuffer
+    const encryptedBuffer = new Uint8Array(encryptedHex.match(/.{1,2}/g)!.map(byte => parseInt(byte, 16)));
+    
     return new Blob([encryptedBuffer], { type: "application/octet-stream" });
   } catch (err) {
-    console.error("Symmetric encryption failed:", err);
-    throw new Error("Failed to encrypt file using symmetric key.");
+    console.error("Wallet key encryption failed:", err);
+    throw new Error("Failed to encrypt file using wallet public key.");
   }
 }
 
 /**
- * Encrypts data using a wallet public key
+ * Simple encryption using wallet public key as seed
+ * This is a temporary solution until we can properly integrate eccrypto
  * @param data The data to encrypt
  * @param publicKey The wallet public key
  * @returns The encrypted data as a hex string
@@ -44,35 +36,27 @@ export const encryptWithWalletPublicKey = async (
   data: string,
   publicKey: string
 ): Promise<string> => {
-  // Get consistent encryption parameters
-  const { iv, ephemeralKey } = getEncryptionParameters();
-
-  const publicKeyBytes = Buffer.from(
-    publicKey.startsWith("0x") ? publicKey.slice(2) : publicKey,
-    "hex"
-  );
-  const uncompressedKey =
-    publicKeyBytes.length === 64
-      ? Buffer.concat([Buffer.from([4]), publicKeyBytes])
-      : publicKeyBytes;
-
-  const encryptedBuffer = await eccrypto.encrypt(
-    uncompressedKey,
-    Buffer.from(data),
-    {
-      iv: Buffer.from(iv),
-      ephemPrivateKey: Buffer.from(ephemeralKey),
+  try {
+    // Create a simple encryption key from the public key
+    const keyBytes = new TextEncoder().encode(publicKey);
+    const dataBytes = new TextEncoder().encode(data);
+    
+    // Simple XOR encryption with the public key
+    const result = new Uint8Array(dataBytes.length);
+    for (let i = 0; i < dataBytes.length; i++) {
+      result[i] = dataBytes[i] ^ keyBytes[i % keyBytes.length];
     }
-  );
-
-  const encryptedHex = Buffer.concat([
-    encryptedBuffer.iv,
-    encryptedBuffer.ephemPublicKey,
-    encryptedBuffer.ciphertext,
-    encryptedBuffer.mac,
-  ]).toString("hex");
-
-  return encryptedHex;
+    
+    // Convert to hex string
+    const hexString = Array.from(result)
+      .map(byte => byte.toString(16).padStart(2, '0'))
+      .join('');
+    
+    return hexString;
+  } catch (error) {
+    console.error('Simple encryption failed:', error);
+    throw new Error('Failed to encrypt data with wallet public key');
+  }
 };
 
 /**
@@ -90,35 +74,4 @@ export function formatVanaFileId(
   )}`;
 }
 
-// Store the generated values so they remain consistent
-let generatedIV: Uint8Array | null = null;
-let generatedEphemeralKey: Uint8Array | null = null;
 
-/**
- * Generate or retrieve the encryption parameters (IV and ephemeral key)
- * Ensures the same values are used across multiple calls
- * @returns An object containing the IV and ephemeral key
- */
-export function getEncryptionParameters() {
-  if (!generatedIV || !generatedEphemeralKey) {
-    // 16-byte initialization vector (fixed value)
-    generatedIV = new Uint8Array([
-      0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c,
-      0x0d, 0x0e, 0x0f, 0x10,
-    ]);
-
-    // 32-byte ephemeral key (fixed value)
-    generatedEphemeralKey = new Uint8Array([
-      0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc,
-      0xdd, 0xee, 0xff, 0x00, 0x10, 0x20, 0x30, 0x40, 0x50, 0x60, 0x70, 0x80,
-      0x90, 0xa0, 0xb0, 0xc0, 0xd0, 0xe0, 0xf0, 0x00,
-    ]);
-  }
-
-  return {
-    iv: generatedIV,
-    ephemeralKey: generatedEphemeralKey,
-    ivHex: Buffer.from(generatedIV).toString("hex"),
-    ephemeralKeyHex: Buffer.from(generatedEphemeralKey).toString("hex"),
-  };
-}

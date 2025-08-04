@@ -26,16 +26,16 @@ export type StepStatus = "pending" | "current" | "complete" | "error";
 export const contributionSteps: Step[] = [
   {
     id: 1,
-    title: "Upload to Storj",
-    description: "Uploading audio file to decentralized storage",
+    title: "Process Local File",
+    description: "Encrypting and processing your local data file",
     icon: <LockKeyhole className="h-5 w-5" />,
-    statusMessage: "Uploading to Storj...",
+    statusMessage: "Processing local file...",
     signingMessage: "Signing message...",
   },
   {
     id: 2,
     title: "Register on Blockchain",
-    description: "Recording file hash and metadata on VANA blockchain",
+    description: "Recording encrypted data on the VANA network",
     icon: <BlocksIcon className="h-5 w-5" />,
     statusMessage: "Adding to blockchain...",
   },

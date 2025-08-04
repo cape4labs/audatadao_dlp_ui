@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { encryptFileWithPGP, DEMO_PUBLIC_KEY } from '@/lib/crypto/encrypt';
+import { encryptWithWalletPublicKey } from '@/lib/crypto/utils';
+import { getPublicKeyFromAddress } from '@/lib/crypto/wallet';
 
 interface LocalFile {
   id: string;
@@ -32,14 +33,45 @@ export function useLocalStorage() {
     return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
   };
 
+  // Функция для получения публичного ключа кошелька
+  const getWalletPublicKey = async (walletAddress: string): Promise<string> => {
+    try {
+      // Use the wallet utility to get a proper public key
+      return getPublicKeyFromAddress(walletAddress);
+    } catch (error) {
+      console.error('Error getting wallet public key:', error);
+      throw new Error('Failed to get wallet public key');
+    }
+  };
+
+  // Функция для шифрования файла с использованием публичного ключа кошелька
+  const encryptFileWithWalletKey = async (file: File, walletPublicKey: string): Promise<string> => {
+    try {
+      // Конвертируем файл в base64
+      const fileBuffer = await file.arrayBuffer();
+      const base64Data = btoa(String.fromCharCode(...new Uint8Array(fileBuffer)));
+      
+      // Шифруем base64 данные с использованием публичного ключа кошелька
+      const encryptedData = await encryptWithWalletPublicKey(base64Data, walletPublicKey);
+      return encryptedData;
+    } catch (error) {
+      console.error('File encryption failed:', error);
+      throw new Error('Failed to encrypt file with wallet key');
+    }
+  };
+
   const saveFileToLocalStorage = async (file: File, walletAddress: string): Promise<LocalStorageResult> => {
     setIsUploading(true);
 
     try {
       // 1. Считаем хеш исходного файла
       const fileHash = await computeFileHash(file);
-      // 2. Шифруем файл
-      const encryptedBase64 = await encryptFileWithPGP(file, DEMO_PUBLIC_KEY);
+      
+      // 2. Получаем публичный ключ кошелька
+      const walletPublicKey = await getWalletPublicKey(walletAddress);
+      
+      // 3. Шифруем файл с использованием публичного ключа кошелька
+      const encryptedData = await encryptFileWithWalletKey(file, walletPublicKey);
 
       // Generate unique file ID
       const fileId = `${walletAddress}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -50,7 +82,7 @@ export function useLocalStorage() {
         size: file.size,
         type: file.type,
         lastModified: file.lastModified,
-        data: encryptedBase64, // сохраняем зашифрованный файл
+        data: encryptedData, // сохраняем зашифрованный файл
         walletAddress,
         uploadedAt: new Date().toISOString(),
         status: 'pending',
@@ -64,7 +96,7 @@ export function useLocalStorage() {
       // Save back to localStorage
       localStorage.setItem(`vana_files_${walletAddress}`, JSON.stringify(existingFiles));
 
-      toast.success('File saved to local storage (encrypted)');
+      toast.success('File saved to local storage (encrypted with wallet key)');
       return {
         success: true,
         fileId,

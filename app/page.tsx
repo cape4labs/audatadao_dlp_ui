@@ -59,7 +59,17 @@ export default function Home() {
     if (!user?.address) return;
     setOnboardingLoading(true);
     try {
-      const res = await fetch(`http://audata.space:8000/api/v1/users/metadata?walletAddress=${user.address}`);
+      // Try local storage first
+      const localData = localStorage.getItem(`user_onboarding_${user.address}`);
+      if (localData) {
+        const parsedData = JSON.parse(localData);
+        setOnboardingData(parsedData);
+        setOnboardingLoading(false);
+        return;
+      }
+
+      // Fallback to external API
+      const res = await fetch(`https://audata.space:8000/api/v1/users/metadata?walletAddress=${user.address}`);
       if (res.ok) {
         const data = await res.json();
         setOnboardingData(data.onboardingData);
@@ -77,6 +87,8 @@ export default function Home() {
       loadOnboarding();
     }
   }, [user?.address]);
+
+
 
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return '0 Bytes';

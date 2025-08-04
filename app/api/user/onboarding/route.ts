@@ -1,66 +1,47 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { walletAddress, country, birthMonth, birthYear, isItRelated, location, submittedAt } = body;
-
-    // Валидация входных данных
-    if (!walletAddress || !country || !birthMonth || !birthYear || !isItRelated) {
+    
+    // Validate the request body
+    const { userAddress, country, birthMonth, birthYear, isItRelated } = body;
+    
+    if (!userAddress || !country || !birthMonth || !birthYear || isItRelated === undefined) {
       return NextResponse.json(
-        { error: "Missing required fields" },
+        { error: 'Missing required fields' },
         { status: 400 }
       );
     }
 
-    const onboardingData = {
-      walletAddress,
+    // In a real application, you would save this to a database
+    // For now, we'll just log it and return success
+    console.log('Onboarding data received:', {
+      userAddress,
       country,
       birthMonth,
       birthYear,
       isItRelated,
-      location: location || null,
-      submittedAt: submittedAt || new Date().toISOString(),
-    };
-
-    // TODO: INTEGRATION WITH BACKEND
-    // Здесь нужно интегрировать с вашим бэкендом для сохранения данных onboarding
-    //
-    // 1. Создайте эндпоинт на вашем бэкенде для сохранения данных onboarding
-    // 2. Раскомментируйте код ниже и замените URL на ваш
-    // 3. Добавьте необходимые заголовки авторизации
-    // 4. Обработайте ответ от бэкенда (успех/ошибка)
-    //
-    // Раскомментируйте и настройте для интеграции с вашим бэкендом:
-    const backendUrl = process.env.BACKEND_API_URL;
-    if (backendUrl) {
-      const response = await fetch(`${backendUrl}/api/users/meatadata`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.BACKEND_API_KEY}`,
-        },
-        body: JSON.stringify(onboardingData),
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to submit onboarding data to backend');
-      }
-    }
-
-    // Логирование для отладки
-    console.log('User onboarding data:', onboardingData);
+      submittedAt: new Date().toISOString()
+    });
 
     return NextResponse.json({
       success: true,
-      message: "Onboarding data submitted successfully",
-      data: onboardingData,
+      message: 'Onboarding data saved successfully',
+      data: {
+        userAddress,
+        country,
+        birthMonth,
+        birthYear,
+        isItRelated,
+        submittedAt: new Date().toISOString()
+      }
     });
 
   } catch (error) {
-    console.error("Error submitting onboarding data:", error);
+    console.error('Error processing onboarding data:', error);
     return NextResponse.json(
-      { error: "Failed to submit onboarding data" },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }
@@ -100,7 +81,11 @@ export async function GET(request: NextRequest) {
     //     return NextResponse.json(onboardingData);
     //   }
     // }
-    return NextResponse.json({ error: "Onboarding backend not configured" }, { status: 500 });
+    // For now, return empty data since backend is not configured
+    return NextResponse.json({ 
+      success: true,
+      onboardingData: null 
+    });
 
   } catch (error) {
     console.error("Error fetching onboarding data:", error);

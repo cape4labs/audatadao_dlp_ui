@@ -1,12 +1,12 @@
 import { encryptWithWalletPublicKey } from "@/lib/crypto/utils";
-import { UploadResponse } from "@/lib/google/googleService";
 import { useState } from "react";
-import { useSignMessage } from "wagmi";
+import { useSignMessage, useAccount, useWalletClient } from "wagmi";
+import { getWalletPublicKey, getPublicKeyFromAddress } from "@/lib/crypto/wallet";
 import { ContributionData, DriveInfo, UserInfo } from "../types";
 import { extractFileIdFromReceipt } from "../utils/fileUtils";
 import { useAddFile } from "./useAddFile";
 import { useDataRefinement } from "./useDataRefinement";
-import { useDataUpload } from "./useDataUpload";
+import { useLocalFileUpload, LocalUploadResponse } from "./useLocalFileUpload";
 import { useRewardClaim } from "./useRewardClaim";
 import {
   getDlpPublicKey,
@@ -17,7 +17,7 @@ import {
 
 // Steps aligned with ContributionSteps component (1-based indexing)
 const STEPS = {
-  UPLOAD_DATA: 1,
+  PROCESS_LOCAL_FILE: 1,
   BLOCKCHAIN_REGISTRATION: 2,
   REQUEST_TEE_PROOF: 3,
   PROCESS_PROOF: 4,
@@ -33,8 +33,10 @@ export function useContributionFlow() {
     useState<ContributionData | null>(null);
   const [shareUrl, setShareUrl] = useState<string>("");
 
+  const { address } = useAccount();
+  const { data: walletClient } = useWalletClient();
   const { signMessageAsync, isPending: isSigningMessage } = useSignMessage();
-  const { uploadData, isUploading } = useDataUpload();
+  const { processLocalFile, isUploading } = useLocalFileUpload();
   const { addFile, isAdding, contractError } = useAddFile();
   const { requestContributionProof, isProcessing } = useTeeProof();
   const { requestReward, isClaiming } = useRewardClaim();
@@ -59,6 +61,7 @@ export function useContributionFlow() {
 
   const handleContributeData = async (
     userInfo: UserInfo,
+    fileData: File | string,
     driveInfo: DriveInfo,
     isConnected: boolean
   ) => {
@@ -74,9 +77,29 @@ export function useContributionFlow() {
       const signature = await executeSignMessageStep();
       if (!signature) return;
 
+      // Get wallet public key for encryption
+      let walletPublicKey: string;
+      try {
+        if (walletClient) {
+          // Try to get the actual public key from the wallet client
+          walletPublicKey = await getWalletPublicKey(walletClient);
+        } else if (address) {
+          // Fallback to mock public key from address
+          walletPublicKey = getPublicKeyFromAddress(address);
+        } else {
+          setError("Wallet not connected");
+          return;
+        }
+      } catch (error) {
+        console.error('Error getting wallet public key:', error);
+        setError("Failed to get wallet public key");
+        return;
+      }
+
       const uploadResult = await executeUploadDataStep(
         userInfo,
-        signature,
+        walletPublicKey,
+        fileData,
         driveInfo
       );
       if (!uploadResult) return;
@@ -130,28 +153,29 @@ export function useContributionFlow() {
     }
   };
 
-  // Step 1: Upload data to Google Drive
+  // Step 1: Process local file data
   const executeUploadDataStep = async (
     userInfo: UserInfo,
-    signature: string,
+    walletPublicKey: string,
+    fileData: File | string,
     driveInfo: DriveInfo
   ) => {
-    setCurrentStep(STEPS.UPLOAD_DATA);
+    setCurrentStep(STEPS.PROCESS_LOCAL_FILE);
 
-    const uploadResult = await uploadData(userInfo, signature, driveInfo);
+    const uploadResult = await processLocalFile(userInfo, walletPublicKey, fileData, driveInfo);
     if (!uploadResult) {
-      setError("Failed to upload data to Google Drive");
+      setError("Failed to process local file data");
       return null;
     }
 
     setShareUrl(uploadResult.downloadUrl);
-    markStepComplete(STEPS.UPLOAD_DATA);
+    markStepComplete(STEPS.PROCESS_LOCAL_FILE);
     return uploadResult;
   };
 
   // Step 2: Register on blockchain
   const executeBlockchainRegistrationStep = async (
-    uploadResult: UploadResponse,
+    uploadResult: LocalUploadResponse,
     signature: string
   ) => {
     setCurrentStep(STEPS.BLOCKCHAIN_REGISTRATION);
@@ -161,7 +185,7 @@ export function useContributionFlow() {
     const encryptedKey = await encryptWithWalletPublicKey(signature, publicKey);
 
     // Add the file to blockchain
-    const txReceipt = await addFile(uploadResult.downloadUrl, encryptedKey);
+    const txReceipt = await addFile(uploadResult.downloadUrl);
 
     if (!txReceipt) {
       // Use the specific contract error if available
@@ -276,11 +300,11 @@ export function useContributionFlow() {
 
   // Helper functions
   const markStepComplete = (step: number) => {
-    setCompletedSteps((prev) => [...prev, step]);
+    setCompletedSteps((prev: number[]) => [...prev, step]);
   };
 
   const updateContributionData = (newData: Partial<ContributionData>) => {
-    setContributionData((prev) => {
+    setContributionData((prev: ContributionData | null) => {
       if (!prev) return newData as ContributionData;
       return { ...prev, ...newData };
     });
