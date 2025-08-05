@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { clientSideEncrypt, formatVanaFileId } from "@/lib/crypto/utils";
-import { DriveInfo, UserInfo } from "../types";
+import { UserInfo } from "../types";
 
 export interface LocalUploadResponse {
   downloadUrl: string;

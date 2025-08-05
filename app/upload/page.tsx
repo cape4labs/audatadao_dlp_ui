@@ -11,6 +11,7 @@ import { useDataRefinement } from "../contribution/hooks/useDataRefinement";
 import { useDropzone } from "react-dropzone";
 import { useAccount } from "wagmi";
 import { Navigation } from "../components/Navigation";
+import { useContributionFlow } from "../contribution/hooks/useContributionFlow";
 
 interface UploadedFile {
   id: string;
@@ -34,7 +35,9 @@ export default function UploadPage() {
   const { isConnected } = useAccount();
   const { addFile, isAdding, contractError } = useAddFile();
   const { refine, isLoading: isRefining } = useDataRefinement();
-  
+  const { handleContributeData } = useContributionFlow();
+
+
   const [uploadStatus, setUploadStatus] = useState<UploadStatus>({
     isUploading: false,
     isSuccess: false,
@@ -64,21 +67,16 @@ export default function UploadPage() {
     }));
 
     try {
-        const formData = new FormData();
-        formData.append('file', file  );
+      
+      await handleContributeData(file, isConnected);
 
-        const pinataResponse = await fetch("api/upload", {
-          method: "POST",
-          body: formData,
-        });
+      setUploadStatus(prev => ({
+        ...prev,
+        isUploading: false,
+        isSuccess: true,
+        // uploadedFile: ...
+      }));
 
-
-        if (!pinataResponse.ok) {
-          console.error("Upload failed:", pinataResponse.statusText);
-          throw new Error("Failed to upload file to Pinata");
-        }
-
-        console.log("File uploaded successfully to Pinata");
     } catch (error) {
       console.error("Upload error:", error);
       setUploadStatus(prev => ({
@@ -257,6 +255,7 @@ export default function UploadPage() {
           </Card>
         </div>
       </div>
+
     </div>
   );
 } 

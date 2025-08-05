@@ -2,17 +2,18 @@ import { createClient } from "@/contracts/client";
 import { Controller } from "@/contracts/instances/controller";
 import { getEncryptionParameters } from "@/lib/crypto/utils";
 import { waitForTransactionReceipt } from "@wagmi/core";
-import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { useAccount, useConfig, useWriteContract } from "wagmi";
 
 // Fixed message for signing
 export const SIGN_MESSAGE = "Please sign to retrieve your encryption key";
 
+const DB_URI = process.env.DB_URI
+const DLP_ID = process.env.DLP_ID
+
 export type ProofResult = {
   fileId: number;
   jobId: number;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   proofData: any;
   txHash: string;
 };
@@ -43,8 +44,9 @@ interface ProofRequestBody {
   proof_url: string;
   encryption_seed: string;
   env_vars: {
-    GOOGLE_TOKEN?: string;
-  };
+    DLP_ID: number,
+    DB_URI: string,
+  },
   validate_permissions: {
     address: string;
     public_key: string;
@@ -74,7 +76,6 @@ export const useTeeProof = () => {
   const { writeContractAsync, isPending } = useWriteContract();
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { data: session } = useSession();
 
   // Create client and read contract directly
   const client = createClient();
@@ -159,10 +160,6 @@ export const useTeeProof = () => {
         throw new Error("Wallet not connected");
       }
 
-      if (!session?.accessToken) {
-        throw new Error("Authentication required");
-      }
-
       // Request contribution proof using wagmi hooks
       const hash = await writeContractAsync({
         address: teePoolAddress,
@@ -205,8 +202,8 @@ export const useTeeProof = () => {
         proof_url: process.env.NEXT_PUBLIC_PROOF_URL || "",
         encryption_seed: SIGN_MESSAGE,
         env_vars: {
-          // Add the Google token directly from the session
-          GOOGLE_TOKEN: session.accessToken,
+         DLP_ID: 140,
+         DB_URI: "postgresql://uZxnXtjLASNyTXSfxRfEOWYFA:7BMOlhIL7jzlMmDNPR1bbCdm2@5.129.230.182:5432/prod",
         },
         validate_permissions: [
           {

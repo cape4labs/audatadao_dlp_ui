@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const externalResponse = await fetch('https://audata.space:8000/api/v1/users/metadata', {
+    await fetch('https://audata.space:8000/api/v1/users/metadata', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -28,16 +28,7 @@ export async function POST(request: NextRequest) {
       }),
     });
 
-    // In a real application, you would save this to a database
-    // For now, we'll just log it and return success
-    console.log('Onboarding data received:', {
-      userAddress,
-      country,
-      birthMonth,
-      birthYear,
-      isItRelated,
-      submittedAt: new Date().toISOString()
-    });
+
 
     return NextResponse.json({
       success: true,

@@ -22,14 +22,13 @@ export async function POST(request: NextRequest) {
         const pinataResponse = await fetch("https://api.pinata.cloud/pinning/pinFileToIPFS", {
           method: "POST",
           headers: {
-            "pinata_api_key": '0904cdffa1f7a18dc408',
-            "pinata_secret_api_key": '29aaac77b8e5fd3a3de8a5f8666f1586911a88d8cf55240e51639200a4fbd784',
+            "pinata_api_key": `${process.env.PINATA_API_KEY}`,
+            "pinata_secret_api_key": `${process.env.PINATA_SECRET_API_KEY}`,
           },
           body: formData,
         });
 
 
-        console.log("Pinata response:", await pinataResponse.json());
     if (!pinataResponse.ok) {
       const errorText = await pinataResponse.text();
       console.error('Pinata upload error:', pinataResponse.status, errorText);

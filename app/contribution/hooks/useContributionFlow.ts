@@ -1,24 +1,23 @@
+import { encryptWithWalletPublicKey } from "@/lib/crypto/utils";
 import { useState } from "react";
-import { useSignMessage, useAccount, useWalletClient } from "wagmi";
-import { getWalletPublicKey, getPublicKeyFromAddress } from "@/lib/crypto/wallet";
+import { useSignMessage } from "wagmi";
 import { ContributionData, DriveInfo, UserInfo } from "../types";
 import { extractFileIdFromReceipt } from "../utils/fileUtils";
 import { useAddFile } from "./useAddFile";
 import { useDataRefinement } from "./useDataRefinement";
-import { useLocalFileUpload, LocalUploadResponse } from "./useLocalFileUpload";
+import { useDataUpload } from "./useDataUpload";
 import { useRewardClaim } from "./useRewardClaim";
+import { UploadResponse } from "./useDataUpload";
 import {
   getDlpPublicKey,
   ProofResult,
   SIGN_MESSAGE,
   useTeeProof,
 } from "./useTeeProof";
-import { Download } from "lucide-react";
-import { formatVanaFileId } from "@/lib/crypto/utils";
 
 // Steps aligned with ContributionSteps component (1-based indexing)
 const STEPS = {
-  PROCESS_LOCAL_FILE: 1,
+  UPLOAD_DATA: 1,
   BLOCKCHAIN_REGISTRATION: 2,
   REQUEST_TEE_PROOF: 3,
   PROCESS_PROOF: 4,
@@ -34,10 +33,8 @@ export function useContributionFlow() {
     useState<ContributionData | null>(null);
   const [shareUrl, setShareUrl] = useState<string>("");
 
-  const { address } = useAccount();
-  const { data: walletClient } = useWalletClient();
   const { signMessageAsync, isPending: isSigningMessage } = useSignMessage();
-  const { processLocalFile, isUploading } = useLocalFileUpload();
+  const { uploadData, isUploading } = useDataUpload();
   const { addFile, isAdding, contractError } = useAddFile();
   const { requestContributionProof, isProcessing } = useTeeProof();
   const { requestReward, isClaiming } = useRewardClaim();
@@ -61,94 +58,50 @@ export function useContributionFlow() {
   };
 
   const handleContributeData = async (
-    userInfo: UserInfo,
-    fileData: File | string,
-    driveInfo: DriveInfo,
-    isConnected: boolean
+    file: Blob,
+    isConnected: boolean,
   ) => {
-    if (!userInfo) {
-      setError("Unable to access user information. Please try again.");
-      return;
-    }
 
     try {
       setError(null);
 
-      // Step 0: Sign message
+      // Execute steps in sequence
       const signature = await executeSignMessageStep();
       if (!signature) return;
 
-      // Step 1: Get wallet public key
-      let walletPublicKey: string;
-      try {
-        if (walletClient) {
-          walletPublicKey = await getWalletPublicKey(walletClient);
-        } else if (address) {
-          walletPublicKey = getPublicKeyFromAddress(address);
-        } else {
-          setError("Wallet not connected");
-          return;
-        }
-      } catch (error) {
-        setError("Failed to get wallet public key");
-        return;
-      }
-
-      // Step 2: Локальное шифрование и загрузка в Pinata
-      const localFileResult = await processLocalFile(
-        userInfo,
-        walletPublicKey,
-        fileData,
+      const uploadResult = await executeUploadDataStep(
+        file,
+        signature,
       );
-      if (!localFileResult) return;
-
-      // Отправляем зашифрованный файл на сервер (Pinata)
-      const formData = new FormData();
-      formData.append('file', await fetch(localFileResult.downloadUrl).then(r => r.blob()));
-      formData.append('walletAddress', userInfo.id!);
-
-      const uploadResponse = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
-      if (!uploadResponse.ok) {
-        setError("Failed to upload file to Pinata");
-        return;
-      }
-      const uploadResult = await uploadResponse.json();
+      if (!uploadResult) return;
 
       if (!isConnected) {
         setError("Wallet connection required to register on blockchain");
         return;
       }
 
-      // Step 3: Register on blockchain
-      const { fileId, txReceipt } =
-        await executeBlockchainRegistrationStep({
-          downloadUrl: uploadResult.data.pinataUrl,
-          fileId: uploadResult.data.fileId,
-          fileHash: uploadResult.data.fileHash,
-          fileName: uploadResult.data.fileName,
-          fileSize: uploadResult.data.fileSize,
-        }, signature);
+      const { fileId, txReceipt, encryptedKey } =
+        await executeBlockchainRegistrationStep(uploadResult, signature);
       if (!fileId) return;
 
-      // Update contribution data
+      // Update contribution data with blockchain information
       updateContributionData({
-        contributionId: fileId,
-        encryptedUrl: uploadResult.data.pinataUrl,
+        contributionId: uploadResult.vanaFileId,
+        encryptedUrl: uploadResult.downloadUrl,
         transactionReceipt: {
           hash: txReceipt.transactionHash,
-          blockNumber: Number(txReceipt.blockNumber),
-        },
+          blockNumber: txReceipt.blockNumber
+            ? Number(txReceipt.blockNumber)
+            : undefined,
+        }
       });
 
-      // Step 4: TEE Proof and Reward
-      const fileIdNum = typeof fileId === 'string' ? parseInt(fileId, 10) : fileId;
-      await executeProofAndRewardSteps(fileIdNum, signature);
+      // Process proof and reward in sequence
+      await executeProofAndRewardSteps(fileId, encryptedKey, signature);
 
       setIsSuccess(true);
     } catch (error) {
+      console.error("Error contributing data:", error);
       setError(
         error instanceof Error
           ? error.message
@@ -157,89 +110,81 @@ export function useContributionFlow() {
     }
   };
 
-  // Step 0: Sign message
+  // Step 0: Sign message (pre-step before the visible flow begins)
   const executeSignMessageStep = async (): Promise<string | undefined> => {
     try {
+      // We don't update currentStep here since signing happens before the visible flow
       const signature = await signMessageAsync({ message: SIGN_MESSAGE });
       return signature;
     } catch (signError) {
+      console.error("Error signing message:", signError);
       setError("Failed to sign the message. Please try again.");
       return undefined;
     }
   };
 
-  // Step 1: Upload and encrypt file (Pinata)
+  // Step 1: Upload data to Google Drive
   const executeUploadDataStep = async (
-    userInfo: UserInfo,
-    walletPublicKey: string,
-    fileData: File | string,
-    driveInfo: DriveInfo
+    file: Blob,
+    signature: string
   ) => {
-    setCurrentStep(STEPS.PROCESS_LOCAL_FILE);
+    setCurrentStep(STEPS.UPLOAD_DATA);
 
-    const formData = new FormData();
-    formData.append('file', fileData as File);
-    formData.append('walletAddress', userInfo.id!);
-
-    const uploadResponse = await fetch('/api/upload', {
-      method: 'POST',
-      body: formData,
-    });
-
-    if (!uploadResponse.ok) {
-      setError("Failed to upload file to Pinata");
+    const uploadResult = await uploadData(file, signature);
+    if (!uploadResult) {
+      setError("Failed to upload data to Google Drive");
       return null;
     }
 
-    const uploadResult = await uploadResponse.json();
+    console.log(uploadResult.downloadUrl)
 
-    setShareUrl(uploadResult.data.pinataUrl);
-    markStepComplete(STEPS.PROCESS_LOCAL_FILE);
-
-    return {
-      downloadUrl: uploadResult.data.pinataUrl,
-      fileHash: uploadResult.data.fileHash,
-      fileName: uploadResult.data.fileName,
-      fileSize: uploadResult.data.fileSize,
-      fileId: uploadResult.data.fileId,
-    };
+    setShareUrl(uploadResult.downloadUrl);
+    markStepComplete(STEPS.UPLOAD_DATA);
+    return uploadResult;
   };
 
   // Step 2: Register on blockchain
   const executeBlockchainRegistrationStep = async (
-    uploadResult: LocalUploadResponse,
+    uploadResult: UploadResponse,
     signature: string
   ) => {
     setCurrentStep(STEPS.BLOCKCHAIN_REGISTRATION);
 
-    const txReceipt = await addFile(uploadResult.downloadUrl);
+    const publicKey = await getDlpPublicKey();
+    const encryptedKey = await encryptWithWalletPublicKey(signature, publicKey);
+
+    // Add the file to blockchain
+    const txReceipt = await addFile(uploadResult.downloadUrl, encryptedKey);
 
     if (!txReceipt) {
+      // Use the specific contract error if available
       if (contractError) {
         setError(`Contract error: ${contractError}`);
       } else {
         setError("Failed to add file to blockchain");
       }
-      return { fileId: null, txReceipt: null };
+      return { fileId: null };
     }
 
+    // Extract file ID from transaction receipt
     const fileId = extractFileIdFromReceipt(txReceipt);
     markStepComplete(STEPS.BLOCKCHAIN_REGISTRATION);
 
-    return { fileId, txReceipt };
+    return { fileId, txReceipt, encryptedKey };
   };
 
-  // Step 3-5: TEE Proof and Reward
+  // Steps 3-5: TEE Proof and Reward
   const executeProofAndRewardSteps = async (
     fileId: number,
+    encryptedKey: string,
     signature: string
   ) => {
     try {
       // Step 3: Request TEE Proof
       const proofResult = await executeTeeProofStep(
         fileId,
-        signature,
-        signature // encryptionKey и signature одинаковы, если нет отдельного ключа
+        encryptedKey,
+        signature
       );
 
       // Step 4: Process Proof
@@ -248,6 +193,7 @@ export function useContributionFlow() {
       // Step 5: Claim Reward
       await executeClaimRewardStep(fileId);
     } catch (proofErr) {
+      console.error("Error in TEE/reward process:", proofErr);
       setError(
         proofErr instanceof Error
           ? proofErr.message
@@ -259,18 +205,18 @@ export function useContributionFlow() {
   // Step 3: Request TEE Proof
   const executeTeeProofStep = async (
     fileId: number,
-    encryptionKey: string,
+    encryptedKey: string,
     signature: string
   ) => {
     setCurrentStep(STEPS.REQUEST_TEE_PROOF);
     const proofResult = await requestContributionProof(
       fileId,
-      encryptionKey,
+      encryptedKey,
       signature
     );
 
     updateContributionData({
-      teeJobId: proofResult.jobId.toString(),
+      teeJobId: proofResult.jobId,
     });
 
     markStepComplete(STEPS.REQUEST_TEE_PROOF);
@@ -284,20 +230,26 @@ export function useContributionFlow() {
   ) => {
     setCurrentStep(STEPS.PROCESS_PROOF);
 
+    // Update contribution data with proof data
     updateContributionData({
-      proofResult: proofResult.proofData,
+      teeProofData: proofResult.proofData,
     });
 
+    // Call the data refinement process
     try {
+      console.log("Starting data refinement...");
       const refinementResult = await refine({
         file_id: proofResult.fileId,
         encryption_key: signature,
       });
 
+      console.log("Data refinement completed:", refinementResult);
+
       markStepComplete(STEPS.PROCESS_PROOF);
 
       return refinementResult;
     } catch (refineError) {
+      console.error("Error during data refinement:", refineError);
       throw refineError;
     }
   };
@@ -308,20 +260,20 @@ export function useContributionFlow() {
     const rewardResult = await requestReward(fileId);
 
     updateContributionData({
-      rewardClaimed: true,
+      rewardTxHash: rewardResult?.transactionHash,
     });
 
     markStepComplete(STEPS.CLAIM_REWARD);
     return rewardResult;
   };
 
-  // Helpers
+  // Helper functions
   const markStepComplete = (step: number) => {
-    setCompletedSteps((prev: number[]) => [...prev, step]);
+    setCompletedSteps((prev) => [...prev, step]);
   };
 
   const updateContributionData = (newData: Partial<ContributionData>) => {
-    setContributionData((prev: ContributionData | null) => {
+    setContributionData((prev) => {
       if (!prev) return newData as ContributionData;
       return { ...prev, ...newData };
     });

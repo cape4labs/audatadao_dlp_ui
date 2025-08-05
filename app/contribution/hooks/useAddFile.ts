@@ -36,17 +36,13 @@ export function useAddFile() {
     fileUrl: string,
     encryptionKey: string
   ): Promise<TransactionReceipt | null> => {
-    if (!address) {
-      throw new Error("Wallet not connected");
-    }
-
     setIsAdding(true);
     setError(null);
     setContractError(null);
 
     try {
       const dataRegistry = DataRegistry();
-
+      
       // Send transaction to add file with permissions to DataRegistry
       const hash = await writeContractAsync({
         address: dataRegistry.address,
@@ -54,7 +50,7 @@ export function useAddFile() {
         functionName: "addFileWithPermissions",
         args: [
           fileUrl,
-          address, // ownerAddress - the user's address
+          address,
           [
             {
               account: dataLiquidityPoolAddress,
