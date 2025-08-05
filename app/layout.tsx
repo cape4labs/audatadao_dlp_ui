@@ -17,6 +17,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "VANA DLP Wallet Connector",
   description: "Connect your wallet and contribute data to the VANA network",
+  icons: "icon.jpg"
 };
 
 export default function RootLayout({

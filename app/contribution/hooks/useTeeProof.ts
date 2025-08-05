@@ -202,7 +202,7 @@ export const useTeeProof = () => {
         proof_url: process.env.NEXT_PUBLIC_PROOF_URL || "",
         encryption_seed: SIGN_MESSAGE,
         env_vars: {
-         DLP_ID: 140,
+         DLP_ID: 152,
          DB_URI: "postgresql://uZxnXtjLASNyTXSfxRfEOWYFA:7BMOlhIL7jzlMmDNPR1bbCdm2@5.129.230.182:5432/prod",
         },
         validate_permissions: [

@@ -85,6 +85,7 @@ export default function Home() {
 
   if (!user?.address) {
     return (
+      
       <div className="flex flex-col min-h-screen">
         <Navigation />
         <div className="container mx-auto px-4 py-8">
