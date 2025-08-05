@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { LogOut, User, Upload, Home, Wallet, Menu, X } from "lucide-react";
+import { LogOut, Upload, Home, Wallet, Menu, X } from "lucide-react";
 import { useWalletAuth } from "@/lib/auth/walletAuth";
 import { WalletLoginButton } from "@/app/auth/WalletLoginButton";
 import Link from "next/link";

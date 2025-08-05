@@ -4,7 +4,6 @@ export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
     const file = formData.get('file') as File;
-    const walletAddress = formData.get('walletAddress') as string;
 
     if (!file) {
       return NextResponse.json(
@@ -13,67 +12,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!walletAddress) {
-      return NextResponse.json(
-        { error: "No wallet address provided" },
-        { status: 400 }
-      );
-    }
-
-    // Check if Pinata credentials are configured
-    const pinataApiKey = process.env.PINATA_API_KEY;
-    const pinataApiSecret = process.env.PINATA_API_SECRET;
-
-    if (!pinataApiKey || !pinataApiSecret) {
-      return NextResponse.json(
-        { error: "Pinata API credentials not configured" },
-        { status: 500 }
-      );
-    }
-
     // Convert file to buffer
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // Create metadata for Pinata
-    const metadata = {
-      name: file.name,
-      description: `Uploaded by ${walletAddress}`,
-      attributes: [
-        {
-          trait_type: "Wallet Address",
-          value: walletAddress,
-        },
-        {
-          trait_type: "File Type",
-          value: file.type,
-        },
-        {
-          trait_type: "File Size",
-          value: file.size.toString(),
-        },
-        {
-          trait_type: "Upload Date",
-          value: new Date().toISOString(),
-        },
-      ],
-    };
+    formData.append('file', file);
 
     // Upload to Pinata
-    const pinataResponse = await fetch('https://api.pinata.cloud/pinning/pinFileToIPFS', {
-      method: 'POST',
-      headers: {
-        'pinata_api_key': pinataApiKey,
-        'pinata_secret_api_key': pinataApiSecret,
-      },
-      body: (() => {
-        const formData = new FormData();
-        formData.append('file', new Blob([buffer], { type: file.type }), file.name);
-        formData.append('pinataMetadata', JSON.stringify(metadata));
-        return formData;
-      })(),
-    });
+        const pinataResponse = await fetch("https://api.pinata.cloud/pinning/pinFileToIPFS", {
+          method: "POST",
+          headers: {
+            "pinata_api_key": '0904cdffa1f7a18dc408',
+            "pinata_secret_api_key": '29aaac77b8e5fd3a3de8a5f8666f1586911a88d8cf55240e51639200a4fbd784',
+          },
+          body: formData,
+        });
 
+
+        console.log("Pinata response:", await pinataResponse.json());
     if (!pinataResponse.ok) {
       const errorText = await pinataResponse.text();
       console.error('Pinata upload error:', pinataResponse.status, errorText);
@@ -85,18 +41,11 @@ export async function POST(request: NextRequest) {
 
     const pinataResult = await pinataResponse.json();
 
-    // Generate file hash (using the file content)
-    const crypto = require('crypto');
-    const fileHash = crypto.createHash('sha256').update(buffer).digest('hex');
-
-    // Return the result in the format expected by the template
     return NextResponse.json({
       data: {
-        pinataUrl: `https://gateway.pinata.cloud/ipfs/${pinataResult.IpfsHash}`,
-        fileHash: fileHash,
+        pinataUrl: `https://moccasin-hilarious-canid-233.mypinata.cloud/ipfs/${pinataResult.IpfsHash}`,
         fileName: file.name,
         fileSize: file.size,
-        fileId: pinataResult.IpfsHash,
       },
     });
 

@@ -14,6 +14,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const externalResponse = await fetch('https://audata.space:8000/api/v1/users/metadata', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        userAddress,
+        country,
+        birthMonth,
+        birthYear,
+        isItRelated,
+      }),
+    });
+
     // In a real application, you would save this to a database
     // For now, we'll just log it and return success
     console.log('Onboarding data received:', {
@@ -59,32 +73,13 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // TODO: INTEGRATION WITH BACKEND
-    // Здесь нужно интегрировать с вашим бэкендом для получения данных onboarding
-    //
-    // 1. Создайте эндпоинт на вашем бэкенде для получения данных onboarding
-    // 2. Раскомментируйте код ниже и замените URL на ваш
-    // 3. Добавьте необходимые заголовки авторизации
-    // 4. Обработайте ответ от бэкенда
-    //
-    // Раскомментируйте и настройте для интеграции с вашим бэкендом:
-    // const backendUrl = process.env.BACKEND_API_URL;
-    // if (backendUrl) {
-    //   const response = await fetch(`${backendUrl}/api/users/onboarding/${walletAddress}`, {
-    //     headers: {
-    //       'Authorization': `Bearer ${process.env.BACKEND_API_KEY}`,
-    //     },
-    //   });
-    //   
-    //   if (response.ok) {
-    //     const onboardingData = await response.json();
-    //     return NextResponse.json(onboardingData);
-    //   }
-    // }
-    // For now, return empty data since backend is not configured
+    const res = await fetch(`http://audata.space:8000/api/v1/users/metadata/?user_wallet_address=${walletAddress}`); 
+    
+    console.log(res.status, res.statusText);
+    
     return NextResponse.json({ 
       success: true,
-      onboardingData: null 
+      data: res.ok ? await res.json() : null, 
     });
 
   } catch (error) {

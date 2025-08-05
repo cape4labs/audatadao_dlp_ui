@@ -112,25 +112,7 @@ export function UserOnboarding({ onComplete }: { onComplete: () => void }) {
           const result = await localResponse.json();
           console.log('Onboarding data submitted to local API:', result);
           toast.success("Onboarding completed successfully!");
-        } else {
-          // Fallback to external API
-          const externalResponse = await fetch('https://audata.space:8000/api/v1/users/metadata', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(onboardingData),
-          });
-          
-          if (externalResponse.ok) {
-            const result = await externalResponse.json();
-            console.log('Onboarding data submitted to external API:', result);
-            toast.success("Onboarding completed successfully!");
-          } else {
-            console.warn('Both APIs not available, but onboarding data saved locally');
-            toast.success("Onboarding completed (offline mode)");
-          }
-        }
+        } 
       } catch (apiError) {
         console.warn('APIs not available, but onboarding data saved locally:', apiError);
         toast.success("Onboarding completed (offline mode)");

@@ -63,8 +63,10 @@ export const useWalletAuth = create<WalletAuthState>()(
           if (response.ok) {
             const result = await response.json();
             console.log('Wallet registered successfully with backend:', result);
+          } else if (response.status === 400) {
+            console.log('OK');
           } else {
-            console.warn('Backend registration failed, but wallet is connected locally:', response.statusText);
+            console.error('Failed to register wallet with backend:', response.statusText);
           }
 
         } catch (error) {
