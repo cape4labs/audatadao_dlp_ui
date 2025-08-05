@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAccount, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { DataRegistry } from '@/contracts/instances/data-registry';
+import { Controller } from '@/contracts/instances/controller';
 import { createClient } from '@/contracts/client';
 import { toast } from 'sonner';
 
@@ -16,13 +17,17 @@ export function useBlockchainIntegration() {
   const [isRegistering, setIsRegistering] = useState(false);
   const [transactionHash, setTransactionHash] = useState<string | null>(null);
 
+  const { address: dataLiquidityPoolAddress } = Controller(
+    "DataLiquidityPoolProxy"
+  );
+
   const { writeContract, data: hash, isPending, error } = useWriteContract();
 
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
     hash,
   });
 
-  const registerDataOnBlockchain = async (blockchainData: BlockchainData) => {
+  const registerDataOnBlockchain = async (blockchainData: BlockchainData, encryptionKey: string) => {
     if (!address) {
       toast.error('Wallet not connected');
       return;
@@ -44,8 +49,17 @@ export function useBlockchainIntegration() {
       writeContract({
         address: dataRegistry.address,
         abi: dataRegistry.abi,
-        functionName: 'addFile',
-        args: [fileUrl], // Only pass the URL, not the fileHash
+        functionName: 'addFileWithPermissions',
+        args: [
+          fileUrl, // file URL
+          address, // ownerAddress - the user's address
+          [
+            {
+              account: dataLiquidityPoolAddress,
+              key: encryptionKey,
+            },
+          ],
+        ],
         account: address,
       });
 

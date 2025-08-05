@@ -33,8 +33,13 @@ export function useAddFile() {
    * Add file to blockchain and wait for receipt
    */
   const addFile = async (
-    fileUrl: string
+    fileUrl: string,
+    encryptionKey: string
   ): Promise<TransactionReceipt | null> => {
+    if (!address) {
+      throw new Error("Wallet not connected");
+    }
+
     setIsAdding(true);
     setError(null);
     setContractError(null);
@@ -42,12 +47,21 @@ export function useAddFile() {
     try {
       const dataRegistry = DataRegistry();
 
-      // Send transaction to add file to DataRegistry
+      // Send transaction to add file with permissions to DataRegistry
       const hash = await writeContractAsync({
         address: dataRegistry.address,
         abi: dataRegistry.abi,
-        functionName: "addFile",
-        args: [fileUrl],
+        functionName: "addFileWithPermissions",
+        args: [
+          fileUrl,
+          address, // ownerAddress - the user's address
+          [
+            {
+              account: dataLiquidityPoolAddress,
+              key: encryptionKey,
+            },
+          ],
+        ],
       });
 
       // Wait for transaction receipt

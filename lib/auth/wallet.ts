@@ -5,6 +5,7 @@ import { coinbaseWallet, injected, metaMask } from "wagmi/connectors";
 // Configure Wagmi
 const config = createConfig({
   chains: [mokshaTestnet, vanaMainnet],
+  defaultChain: mokshaTestnet, // Force default to Moksha Testnet
   connectors: [
     injected(), // MetaMask and browser injected wallets
     metaMask(), // Explicit MetaMask connector

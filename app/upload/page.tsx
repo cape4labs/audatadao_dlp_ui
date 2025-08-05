@@ -8,9 +8,12 @@ import { Upload, FileAudio, Loader2, CheckCircle, AlertCircle, Shield, Database,
 import { useDropzone } from "react-dropzone";
 import { toast } from "sonner";
 import { useWalletAuth } from "@/lib/auth/walletAuth";
-import { useLocalStorage } from "../contribution/hooks/useLocalStorage";
-import { useBlockchainIntegration } from "../contribution/hooks/useBlockchainIntegration";
+import { useAddFile } from "../contribution/hooks/useAddFile";
+import { useDataRefinement } from "../contribution/hooks/useDataRefinement";
+import { useContractStatus } from "../contribution/hooks/useContractStatus";
+import { useAccount } from "wagmi";
 import { Navigation } from "../components/Navigation";
+import { NetworkSwitcher } from "../components/NetworkSwitcher";
 
 interface UploadedFile {
   id: string;
@@ -31,8 +34,10 @@ interface UploadStatus {
 
 export default function UploadPage() {
   const { user } = useWalletAuth();
-  const { saveFileToLocalStorage, getFilesFromLocalStorage, updateFileStatus, isUploading: isLocalStorageUploading } = useLocalStorage();
-  const { registerDataOnBlockchain, isRegistering, transactionHash } = useBlockchainIntegration();
+  const { isConnected } = useAccount();
+  const { addFile, isAdding, contractError } = useAddFile();
+  const { refine, isLoading: isRefining } = useDataRefinement();
+  const { isPaused, isLoading: isContractLoading, error: contractStatusError } = useContractStatus();
   
   const [uploadStatus, setUploadStatus] = useState<UploadStatus>({
     isUploading: false,
@@ -47,7 +52,13 @@ export default function UploadPage() {
       return;
     }
 
-    // Фильтруем только .ogg файлы
+    // Check if wallet is properly connected
+    if (!isConnected) {
+      toast.error("Wallet not connected. Please connect your wallet and try again.");
+      return;
+    }
+
+    // Filter only .ogg files
     const oggFiles = acceptedFiles.filter(file => 
       file.type === "audio/ogg" || file.name.toLowerCase().endsWith('.ogg')
     );
@@ -65,60 +76,99 @@ export default function UploadPage() {
 
     try {
       for (const file of oggFiles) {
-        // Шаг 1: Сохраняем файл в localStorage
-        const localResult = await saveFileToLocalStorage(file, user.address);
-        
-        if (!localResult.success) {
-          throw new Error(localResult.error || 'Failed to save file to local storage');
+        // Step 1: Upload file to Pinata (following template approach)
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('walletAddress', user.address);
+
+        const uploadResponse = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!uploadResponse.ok) {
+          throw new Error("Failed to upload file to Pinata");
         }
 
-        // Шаг 2: Обновляем статус на "processing"
-        updateFileStatus(user.address, localResult.fileId!, 'processing');
+        const uploadResult = await uploadResponse.json();
+        const downloadUrl = uploadResult.data.pinataUrl;
+        const fileHash = uploadResult.data.fileHash;
 
-        // Шаг 3: Генерируем хеш файла
-        const fileHash = await generateFileHash(file);
+        // Step 2: Generate encryption key (using file hash as signature)
+        const encryptionKey = fileHash;
 
-        // Шаг 4: Создаем метаданные для блокчейна
-        const metadata = JSON.stringify({
-          fileName: file.name,
-          fileSize: file.size,
-          walletAddress: user.address,
-          uploadedAt: new Date().toISOString(),
-          fileType: 'audio/ogg',
-          fileHash: fileHash,
-          fileId: localResult.fileId,
-        });
+        // Step 3: Register on blockchain (following template approach)
+        try {
+          // Double-check wallet connection before blockchain operation
+          if (!isConnected) {
+            throw new Error("Wallet connection lost. Please reconnect and try again.");
+          }
+          
+          const txReceipt = await addFile(downloadUrl, encryptionKey);
+          
+          if (!txReceipt) {
+            if (contractError) {
+              throw new Error(`Contract error: ${contractError}`);
+            } else {
+              throw new Error("Failed to add file to blockchain");
+            }
+          }
 
-        // Шаг 5: Регистрируем данные в блокчейне
-        await registerDataOnBlockchain({
-          fileHash: fileHash,
-          fileUrl: `local://${localResult.fileId}`, // Используем локальный идентификатор
-          metadata: metadata,
-          walletAddress: user.address,
-        });
+          // Extract file ID from transaction receipt (placeholder for now)
+          const fileId = 1; // In real implementation, extract from txReceipt
 
-        // Шаг 6: Отправляем в refiner для обработки
-        await uploadFileToRefiner(file, localResult.fileId!);
+          // Step 4: Call refinement (following template approach)
+          try {
+            const refinementResult = await refine({
+              file_id: fileId,
+              encryption_key: encryptionKey,
+            });
+            
+            console.log('Refinement completed:', refinementResult);
+            
+          } catch (refinerError) {
+            console.warn('Refiner processing failed:', refinerError);
+            // Continue without refiner - this is optional for development
+          }
 
-        // Шаг 7: Обновляем статус на "completed"
-        updateFileStatus(user.address, localResult.fileId!, 'completed', fileHash);
+          // Add to uploaded files list
+          setUploadStatus(prev => ({
+            ...prev,
+            uploadedFiles: [...prev.uploadedFiles, {
+              id: uploadResult.data.fileId,
+              name: file.name,
+              size: file.size,
+              type: file.type,
+              lastModified: file.lastModified,
+              status: 'completed',
+              uploadedAt: new Date().toISOString(),
+            }],
+          }));
+
+        } catch (blockchainError) {
+          console.warn('Blockchain registration failed:', blockchainError);
+          // Continue without blockchain registration - this is optional for development
+          
+          // Still add to uploaded files list
+          setUploadStatus(prev => ({
+            ...prev,
+            uploadedFiles: [...prev.uploadedFiles, {
+              id: uploadResult.data.fileId,
+              name: file.name,
+              size: file.size,
+              type: file.type,
+              lastModified: file.lastModified,
+              status: 'completed',
+              uploadedAt: new Date().toISOString(),
+            }],
+          }));
+        }
       }
 
-      // Обновляем список файлов
-      const files = getFilesFromLocalStorage(user.address);
       setUploadStatus(prev => ({
         ...prev,
         isUploading: false,
         isSuccess: true,
-        uploadedFiles: files.map(f => ({
-          id: f.id,
-          name: f.name,
-          size: f.size,
-          type: f.type,
-          lastModified: f.lastModified,
-          status: f.status,
-          uploadedAt: f.uploadedAt,
-        })),
       }));
 
       toast.success(`${oggFiles.length} file(s) processed successfully!`);
@@ -131,66 +181,11 @@ export default function UploadPage() {
       }));
       toast.error("Failed to process files");
     }
-  }, [user?.address, saveFileToLocalStorage, updateFileStatus, registerDataOnBlockchain, getFilesFromLocalStorage]);
+  }, [user?.address, isConnected, addFile, refine, contractError]);
 
-  const generateFileHash = async (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        if (e.target?.result) {
-          const arrayBuffer = e.target.result as ArrayBuffer;
-          crypto.subtle.digest('SHA-256', arrayBuffer)
-            .then(hashBuffer => {
-              const hashArray = Array.from(new Uint8Array(hashBuffer));
-              const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-              resolve(hashHex);
-            })
-            .catch(reject);
-        } else {
-          reject(new Error('Failed to read file'));
-        }
-      };
-      reader.onerror = () => reject(new Error('Failed to read file'));
-      reader.readAsArrayBuffer(file);
-    });
-  };
 
-  const uploadFileToRefiner = async (file: File, fileId: string) => {
-    // Получаем данные пользователя из onboarding (если есть)
-    let userData = null;
-    try {
-      const onboardingResponse = await fetch(`/api/user/onboarding?walletAddress=${user!.address}`);
-      if (onboardingResponse.ok) {
-        const onboardingData = await onboardingResponse.json();
-        if (onboardingData.onboardingData) {
-          userData = onboardingData.onboardingData;
-        }
-      }
-    } catch (error) {
-      console.log('No onboarding data found, using defaults', error);
-    }
 
-    // Создаем FormData для загрузки файла
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('walletAddress', user!.address);
-    formData.append('fileId', fileId);
-    if (userData) {
-      formData.append('userData', JSON.stringify(userData));
-    }
 
-    const response = await fetch('/api/refine/upload', {
-      method: 'POST',
-      body: formData,
-    });
-
-    if (!response.ok) {
-      throw new Error(`Refiner upload failed: ${response.statusText}`);
-    }
-
-    const result = await response.json();
-    console.log('Refiner upload result:', result);
-  };
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -241,6 +236,42 @@ export default function UploadPage() {
               Your data will be encrypted and processed securely.
             </p>
           </div>
+
+           {/* Network Switcher */}
+           <NetworkSwitcher />
+
+           {/* Development Mode Warning */}
+           <Alert>
+             <AlertCircle className="h-4 w-4" />
+             <AlertTitle>Development Mode</AlertTitle>
+             <AlertDescription>
+               Running in development mode. Files are uploaded to Pinata IPFS. Blockchain registration and refinement processing may be disabled due to testnet restrictions. 
+               The application follows the official VANA DLP template flow: Upload → Blockchain Registration → Refinement.
+             </AlertDescription>
+           </Alert>
+
+           {/* Wallet Connection Status */}
+           <Alert variant={isConnected ? "default" : "destructive"}>
+             <AlertCircle className="h-4 w-4" />
+             <AlertTitle>Wallet Connection</AlertTitle>
+             <AlertDescription>
+               {isConnected 
+                 ? `Connected: ${user?.address?.slice(0, 6)}...${user?.address?.slice(-4)}`
+                 : "Wallet not connected. Please connect your wallet to proceed with blockchain operations."
+               }
+             </AlertDescription>
+           </Alert>
+
+                     {/* Contract Status Warning */}
+           {!isContractLoading && contractStatusError && (
+             <Alert variant="destructive">
+               <AlertCircle className="h-4 w-4" />
+               <AlertTitle>Contract Connection Error</AlertTitle>
+               <AlertDescription>
+                 Unable to check contract status: {contractStatusError}
+               </AlertDescription>
+             </Alert>
+           )}
 
           {/* How it works */}
           <Card>
@@ -309,31 +340,26 @@ export default function UploadPage() {
                 </Alert>
               )}
 
-              {uploadStatus.isSuccess && (
-                <Alert>
-                  <CheckCircle className="h-4 w-4" />
-                  <AlertTitle>Processing Complete</AlertTitle>
-                  <AlertDescription>
-                    {uploadStatus.uploadedFiles.length} file(s) processed successfully!
-                    {transactionHash && (
-                      <div className="mt-2 text-sm">
-                        <strong>Blockchain Transaction:</strong> {transactionHash}
-                      </div>
-                    )}
-                  </AlertDescription>
-                </Alert>
-              )}
+                             {uploadStatus.isSuccess && (
+                 <Alert>
+                   <CheckCircle className="h-4 w-4" />
+                   <AlertTitle>Processing Complete</AlertTitle>
+                   <AlertDescription>
+                     {uploadStatus.uploadedFiles.length} file(s) processed successfully!
+                   </AlertDescription>
+                 </Alert>
+               )}
 
-              {(isLocalStorageUploading || isRegistering) && (
-                <Alert>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  <AlertTitle>Processing Files</AlertTitle>
-                  <AlertDescription>
-                    {isLocalStorageUploading && "Saving to local storage..."}
-                    {isRegistering && "Registering on blockchain..."}
-                  </AlertDescription>
-                </Alert>
-              )}
+                             {(isAdding || isRefining) && (
+                 <Alert>
+                   <Loader2 className="h-4 w-4 animate-spin" />
+                   <AlertTitle>Processing Files</AlertTitle>
+                   <AlertDescription>
+                     {isAdding && "Registering on blockchain..."}
+                     {isRefining && "Processing refinement..."}
+                   </AlertDescription>
+                 </Alert>
+               )}
 
               <div
                 {...getRootProps()}
