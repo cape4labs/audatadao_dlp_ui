@@ -57,7 +57,6 @@ export function Navigation() {
                   <span>Upload</span>
                 </Button>
               </Link>
-              
             </nav>
           )}
         </div>

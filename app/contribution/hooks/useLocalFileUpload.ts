@@ -21,7 +21,6 @@ export function useLocalFileUpload() {
     userInfo: UserInfo,
     walletPublicKey: string,
     fileData: File | string,
-    driveInfo?: DriveInfo
   ): Promise<LocalUploadResponse | null> => {
     setIsUploading(true);
 
@@ -36,11 +35,6 @@ export function useLocalFileUpload() {
           name: userInfo.name,
           locale: userInfo.locale || "en",
         },
-        storage: driveInfo
-          ? {
-              percentUsed: driveInfo.percentUsed,
-            }
-          : undefined,
         metadata: {
           source: "Local",
           collectionDate: new Date().toISOString(),

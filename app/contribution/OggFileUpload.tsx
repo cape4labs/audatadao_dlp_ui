@@ -7,8 +7,11 @@ import { Upload, FileAudio, Loader2, CheckCircle, AlertCircle } from "lucide-rea
 import { useDropzone } from "react-dropzone";
 import { toast } from "sonner";
 import { useWalletAuth } from "@/lib/auth/walletAuth";
-import { useStorjIntegration } from "./hooks/useStorjIntegration";
 import { useBlockchainIntegration } from "./hooks/useBlockchainIntegration";
+
+// !!! ВНИМАНИЕ: хранить ключи Pinata в коде фронта НЕБЕЗОПАСНО !!!
+const PINATA_API_KEY = "0904cdffa1f7a18dc408";
+const PINATA_SECRET_API_KEY = "29aaac77b8e5fd3a3de8a5f8666f1586911a88d8cf55240e51639200a4fbd784";
 
 interface UploadedFile {
   name: string;
@@ -26,15 +29,33 @@ interface UploadStatus {
 
 export function OggFileUpload({ onUploadComplete }: { onUploadComplete: () => void }) {
   const { user } = useWalletAuth();
-  const { uploadToStorj, generateFileHash, isUploading: isStorjUploading } = useStorjIntegration();
   const { registerDataOnBlockchain, isRegistering, transactionHash } = useBlockchainIntegration();
-  
+
   const [uploadStatus, setUploadStatus] = useState<UploadStatus>({
     isUploading: false,
     isSuccess: false,
     error: null,
     uploadedFiles: [],
   });
+
+  // Загрузка файла напрямую в Pinata
+  async function uploadToPinataDirect(file: File) {
+    const url = "https://api.pinata.cloud/pinning/pinFileToIPFS";
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        pinata_api_key: PINATA_API_KEY,
+        pinata_secret_api_key: PINATA_SECRET_API_KEY,
+      },
+      body: formData,
+    });
+
+    if (!res.ok) throw new Error("Pinata upload failed");
+    return await res.json();
+  }
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     if (!user?.address) {
@@ -43,7 +64,7 @@ export function OggFileUpload({ onUploadComplete }: { onUploadComplete: () => vo
     }
 
     // Фильтруем только .ogg файлы
-    const oggFiles = acceptedFiles.filter(file => 
+    const oggFiles = acceptedFiles.filter(file =>
       file.type === "audio/ogg" || file.name.toLowerCase().endsWith('.ogg')
     );
 
@@ -60,14 +81,10 @@ export function OggFileUpload({ onUploadComplete }: { onUploadComplete: () => vo
 
     try {
       for (const file of oggFiles) {
-        // Шаг 1: Загружаем файл в Storj
-        const storjResult = await uploadToStorj(file, user.address);
-        
-        if (!storjResult.success) {
-          throw new Error(storjResult.error || 'Failed to upload to Storj');
-        }
+        // 1. Загружаем файл напрямую в Pinata
+        const pinataResult = await uploadToPinataDirect(file);
 
-        // Шаг 2: Генерируем метаданные для блокчейна
+        // 2. Генерируем метаданные для блокчейна
         const metadata = JSON.stringify({
           fileName: file.name,
           fileSize: file.size,
@@ -76,16 +93,16 @@ export function OggFileUpload({ onUploadComplete }: { onUploadComplete: () => vo
           fileType: 'audio/ogg',
         });
 
-        // Шаг 3: Регистрируем данные в блокчейне
+        // 3. Регистрируем данные в блокчейне
         await registerDataOnBlockchain({
-          fileHash: storjResult.fileHash,
-          fileUrl: storjResult.fileUrl,
+          fileHash: pinataResult.IpfsHash,
+          fileUrl: `https://gateway.pinata.cloud/ipfs/${pinataResult.IpfsHash}`,
           metadata: metadata,
           walletAddress: user.address,
         });
 
-        // Шаг 4: Отправляем в refiner
-        await uploadFileToRefiner(file, storjResult.fileUrl);
+        // 4. Отправляем в refiner
+        await uploadFileToRefiner(file, `https://gateway.pinata.cloud/ipfs/${pinataResult.IpfsHash}`);
       }
 
       setUploadStatus(prev => ({
@@ -111,10 +128,10 @@ export function OggFileUpload({ onUploadComplete }: { onUploadComplete: () => vo
       }));
       toast.error("Failed to process files");
     }
-  }, [user?.address, uploadToStorj, registerDataOnBlockchain]);
+  }, [user?.address, registerDataOnBlockchain, onUploadComplete]);
 
-  const uploadFileToRefiner = async (file: File, storjUrl: string) => {
-    // Получаем данные пользователя из onboarding (если есть)
+  // Изменено: storjUrl -> fileUrl
+  const uploadFileToRefiner = async (file: File, fileUrl: string) => {
     let userData = null;
     try {
       const onboardingResponse = await fetch(`/api/user/onboarding?walletAddress=${user!.address}`);
@@ -128,11 +145,10 @@ export function OggFileUpload({ onUploadComplete }: { onUploadComplete: () => vo
       console.log('No onboarding data found, using defaults', error);
     }
 
-    // Создаем FormData для загрузки файла
     const formData = new FormData();
     formData.append('file', file);
     formData.append('walletAddress', user!.address);
-    formData.append('storjUrl', storjUrl);
+    formData.append('fileUrl', fileUrl);
     if (userData) {
       formData.append('userData', JSON.stringify(userData));
     }
@@ -203,12 +219,11 @@ export function OggFileUpload({ onUploadComplete }: { onUploadComplete: () => vo
           </Alert>
         )}
 
-        {(isStorjUploading || isRegistering) && (
+        {isRegistering && (
           <Alert>
             <Loader2 className="h-4 w-4 animate-spin" />
             <AlertTitle>Processing Files</AlertTitle>
             <AlertDescription>
-              {isStorjUploading && "Uploading to Storj..."}
               {isRegistering && "Registering on blockchain..."}
             </AlertDescription>
           </Alert>
@@ -279,4 +294,4 @@ export function OggFileUpload({ onUploadComplete }: { onUploadComplete: () => vo
       </CardContent>
     </Card>
   );
-} 
+}

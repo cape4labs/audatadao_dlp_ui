@@ -15,7 +15,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Проверяем, что файл имеет правильный тип
     if (!file.name.toLowerCase().endsWith('.ogg')) {
       return NextResponse.json(
         { error: "Only .ogg audio files are allowed" },
@@ -23,7 +22,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Проверяем размер файла (максимум 50MB)
     const maxSize = 50 * 1024 * 1024; // 50MB
     if (file.size > maxSize) {
       return NextResponse.json(
@@ -32,28 +30,54 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Создаем метаданные для обработки
-    const metadata = {
-      fileId,
-      fileName: file.name,
-      fileSize: file.size,
-      walletAddress,
-      uploadedAt: new Date().toISOString(),
-      fileType: 'audio/ogg',
-      userData: userData || null,
+    // Формируем user-метаданные для refiner
+    const user = {
+      wallet_address: userData?.walletAddress || walletAddress,
+      birth_month: userData?.birthMonth || null,
+      birth_year: userData?.birthYear || null,
+      occupation: userData?.occupation || null,
+      country: userData?.country || null,
+      region: userData?.region || null,
     };
 
-    // Имитируем обработку файла (в реальном проекте здесь была бы интеграция с refiner)
-    console.log('Processing file:', {
-      fileId,
-      fileName: file.name,
-      fileSize: file.size,
-      walletAddress,
-      userData: userData ? 'present' : 'not present',
+    // Формируем payload для refiner
+    const refinerPayload = {
+      language_code: "ru",
+      audio_length: Math.round(file.size / 1024).toString(), // длина в КБ, как строка
+      audio_source: "telegram",
+      audio_type: "speech",
+      user,
+    };
+
+    // Готовим form-data для отправки в refiner
+    const refinerForm = new FormData();
+    refinerForm.append("file", file, file.name);
+    refinerForm.append("metadata", JSON.stringify(refinerPayload));
+
+    // Получаем путь к refiner из .env
+    const refinerEndpoint = process.env.REFINEMENT_ENDPOINT?.replace(/(^"|"$)/g, "");
+    if (!refinerEndpoint) {
+      return NextResponse.json(
+        { error: "Refiner endpoint is not configured" },
+        { status: 500 }
+      );
+    }
+
+    // Отправляем файл и метаданные в refiner
+    const refinerRes = await fetch(`${refinerEndpoint}/upload`, {
+      method: "POST",
+      body: refinerForm,
     });
 
-    // Имитируем задержку обработки
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    if (!refinerRes.ok) {
+      const err = await refinerRes.text();
+      return NextResponse.json(
+        { error: "Refiner error: " + err },
+        { status: 500 }
+      );
+    }
+
+    const refinerData = await refinerRes.json();
 
     return NextResponse.json({
       success: true,
@@ -64,6 +88,7 @@ export async function POST(request: NextRequest) {
         fileSize: file.size,
         processedAt: new Date().toISOString(),
         status: 'completed',
+        refiner: refinerData,
       },
     });
 
@@ -101,4 +126,4 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
-} 
+}

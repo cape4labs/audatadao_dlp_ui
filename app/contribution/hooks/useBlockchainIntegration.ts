@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useAccount, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { DataRegistry } from '@/contracts/instances/data-registry';
-import { Controller } from '@/contracts/instances/controller';
 import { createClient } from '@/contracts/client';
 import { toast } from 'sonner';
 

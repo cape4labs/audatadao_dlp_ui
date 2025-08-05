@@ -7,13 +7,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { FileAudio, User, Wallet, Calendar, Download, RefreshCw, AlertCircle } from "lucide-react";
 import { useWalletAuth } from "@/lib/auth/walletAuth";
-import { useLocalStorage } from "./contribution/hooks/useLocalStorage";
 import { Navigation } from "./components/Navigation";
 import { UserOnboarding } from "./components/UserOnboarding";
 import { toast } from "sonner";
 import { WalletLoginButton } from "./auth/WalletLoginButton";
 
-interface LocalFile {
+interface UploadedFile {
   id: string;
   name: string;
   size: number;
@@ -22,30 +21,36 @@ interface LocalFile {
   status: 'pending' | 'processing' | 'completed' | 'error';
   uploadedAt: string;
   fileHash?: string;
+  pinataUrl: string; // добавьте это поле
 }
 
 interface OnboardingData {
+  id: number;
+  userAddress: string;
   country: string;
   birthMonth: string;
   birthYear: string;
   isItRelated: boolean;
+  submittedAt: string;
 }
 
 export default function Home() {
   const { user } = useWalletAuth();
-  const { getFilesFromLocalStorage, getFileFromLocalStorage, removeFileFromLocalStorage } = useLocalStorage();
-  const [files, setFiles] = useState<LocalFile[]>([]);
+  const [files, setFiles] = useState<UploadedFile[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [onboardingData, setOnboardingData] = useState<OnboardingData | null>(null);
   const [onboardingLoading, setOnboardingLoading] = useState(true);
 
-  // Загрузка файлов
+  // Загрузка файлов с backend (Pinata)
   const loadFiles = async () => {
     if (!user?.address) return;
     setIsLoading(true);
     try {
-      const uploadedFiles = getFilesFromLocalStorage(user.address);
-      setFiles(uploadedFiles);
+      // Получаем список файлов пользователя с backend
+      const res = await fetch(`/api/files?walletAddress=${user.address}`);
+      if (!res.ok) throw new Error('Failed to fetch files');
+      const data = await res.json();
+      setFiles(data.files); // предполагается, что backend возвращает { files: UploadedFile[] }
     } catch (error) {
       console.error('Error loading files:', error);
       toast.error('Failed to load uploaded files');
@@ -54,12 +59,11 @@ export default function Home() {
     }
   };
 
-  // Загрузка данных опроса
+  // Загрузка данных опроса (оставьте как есть)
   const loadOnboarding = async () => {
     if (!user?.address) return;
     setOnboardingLoading(true);
     try {
-      // Try local storage first
       const localData = localStorage.getItem(`user_onboarding_${user.address}`);
       if (localData) {
         const parsedData = JSON.parse(localData);
@@ -67,12 +71,20 @@ export default function Home() {
         setOnboardingLoading(false);
         return;
       }
-
-      // Fallback to external API
-      const res = await fetch(`https://audata.space:8000/api/v1/users/metadata?walletAddress=${user.address}`);
+      const res = await fetch(`http://audata.space:8000/api/v1/users/metadata/?user_wallet_address=${user.address}`);
       if (res.ok) {
         const data = await res.json();
-        setOnboardingData(data.onboardingData);
+        setOnboardingData({          
+          id: data.id,
+          userAddress: data.userAddress,
+          country: data.country,
+          birthMonth: data.birthMonth,
+          birthYear: data.birthYear,
+          isItRelated: data.isItRelated,
+          submittedAt: data.submittedAt,
+        }); 
+        setOnboardingLoading(false);
+        return;
       }
     } catch (e) {
       setOnboardingData(null);
@@ -88,8 +100,6 @@ export default function Home() {
     }
   }, [user?.address]);
 
-
-
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
@@ -102,41 +112,22 @@ export default function Home() {
     return new Date(dateString).toLocaleString();
   };
 
-  const downloadFile = (file: LocalFile) => {
-    try {
-      const localFile = getFileFromLocalStorage(user!.address, file.id);
-      if (localFile && localFile.data) {
-        // Convert base64 back to blob
-        const byteCharacters = atob(localFile.data);
-        const byteNumbers = new Array(byteCharacters.length);
-        for (let i = 0; i < byteCharacters.length; i++) {
-          byteNumbers[i] = byteCharacters.charCodeAt(i);
-        }
-        const byteArray = new Uint8Array(byteNumbers);
-        const blob = new Blob([byteArray], { type: localFile.type });
-        
-        // Create download link
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = localFile.name;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
-        
-        toast.success('File downloaded successfully');
-      }
-    } catch (error) {
-      console.error('Error downloading file:', error);
-      toast.error('Failed to download file');
+  // Скачать файл с Pinata (или IPFS gateway)
+  const downloadFile = (file: UploadedFile) => {
+    if (file.pinataUrl) {
+      window.open(file.pinataUrl, '_blank');
+      toast.success('File download started');
+    } else {
+      toast.error('No file URL available');
     }
   };
 
-  const deleteFile = (fileId: string) => {
+  // Удалить файл (вызываем backend)
+  const deleteFile = async (fileId: string) => {
     try {
-      removeFileFromLocalStorage(user!.address, fileId);
-      loadFiles(); // Reload files list
+      const res = await fetch(`/api/files/${fileId}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Failed to delete file');
+      await loadFiles();
       toast.success('File deleted successfully');
     } catch (error) {
       console.error('Error deleting file:', error);

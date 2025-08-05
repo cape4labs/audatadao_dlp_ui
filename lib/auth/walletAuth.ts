@@ -49,13 +49,13 @@ export const useWalletAuth = create<WalletAuthState>()(
 
         try {
           // Try to register with external backend, but don't fail if it's not available
-          const response = await fetch('https://audata.space:8000/api/v1/users/signup', {
+          const response = await fetch('http://audata.space:8000/api/v1/users/signup', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              "address": address,
+              "address": address.toString(),
               "chainId": String(chainId),
             }),
           });
