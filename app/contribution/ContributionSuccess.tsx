@@ -35,7 +35,7 @@ export function ContributionSuccess({
               : proofCompleted
               ? "Your data has been successfully contributed and verified by the TEE."
               : proofRequested
-              ? "Your data has been contributed and proof request has been submitted."
+              ? "Your data has been contributed and proof request has bCoeen submitted."
               : "Your data has been successfully contributed to the blockchain."}
           </p>
         </div>

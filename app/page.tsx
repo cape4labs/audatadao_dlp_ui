@@ -3,9 +3,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { FileAudio, User, Wallet, Calendar, Download, RefreshCw, AlertCircle } from "lucide-react";
+import { FileAudio, User, Wallet, Calendar, AlertCircle } from "lucide-react";
 import { useWalletAuth } from "@/lib/auth/walletAuth";
 import { Navigation } from "./components/Navigation";
 import { UserOnboarding } from "./components/UserOnboarding";
