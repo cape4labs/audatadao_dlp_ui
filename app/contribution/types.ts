@@ -14,9 +14,11 @@ export interface ContributionData {
   encryptedUrl?: string;
   transactionReceipt?: {
     hash: string;
-    blockNumber: number;
+    blockNumber?: number;
   };
   teeJobId?: string;
   proofResult?: any;
   rewardClaimed?: boolean;
+  rewardTxHash?: string;
+  teeProofData?: any;
 } 

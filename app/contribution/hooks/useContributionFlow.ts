@@ -216,7 +216,7 @@ export function useContributionFlow() {
     );
 
     updateContributionData({
-      teeJobId: proofResult.jobId,
+      teeJobId: String(proofResult.jobId),
     });
 
     markStepComplete(STEPS.REQUEST_TEE_PROOF);

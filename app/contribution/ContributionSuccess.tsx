@@ -8,7 +8,7 @@ type ContributionSuccessProps = {
   contributionData: ContributionData;
   completedSteps: number[];
   shareUrl?: string;
-  userInfo: UserInfo;
+  userInfo?: UserInfo;
 };
 
 export function ContributionSuccess({

@@ -13,10 +13,11 @@ import {
 import { AlertCircle, Loader2, Upload } from "lucide-react";
 import { useAccount } from "wagmi";
 import { ContributionSteps } from "./ContributionSteps";
+import { ContributionSuccess } from "./ContributionSuccess";
+import { ContributionSummary } from "./ContributionSummary";
 import { useContributionFlow } from "./hooks/useContributionFlow";
-import { DriveInfo, UserInfo } from "./types";
+import { DriveInfo } from "./types";
 import { useWalletAuth } from "@/lib/auth/walletAuth";
-
 
 /**
  * VanaDlpIntegration component for users to contribute data to VANA's Data Liquidity Pools
@@ -35,12 +36,26 @@ export function VanaDlpIntegration() {
     isLoading,
     isSigningMessage,
     handleContributeData,
-    resetFlow,
   } = useContributionFlow();
 
+  // Mock data for now - these should come from actual hooks
+  const userInfo = user ? {
+    id: user.address,
+    email: `${user.address.slice(0, 6)}...${user.address.slice(-4)}`,
+    name: `Wallet User`,
+    locale: "en"
+  } : undefined;
+  
+  const driveInfo: DriveInfo = {
+    percentUsed: 0
+  };
 
-    resetFlow();
-
+  const handleContribute = async () => {
+    if (!userInfo) return;
+    
+    // Mock file data for now
+    const mockFile = new Blob(["mock data"], { type: "text/plain" });
+    await handleContributeData(mockFile, isConnected);
   };
 
   return (
@@ -66,6 +81,7 @@ export function VanaDlpIntegration() {
             contributionData={contributionData}
             completedSteps={completedSteps}
             shareUrl={shareUrl}
+            userInfo={userInfo}
           />
         ) : (
           <div className="space-y-4">
@@ -80,8 +96,8 @@ export function VanaDlpIntegration() {
             {/* Display user data summary */}
             {userInfo && (
               <ContributionSummary
-                userInfo={userInfo as UserInfo}
-                driveInfo={driveInfo as DriveInfo}
+                userInfo={userInfo}
+                driveInfo={driveInfo}
                 isEncrypted={false}
               />
             )}
@@ -117,11 +133,9 @@ export function VanaDlpIntegration() {
             </Button>
 
             {!isConnected && (
-              <ConnectWalletButton
-                isOpen={isOpen}
-                openModal={openModal}
-                closeModal={closeModal}
-              />
+              <div className="bg-yellow-50 text-yellow-800 p-2 text-xs rounded mt-2">
+                Please connect your wallet to contribute data
+              </div>
             )}
 
             {!userInfo && (
@@ -138,4 +152,4 @@ export function VanaDlpIntegration() {
       </CardFooter>
     </Card>
   );
-)
+}

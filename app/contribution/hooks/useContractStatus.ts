@@ -26,7 +26,7 @@ export function useContractStatus() {
 
   useEffect(() => {
     setStatus({
-      isPaused: isPaused || false,
+      isPaused: Boolean(isPaused),
       isLoading,
       error: error?.message || null,
     });
