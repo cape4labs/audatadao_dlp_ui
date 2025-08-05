@@ -27,9 +27,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className="antialiased" style={{ fontFamily: 'HomeVideo, sans-serif' }}>
         <Providers>{children}</Providers>
         <Toaster />
       </body>
