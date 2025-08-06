@@ -7,6 +7,7 @@ import { WalletLoginButton } from "@/app/auth/WalletLoginButton";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import Image from "next/image"
 
 export function Navigation() {
   const { isConnected, disconnect, user } = useWalletAuth();
@@ -29,9 +30,17 @@ export function Navigation() {
   return (
     <header className="border-b bg-white dark:bg-black py-4 sticky top-0 z-50">
       <div className="container mx-auto px-4 flex justify-between items-center">
-        <div className="flex items-center gap-6">
-          <Link href="/">
-            <h1 className="text-xl font-bold">VANA DLP Demo</h1>
+        <div className="flex gap-6 justify-center align-middle">
+          <Link href="/" className="flex items-center gap-2">
+            <Image
+              src="/icons/folder.png"
+              alt="logo"
+              width={40}
+              height={40}
+              className="object-contain"
+            />
+            <span className="text-xl font-semibold m-y-2">AUDATA</span>
+
           </Link>
           
           {isConnected && (
@@ -42,18 +51,30 @@ export function Navigation() {
                   size="sm" 
                   className="flex items-center gap-1"
                 >
-                  <Home className="h-4 w-4" />
+                  <Image
+                    src={isActive("/") ? "/icons/home-white.svg" : "icons/home.svg"}
+                    alt="home"
+                    width={20}
+                    height={20}
+                    className={isActive("/") ? "white" : "fill-black"}
+                  />       
                   <span>Home</span>
                 </Button>
               </Link>
               
               <Link href="/upload">
-                <Button 
-                  variant={isActive("/upload") ? "default" : "ghost"} 
-                  size="sm" 
-                  className="flex items-center gap-1"
-                >
-                  <Upload className="h-4 w-4" />
+                  <Button 
+                    variant={isActive("/upload") ? "default" : "ghost"} 
+                    size="sm" 
+                    className="flex items-center gap-1"
+                  >
+                  <Image
+                    src={isActive("/upload") ? "/icons/upload-white.svg" : "icons/upload.svg"}
+                    alt="upload"
+                    width={20}
+                    height={20}
+                    className={isActive("/") ? "white" : "fill-black"}
+                  />        
                   <span>Upload</span>
                 </Button>
               </Link>
@@ -64,8 +85,13 @@ export function Navigation() {
         <div className="flex items-center gap-4">
             <>
               <div className="hidden sm:flex items-center gap-2 text-sm text-gray-600">
-                <Wallet className="h-4 w-4" />
-                <span className="font-mono">
+                  <Image
+                    src={"/icons/wallet.svg"}
+                    alt="Wallet"
+                    width={20}
+                    height={20}
+                    className="object-contain"
+                  />                       <span className="font-mono">
                   {user?.address?.slice(0, 6)}...{user?.address?.slice(-4)}
                 </span>
               </div>

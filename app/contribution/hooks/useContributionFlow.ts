@@ -58,31 +58,31 @@ export function useContributionFlow() {
   };
 
   const handleContributeData = async (
+    userAddress: string,
     file: Blob,
     isConnected: boolean,
   ) => {
-
     try {
       setError(null);
 
       // Execute steps in sequence
       const signature = await executeSignMessageStep();
-      if (!signature) return;
+      if (!signature) throw new Error("Signature step failed");
 
       const uploadResult = await executeUploadDataStep(
+        userAddress,
         file,
         signature,
       );
-      if (!uploadResult) return;
+      if (!uploadResult) throw new Error("Upload step failed");
 
       if (!isConnected) {
-        setError("Wallet connection required to register on blockchain");
-        return;
+        throw new Error("Wallet connection required to register on blockchain");
       }
 
       const { fileId, txReceipt, encryptedKey } =
         await executeBlockchainRegistrationStep(uploadResult, signature);
-      if (!fileId) return;
+      if (!fileId) throw new Error("Blockchain registration step failed");
 
       // Update contribution data with blockchain information
       updateContributionData({
@@ -111,32 +111,34 @@ export function useContributionFlow() {
   };
 
   // Step 0: Sign message (pre-step before the visible flow begins)
-  const executeSignMessageStep = async (): Promise<string | undefined> => {
+  const executeSignMessageStep = async (): Promise<string | null> => {
     try {
-      // We don't update currentStep here since signing happens before the visible flow
       const signature = await signMessageAsync({ message: SIGN_MESSAGE });
       return signature;
     } catch (signError) {
       console.error("Error signing message:", signError);
-      setError("Failed to sign the message. Please try again.");
-      return undefined;
+      setError(
+        signError instanceof Error
+          ? signError.message
+          : "Failed to sign the message. Please try again."
+      );
+      return null;
     }
   };
 
-  // Step 1: Upload data to Google Drive
+  // Step 1: Upload data to Pinata
   const executeUploadDataStep = async (
+    userAddress: string,
     file: Blob,
     signature: string
   ) => {
     setCurrentStep(STEPS.UPLOAD_DATA);
 
-    const uploadResult = await uploadData(file, signature);
+    const uploadResult = await uploadData(userAddress, file, signature);
     if (!uploadResult) {
       setError("Failed to upload data to Google Drive");
       return null;
     }
-
-    console.log(uploadResult.downloadUrl)
 
     setShareUrl(uploadResult.downloadUrl);
     markStepComplete(STEPS.UPLOAD_DATA);
@@ -153,20 +155,17 @@ export function useContributionFlow() {
     const publicKey = await getDlpPublicKey();
     const encryptedKey = await encryptWithWalletPublicKey(signature, publicKey);
 
-    // Add the file to blockchain
     const txReceipt = await addFile(uploadResult.downloadUrl, encryptedKey);
 
     if (!txReceipt) {
-      // Use the specific contract error if available
       if (contractError) {
         setError(`Contract error: ${contractError}`);
       } else {
         setError("Failed to add file to blockchain");
       }
-      return { fileId: null };
+      return { fileId: null, txReceipt: null, encryptedKey: null };
     }
 
-    // Extract file ID from transaction receipt
     const fileId = extractFileIdFromReceipt(txReceipt);
     markStepComplete(STEPS.BLOCKCHAIN_REGISTRATION);
 
@@ -179,27 +178,23 @@ export function useContributionFlow() {
     encryptedKey: string,
     signature: string
   ) => {
-    try {
-      // Step 3: Request TEE Proof
-      const proofResult = await executeTeeProofStep(
-        fileId,
-        encryptedKey,
-        signature
-      );
+    // Step 3: Request TEE Proof
+    const proofResult = await executeTeeProofStep(
+      fileId,
+      encryptedKey,
+      signature
+    );
 
-      // Step 4: Process Proof
-      await executeProcessProofStep(proofResult, signature);
-
-      // Step 5: Claim Reward
-      await executeClaimRewardStep(fileId);
-    } catch (proofErr) {
-      console.error("Error in TEE/reward process:", proofErr);
-      setError(
-        proofErr instanceof Error
-          ? proofErr.message
-          : "Failed to process TEE proof or claim reward"
-      );
+    if (!proofResult) {
+      // Ошибка уже установлена внутри executeTeeProofStep
+      return;
     }
+
+    // Step 4: Process Proof
+    await executeProcessProofStep(proofResult, signature);
+
+    // Step 5: Claim Reward
+    await executeClaimRewardStep(fileId);
   };
 
   // Step 3: Request TEE Proof
@@ -214,6 +209,11 @@ export function useContributionFlow() {
       encryptedKey,
       signature
     );
+
+    if (!proofResult) {
+      setError("Failed to request TEE proof");
+      return null;
+    }
 
     updateContributionData({
       teeJobId: String(proofResult.jobId),
@@ -230,27 +230,27 @@ export function useContributionFlow() {
   ) => {
     setCurrentStep(STEPS.PROCESS_PROOF);
 
-    // Update contribution data with proof data
     updateContributionData({
       teeProofData: proofResult.proofData,
     });
 
-    // Call the data refinement process
     try {
-      console.log("Starting data refinement...");
       const refinementResult = await refine({
         file_id: proofResult.fileId,
         encryption_key: signature,
       });
-
-      console.log("Data refinement completed:", refinementResult);
 
       markStepComplete(STEPS.PROCESS_PROOF);
 
       return refinementResult;
     } catch (refineError) {
       console.error("Error during data refinement:", refineError);
-      throw refineError;
+      setError(
+        refineError instanceof Error
+          ? refineError.message
+          : "Failed to process TEE proof or claim reward"
+      );
+      return null;
     }
   };
 
@@ -258,6 +258,11 @@ export function useContributionFlow() {
   const executeClaimRewardStep = async (fileId: number) => {
     setCurrentStep(STEPS.CLAIM_REWARD);
     const rewardResult = await requestReward(fileId);
+
+    if (!rewardResult) {
+      setError("Failed to claim reward");
+      return null;
+    }
 
     updateContributionData({
       rewardTxHash: rewardResult?.transactionHash,

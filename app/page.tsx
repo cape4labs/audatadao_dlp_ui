@@ -1,9 +1,10 @@
 "use client";
 
+import Image from "next/image";
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { FileAudio, User, Wallet, Calendar, AlertCircle } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { useWalletAuth } from "@/lib/auth/walletAuth";
 import { Navigation } from "./components/Navigation";
 import { UserOnboarding } from "./components/UserOnboarding";
@@ -126,33 +127,47 @@ export default function Home() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <User className="h-5 w-5" />
-                User Profile
+                  <Image
+                      src={"/icons/user.svg"}
+                      alt="user"
+                      width={20}
+                      height={20}
+                      className="object-contain"
+                    />                 
+                    User Profile
               </CardTitle>
               <CardDescription>
                 Your VANA DLP contribution profile and statistics
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="flex items-center gap-3 p-4 border rounded-lg">
-                  <Wallet className="h-5 w-5 text-blue-500" />
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Wallet Address */}
+                <div className="flex items-center gap-3 p-4 border rounded-lg h-full">
+                  <Image
+                    src={"/icons/wallet.svg"}
+                    alt="Wallet"
+                    width={20}
+                    height={20}
+                    className="object-contain"
+                  />                  
                   <div>
                     <p className="text-sm font-medium">Wallet Address</p>
                     <p className="text-xs text-gray-500 font-mono">
                       {user.address.slice(0, 6)}...{user.address.slice(-4)}
-              </p>
-            </div>
-              </div>
+                    </p>
+                  </div>
+                </div>
 
-                <div className="flex items-center gap-3 p-4 border rounded-lg">
-                  <FileAudio className="h-5 w-5 text-green-500" />
-                  <div>
-            </div>
-          </div>
-                
-                <div className="flex items-center gap-3 p-4 border rounded-lg">
-                  <Calendar className="h-5 w-5 text-purple-500" />
+                {/* Member Since */}
+                <div className="flex items-center gap-3 p-4 border rounded-lg h-full">
+                  <Image
+                    src={"/icons/calendar.svg"}
+                    alt="Wallet"
+                    width={20}
+                    height={20}
+                    className="object-contain"
+                  />                        
                   <div>
                     <p className="text-sm font-medium">Member Since</p>
                     <p className="text-xs text-gray-500">
@@ -161,8 +176,8 @@ export default function Home() {
                   </div>
                 </div>
 
-                {/* Данные опроса */}
-                <div className="flex flex-col gap-2 p-4 border rounded-lg">
+                {/* Onboarding Data */}
+                <div className="flex flex-col gap-2 p-4 border rounded-lg h-full">
                   <p className="text-sm font-medium">Onboarding Data</p>
                   <div className="text-xs text-gray-700">
                     {onboardingData ? (
@@ -183,19 +198,25 @@ export default function Home() {
           {/* Onboarding Form - показываем только если опрос не пройден */}
           {!onboardingData && (
             <Card>
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                          <User className="h-5 w-5" />
-                  Complete Your Profile
-                        </CardTitle>
-                        <CardDescription>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Image
+                      src={"/icons/user.svg"}
+                      alt="user"
+                      width={20}
+                      height={20}
+                      className="object-contain"
+                    />    
+                    Complete Your Profile
+                </CardTitle>
+                <CardDescription>
                   Please provide some information to help us personalize your experience
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                <UserOnboarding onComplete={loadOnboarding} />
-                      </CardContent>
-                    </Card>
+                </CardDescription>
+              </CardHeader>
+                <CardContent>
+                  <UserOnboarding onComplete={loadOnboarding} />
+                </CardContent>
+              </Card>
         )}
         </div>
       </div>

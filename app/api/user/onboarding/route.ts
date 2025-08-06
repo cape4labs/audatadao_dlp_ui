@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    await fetch('https://audata.space:8000/api/v1/users/metadata', {
+    const res = await fetch('http://audata.space:8000/api/v1/users/metadata', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -28,6 +28,7 @@ export async function POST(request: NextRequest) {
       }),
     });
 
+    console.log(res)
 
 
     return NextResponse.json({

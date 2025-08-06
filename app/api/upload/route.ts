@@ -3,39 +3,24 @@ import { NextRequest, NextResponse } from "next/server";
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
-    const file = formData.get('file') as File;
 
-    if (!file) {
-      return NextResponse.json(
-        { error: "No file provided" },
-        { status: 400 }
-      );
-    }
+    const file = formData.get("file") as File;
 
-    // Convert file to buffer
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
+    formData.append("file", file)
 
-    formData.append('file', file);
-
-    // Upload to Pinata
-        const pinataResponse = await fetch("https://api.pinata.cloud/pinning/pinFileToIPFS", {
-          method: "POST",
-          headers: {
-            "pinata_api_key": `${process.env.PINATA_API_KEY}`,
-            "pinata_secret_api_key": `${process.env.PINATA_SECRET_API_KEY}`,
-          },
-          body: formData,
-        });
-
+    const pinataResponse = await fetch("https://api.pinata.cloud/pinning/pinFileToIPFS", {
+      method: "POST",
+      headers: {
+        "pinata_api_key": `${process.env.PINATA_API_KEY}`,
+        "pinata_secret_api_key": `${process.env.PINATA_SECRET_API_KEY}`,
+      },
+      body: formData,
+    });
 
     if (!pinataResponse.ok) {
       const errorText = await pinataResponse.text();
-      console.error('Pinata upload error:', pinataResponse.status, errorText);
-      return NextResponse.json(
-        { error: `Pinata upload failed: ${pinataResponse.statusText}` },
-        { status: 500 }
-      );
+      console.error("Pinata upload error:", pinataResponse.status, errorText);
+      return NextResponse.json({ error: `Pinata upload failed: ${pinataResponse.statusText}` }, { status: 500 });
     }
 
     const pinataResult = await pinataResponse.json();
@@ -49,10 +34,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Upload error:', error);
-    return NextResponse.json(
-      { error: "Failed to upload file" },
-      { status: 500 }
-    );
+    console.error("Upload error:", error);
+    return NextResponse.json({ error: "Failed to upload file" }, { status: 500 });
   }
-} 
+}

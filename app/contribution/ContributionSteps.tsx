@@ -26,10 +26,10 @@ export type StepStatus = "pending" | "current" | "complete" | "error";
 export const contributionSteps: Step[] = [
   {
     id: 1,
-    title: "Process Local File",
-    description: "Encrypting and processing your local data file",
+    title: "Process file to Pinata",
+    description: "Encrypting and processing your file to Pinata",
     icon: <LockKeyhole className="h-5 w-5" />,
-    statusMessage: "Processing local file...",
+    statusMessage: "Uploading file...",
     signingMessage: "Signing message...",
   },
   {
