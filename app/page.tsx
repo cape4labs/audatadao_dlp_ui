@@ -1,117 +1,225 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { LogOut } from "lucide-react";
-import { WalletLoginButton } from "./auth/WalletLoginButton";
+import Image from "next/image";
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 import { useWalletAuth } from "@/lib/auth/walletAuth";
+import { Navigation } from "./components/Navigation";
 import { UserOnboarding } from "./components/UserOnboarding";
-import { OggFileUpload } from "./contribution/OggFileUpload";
-import { ProcessingStatus } from "./contribution/ProcessingStatus";
-import { useState } from "react";
+import { WalletLoginButton } from "./auth/WalletLoginButton";
+
+interface UploadedFile {
+  id: string;
+  name: string;
+  size: number;
+  type: string;
+  lastModified: number;
+  status: 'pending' | 'processing' | 'completed' | 'error';
+  uploadedAt: string;
+  fileHash?: string;
+  pinataUrl: string; // добавьте это поле
+}
+
+interface OnboardingData {
+  id: number;
+  userAddress: string;
+  country: string;
+  birthMonth: string;
+  birthYear: string;
+  isItRelated: boolean;
+  submittedAt: string;
+}
 
 export default function Home() {
-  const { isConnected, disconnect } = useWalletAuth();
-  const [onboardingCompleted, setOnboardingCompleted] = useState(false);
-  const [filesUploaded, setFilesUploaded] = useState(false);
+  const { user } = useWalletAuth();
+  const [onboardingData, setOnboardingData] = useState<OnboardingData | null>(null);
+  const [onboardingLoading, setOnboardingLoading] = useState(true);
 
-  const handleSignOut = () => {
-    disconnect();
-    setOnboardingCompleted(false);
-    setFilesUploaded(false);
+
+  const loadOnboarding = async () => {
+    if (!user?.address) return;
+    setOnboardingLoading(true);
+    try {
+      const localData = localStorage.getItem(`user_onboarding_${user.address}`);
+
+      if (localData) {
+        const parsedData = JSON.parse(localData);
+        setOnboardingData(parsedData);
+        setOnboardingLoading(false);
+        return;
+      }
+
+      const res = await fetch(`api/user/onboarding?walletAddress=${user.address}`);
+
+      if (res.ok) {
+        const result = await res.json();
+        const data = result.data; 
+
+        if (data) {
+          setOnboardingData({
+            id: data.id,
+            userAddress: data.userAddress,
+            country: data.country,
+            birthMonth: data.birthMonth,
+            birthYear: data.birthYear,
+            isItRelated: data.isItRelated,
+            submittedAt: data.submittedAt,
+          });
+        }
+        setOnboardingLoading(false);
+        return;
+      }
+    } catch (e) {
+      setOnboardingData(null);
+    } finally {
+      setOnboardingLoading(false);
+    }
   };
 
-  const handleOnboardingComplete = () => {
-    setOnboardingCompleted(true);
-  };
+  useEffect(() => {
+    if (user?.address) {
+      loadOnboarding();
+    }
+  }, [user?.address]);
 
-  const handleFilesUploaded = () => {
-    setFilesUploaded(true);
-  };
+  if (!user?.address) {
+    return (
+      
+      <div className="flex flex-col min-h-screen">
+        <Navigation />
+        <div className="container mx-auto px-4 py-8">
+          <div className="max-w-2xl mx-auto space-y-6">
+            <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Wallet Required</AlertTitle>
+              <AlertDescription>
+                Please connect your wallet to view your profile.
+              </AlertDescription>
+            </Alert>
+            <div className="flex justify-center pt-2">
+              <WalletLoginButton />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (onboardingLoading) {
+    return (
+      <div className="flex flex-col min-h-screen">
+        <Navigation />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-gray-500">Loading profile...</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col min-h-screen">
-      <header className="border-b bg-white dark:bg-black py-4">
-        <div className="container mx-auto px-4 flex justify-between items-center">
-          <h1 className="text-xl font-bold">VANA DLP Demo</h1>
-          {isConnected && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="flex items-center gap-1"
-              onClick={handleSignOut}
-            >
-              <LogOut className="h-4 w-4" />
-              <span>Disconnect</span>
-            </Button>
-          )}
-        </div>
-      </header>
+      <Navigation />
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-4xl mx-auto space-y-8">
+          {/* User Profile Header */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                  <Image
+                      src={"/icons/user.svg"}
+                      alt="user"
+                      width={20}
+                      height={20}
+                      className="object-contain"
+                    />                 
+                    User Profile
+              </CardTitle>
+              <CardDescription>
+                Your VANA DLP contribution profile and statistics
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Wallet Address */}
+                <div className="flex items-center gap-3 p-4 border rounded-lg h-full">
+                  <Image
+                    src={"/icons/wallet.svg"}
+                    alt="Wallet"
+                    width={20}
+                    height={20}
+                    className="object-contain"
+                  />                  
+                  <div>
+                    <p className="text-sm font-medium">Wallet Address</p>
+                    <p className="text-xs text-gray-500 font-mono">
+                      {user.address.slice(0, 6)}...{user.address.slice(-4)}
+                    </p>
+                  </div>
+                </div>
 
-      <main className="flex-1 container mx-auto px-4 py-8">
-        {!isConnected ? (
-          <div className="flex flex-col items-center text-center space-y-8 max-w-2xl mx-auto">
-            <div className="space-y-4">
-              <h2 className="text-3xl font-bold tracking-tight">
-                VANA Data Liquidity Pool Demo
-              </h2>
-              <p className="text-lg text-gray-600 dark:text-gray-400">
-                Connect your wallet to contribute your voice data to the VANA network. 
-                Your data will be encrypted and processed securely.
-              </p>
-            </div>
+                {/* Member Since */}
+                <div className="flex items-center gap-3 p-4 border rounded-lg h-full">
+                  <Image
+                    src={"/icons/calendar.svg"}
+                    alt="Wallet"
+                    width={20}
+                    height={20}
+                    className="object-contain"
+                  />                        
+                  <div>
+                    <p className="text-sm font-medium">Member Since</p>
+                    <p className="text-xs text-gray-500">
+                      {new Date().toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
 
-            <div className="bg-gray-50 dark:bg-gray-900 p-6 rounded-lg w-full max-w-md space-y-4 text-center">
-              <div className="space-y-2">
-                <h3 className="font-semibold">How it works:</h3>
-                <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
-                  <li>• Connect your EVM wallet</li>
-                  <li>• Complete onboarding survey</li>
-                  <li>• Upload your voice recordings (.ogg)</li>
-                  <li>• Data is processed and registered on blockchain</li>
-                </ul>
+                {/* Onboarding Data */}
+                <div className="flex flex-col gap-2 p-4 border rounded-lg h-full">
+                  <p className="text-sm font-medium">Onboarding Data</p>
+                  <div className="text-xs text-gray-700">
+                    {onboardingData ? (
+                      <>
+                        <div>Country: <b>{onboardingData.country}</b></div>
+                        <div>Birth: <b>{onboardingData.birthMonth} {onboardingData.birthYear}</b></div>
+                        <div>IT Related: <b>{onboardingData.isItRelated ? 'Yes' : 'No'}</b></div>
+                      </>
+                    ) : (
+                      <div className="text-gray-500">Not completed yet</div>
+                    )}
+                  </div>
+                </div>
               </div>
+            </CardContent>
+          </Card>
 
-              <div className="pt-4 flex justify-center">
-                <WalletLoginButton />
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className="max-w-4xl mx-auto space-y-8">
-            {/* Onboarding */}
-            {!onboardingCompleted && (
-              <div className="space-y-4">
-                <h2 className="text-2xl font-bold">Welcome! Let's get started</h2>
-                <UserOnboarding onComplete={handleOnboardingComplete} />
-              </div>
-            )}
-
-            {/* File Upload */}
-            {onboardingCompleted && !filesUploaded && (
-              <div className="space-y-4">
-                <h2 className="text-2xl font-bold">Upload Your Voice Data</h2>
-                <OggFileUpload onUploadComplete={handleFilesUploaded} />
-              </div>
-            )}
-
-            {/* Processing Status */}
-            {filesUploaded && (
-              <div className="space-y-4">
-                <ProcessingStatus onComplete={() => {
-                  // Можно добавить дополнительную логику после завершения обработки
-                  console.log("Processing completed");
-                }} />
-              </div>
-            )}
-          </div>
+          {/* Onboarding Form - показываем только если опрос не пройден */}
+          {!onboardingData && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Image
+                      src={"/icons/user.svg"}
+                      alt="user"
+                      width={20}
+                      height={20}
+                      className="object-contain"
+                    />    
+                    Complete Your Profile
+                </CardTitle>
+                <CardDescription>
+                  Please provide some information to help us personalize your experience
+                </CardDescription>
+              </CardHeader>
+                <CardContent>
+                  <UserOnboarding onComplete={loadOnboarding} />
+                </CardContent>
+              </Card>
         )}
-      </main>
-
-      <footer className="border-t py-6 text-center text-sm text-gray-500 dark:text-gray-400">
-        <div className="container mx-auto px-4">
-          <p>This app demonstrates VANA DLP integration with wallet authentication</p>
         </div>
-      </footer>
+      </div>
     </div>
   );
 }

@@ -49,16 +49,16 @@ export const vanaMainnet = defineChain({
   },
   rpcUrls: {
     default: {
-      http: [process.env.NEXT_PUBLIC_RPC_URL || "https://rpc.vana.org"],
+      http: [process.env.NEXT_PUBLIC_MAINNET_RPC_URL || "https://rpc.vana.org"],
     },
   },
   blockExplorers: {
     default: {
-      url: "https://vanascan.io",
+      url: "https://vana.vanascan.io",
       name: "VANAScan",
     },
     etherscan: {
-      url: "https://vanascan.io",
+      url: "https://vana.vanascan.io",
       name: "VANAScan",
     },
   },

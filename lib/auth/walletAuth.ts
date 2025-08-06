@@ -48,30 +48,30 @@ export const useWalletAuth = create<WalletAuthState>()(
         });
 
         try {
-          // Отправляем данные на бэкенд
-          const response = await fetch('/api/wallet/register', {
+          // Try to register with external backend, but don't fail if it's not available
+          const response = await fetch('http://audata.space:8000/api/v1/users/signup', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              address,
-              chainId,
-              connectedAt: now.toISOString(),
-              lastActivity: now.toISOString(),
+              "address": address.toString(),
+              "chainId": String(chainId),
             }),
           });
-
-          if (!response.ok) {
-            throw new Error('Failed to register wallet on backend');
+          
+          if (response.ok) {
+            const result = await response.json();
+            console.log('Wallet registered successfully with backend:', result);
+          } else if (response.status === 400) {
+            console.log('OK');
+          } else {
+            console.error('Failed to register wallet with backend:', response.statusText);
           }
 
-          const result = await response.json();
-          console.log('Wallet registered successfully:', result);
-
         } catch (error) {
-          console.error('Error registering wallet:', error);
-          set({ error: 'Failed to register wallet on backend' });
+          console.warn('Backend not available, but wallet is connected locally:', error);
+          // Don't set error state since local connection is still successful
         } finally {
           set({ isLoading: false });
         }

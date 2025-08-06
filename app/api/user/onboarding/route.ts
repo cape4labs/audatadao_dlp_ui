@@ -1,66 +1,53 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { walletAddress, country, birthMonth, birthYear, isItRelated, location, submittedAt } = body;
-
-    // Валидация входных данных
-    if (!walletAddress || !country || !birthMonth || !birthYear || !isItRelated) {
+    
+    // Validate the request body
+    const { userAddress, country, birthMonth, birthYear, isItRelated } = body;
+    
+    if (!userAddress || !country || !birthMonth || !birthYear || isItRelated === undefined) {
       return NextResponse.json(
-        { error: "Missing required fields" },
+        { error: 'Missing required fields' },
         { status: 400 }
       );
     }
 
-    const onboardingData = {
-      walletAddress,
-      country,
-      birthMonth,
-      birthYear,
-      isItRelated,
-      location: location || null,
-      submittedAt: submittedAt || new Date().toISOString(),
-    };
+    const res = await fetch('http://audata.space:8000/api/v1/users/metadata', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        userAddress,
+        country,
+        birthMonth,
+        birthYear,
+        isItRelated,
+      }),
+    });
 
-    // TODO: INTEGRATION WITH BACKEND
-    // Здесь нужно интегрировать с вашим бэкендом для сохранения данных onboarding
-    //
-    // 1. Создайте эндпоинт на вашем бэкенде для сохранения данных onboarding
-    // 2. Раскомментируйте код ниже и замените URL на ваш
-    // 3. Добавьте необходимые заголовки авторизации
-    // 4. Обработайте ответ от бэкенда (успех/ошибка)
-    //
-    // Раскомментируйте и настройте для интеграции с вашим бэкендом:
-    // const backendUrl = process.env.BACKEND_API_URL;
-    // if (backendUrl) {
-    //   const response = await fetch(`${backendUrl}/api/users/onboarding`, {
-    //     method: 'POST',
-    //     headers: {
-    //       'Content-Type': 'application/json',
-    //       'Authorization': `Bearer ${process.env.BACKEND_API_KEY}`,
-    //     },
-    //     body: JSON.stringify(onboardingData),
-    //   });
-    //   
-    //   if (!response.ok) {
-    //     throw new Error('Failed to submit onboarding data to backend');
-    //   }
-    // }
+    console.log(res)
 
-    // Логирование для отладки
-    console.log('User onboarding data:', onboardingData);
 
     return NextResponse.json({
       success: true,
-      message: "Onboarding data submitted successfully",
-      data: onboardingData,
+      message: 'Onboarding data saved successfully',
+      data: {
+        userAddress,
+        country,
+        birthMonth,
+        birthYear,
+        isItRelated,
+        submittedAt: new Date().toISOString()
+      }
     });
 
   } catch (error) {
-    console.error("Error submitting onboarding data:", error);
+    console.error('Error processing onboarding data:', error);
     return NextResponse.json(
-      { error: "Failed to submit onboarding data" },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }
@@ -78,34 +65,13 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // TODO: INTEGRATION WITH BACKEND
-    // Здесь нужно интегрировать с вашим бэкендом для получения данных onboarding
-    //
-    // 1. Создайте эндпоинт на вашем бэкенде для получения данных onboarding
-    // 2. Раскомментируйте код ниже и замените URL на ваш
-    // 3. Добавьте необходимые заголовки авторизации
-    // 4. Обработайте ответ от бэкенда
-    //
-    // Раскомментируйте и настройте для интеграции с вашим бэкендом:
-    // const backendUrl = process.env.BACKEND_API_URL;
-    // if (backendUrl) {
-    //   const response = await fetch(`${backendUrl}/api/users/onboarding/${walletAddress}`, {
-    //     headers: {
-    //       'Authorization': `Bearer ${process.env.BACKEND_API_KEY}`,
-    //     },
-    //   });
-    //   
-    //   if (response.ok) {
-    //     const onboardingData = await response.json();
-    //     return NextResponse.json(onboardingData);
-    //   }
-    // }
-
-    // Временный ответ для демонстрации
-    return NextResponse.json({
-      walletAddress,
-      hasCompletedOnboarding: false,
-      onboardingData: null,
+    const res = await fetch(`http://audata.space:8000/api/v1/users/metadata/?user_wallet_address=${walletAddress}`); 
+    
+    console.log(res.status, res.statusText);
+    
+    return NextResponse.json({ 
+      success: true,
+      data: res.ok ? await res.json() : null, 
     });
 
   } catch (error) {

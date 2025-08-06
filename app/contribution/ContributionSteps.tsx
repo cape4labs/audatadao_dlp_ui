@@ -26,10 +26,10 @@ export type StepStatus = "pending" | "current" | "complete" | "error";
 export const contributionSteps: Step[] = [
   {
     id: 1,
-    title: "Encrypt & Upload Data",
-    description: "Encrypting and securely storing your data",
+    title: "Process file to Pinata",
+    description: "Encrypting and processing your file to Pinata",
     icon: <LockKeyhole className="h-5 w-5" />,
-    statusMessage: "Uploading to secure storage...",
+    statusMessage: "Uploading file...",
     signingMessage: "Signing message...",
   },
   {
