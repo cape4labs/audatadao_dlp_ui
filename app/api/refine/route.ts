@@ -7,11 +7,11 @@ export async function POST(request: Request) {
     const refinementEndpoint = `${process.env.REFINEMENT_ENDPOINT}/refine`;
     const fileId = requestBody.file_id;
     const encryptionKey = requestBody.encryption_key;
-    const refinerId = process.env.REFINER_ID || requestBody.refiner_id;
-    const pinataApiKey = process.env.PINATA_API_KEY;
-    const pinataApiSecret = process.env.PINATA_SECRET_API_KEY;
-    const apiVersion = process.env.REFINEMENT_API_VERSION;
-    const pinataGateway = process.env.PINATA_GATEWAY
+    const refinerId = process.env.NEXT_PUBLIC_REFINER_ID || requestBody.refiner_id;
+    const pinataApiKey = process.env.NEXT_PUBLIC_PINATA_API_KEY;
+    const pinataApiSecret = process.env.NEXT_PUBLIC_PINATA_SECRET_API_KEY;
+    const apiVersion = process.env.NEXT_PUBLIC_REFINEMENT_API_VERSION;
+    const pinataGateway = process.env.NEXT_PUBLIC_PINATA_GATEWAY
     
     if (!refinementEndpoint) {
       return NextResponse.json(

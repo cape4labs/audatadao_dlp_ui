@@ -6,7 +6,7 @@ export async function GET(
 ) {
   try {
     const { job_id } = await params;
-    const refinementEndpoint = process.env.REFINEMENT_ENDPOINT;
+    const refinementEndpoint = process.env.NEXT_PUBLIC_REFINEMENT_ENDPOINT;
 
     if (!refinementEndpoint) {
       return NextResponse.json(

@@ -192,8 +192,8 @@ export const useTeeProof = () => {
       const { ivHex, ephemeralKeyHex } = getEncryptionParameters();
 
       const propfUrl = process.env.NEXT_PUBLIC_PROOF_URL
-      const dlpId = process.env.DLP_ID
-      const dbUri = process.env.DB_URI
+      const dlpId = process.env.NEXT_PUBLIC_DLP_ID
+      const dbUri = process.env.NEXT_PUBLIC_DB_URI
 
       // Create the proof request
       const nonce = Date.now().toString();
