@@ -9,8 +9,7 @@ import {
   Alert, AlertDescription, AlertTitle,
 } from "@/components/ui/alert";
 import {
-  Upload, FileAudio, Loader2, AlertCircle,
-  Shield, Database, Globe,
+  Upload, Loader2, AlertCircle,
 } from "lucide-react";
 
 import { toast } from "sonner";
@@ -21,6 +20,8 @@ import { Navigation } from "../components/Navigation";
 import { useContributionFlow } from "../contribution/hooks/useContributionFlow";
 import { ContributionSuccess } from "../contribution/ContributionSuccess";
 import { ContributionSteps } from "../contribution/ContributionSteps";
+import { WalletLoginButton } from "../auth/WalletLoginButton";
+
 
 interface UploadedFile {
   id: string;
@@ -128,6 +129,9 @@ export default function UploadPage() {
                 Please connect your wallet to upload voice files.
               </AlertDescription>
             </Alert>
+            <div className="flex justify-center pt-2">
+              <WalletLoginButton />
+            </div>
           </div>
         </div>
       </div>

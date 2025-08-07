@@ -34,7 +34,7 @@ export function WalletLoginButton() {
   // Если кошелек подключен, сохраняем данные пользователя
   useEffect(() => {
     if (isConnected && address && !isWalletConnected && !isWalletLoading) {
-      connectWallet(address, 14800); // Используем Moksha testnet по умолчанию
+      connectWallet(address, Number(process.env.NEXT_PUBLIC_CHAIN_ID)); // Используем Moksha testnet по умолчанию
     }
   }, [isConnected, address, isWalletConnected, isWalletLoading, connectWallet]);
 
