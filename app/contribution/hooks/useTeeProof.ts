@@ -225,10 +225,10 @@ export const useTeeProof = () => {
       requestBody.encryption_key = signature;
 
       requestBody.teeUrl = jobDetails.teeUrl
-      
+
       // Make direct request to the TEE's RunProof endpoint
       const contributionProofResponse = await fetch(
-        `${jobDetails.teeUrl}/RunProof`,
+        `api/proof`,
         {
           method: "POST",
           headers: {

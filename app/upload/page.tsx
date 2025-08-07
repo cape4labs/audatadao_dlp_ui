@@ -180,7 +180,7 @@ export default function UploadPage() {
                         className="object-contain"
                       />  
                   </div>
-                  <h3 className="font-semibold">1. Upload</h3>
+                  <h3 className="font-semibold">1.Upload</h3>
                   <p className="text-sm text-gray-600">Upload your .ogg voice files to local storage</p>
                 </div>
                 <div className="text-center space-y-2">
@@ -193,7 +193,7 @@ export default function UploadPage() {
                         className="object-contain"
                       />  
                   </div>
-                  <h3 className="font-semibold">2. Register</h3>
+                  <h3 className="font-semibold">2.Register</h3>
                   <p className="text-sm text-gray-600">Data is registered on the blockchain with proof of contribution</p>
                 </div>
                 <div className="text-center space-y-2">
@@ -206,7 +206,7 @@ export default function UploadPage() {
                         className="object-contain"
                       />  
                   </div>
-                  <h3 className="font-semibold">3. Process</h3>
+                  <h3 className="font-semibold">3.Process</h3>
                   <p className="text-sm text-gray-600">Voice data is processed and validated by the VANA network</p>
                 </div>
               </div>
