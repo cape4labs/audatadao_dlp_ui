@@ -64,7 +64,7 @@ export const useWalletAuth = create<WalletAuthState>()(
             const result = await response.json();
             console.log('Wallet registered successfully with backend:', result);
           } else if (response.status === 400) {
-            console.log('OK');
+            console.log('User is already registered');
           } else {
             console.error('Failed to register wallet with backend:', response.statusText);
           }
@@ -83,6 +83,8 @@ export const useWalletAuth = create<WalletAuthState>()(
           isConnected: false,
           error: null,
         });
+
+        localStorage.clear()
       },
 
       updateActivity: () => {

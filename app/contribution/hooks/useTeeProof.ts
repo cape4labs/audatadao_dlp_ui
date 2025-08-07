@@ -55,6 +55,7 @@ interface ProofRequestBody {
   }[];
   encrypted_encryption_key?: string;
   encryption_key?: string;
+  teeUrl?: string | null;
 }
 
 export const getDlpPublicKey = async (): Promise<string> => {
@@ -223,6 +224,8 @@ export const useTeeProof = () => {
       // }
       requestBody.encryption_key = signature;
 
+      requestBody.teeUrl = jobDetails.teeUrl
+      
       // Make direct request to the TEE's RunProof endpoint
       const contributionProofResponse = await fetch(
         `${jobDetails.teeUrl}/RunProof`,
@@ -231,7 +234,7 @@ export const useTeeProof = () => {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(requestBody),
+          body: JSON.stringify(requestBody), 
         }
       );
 

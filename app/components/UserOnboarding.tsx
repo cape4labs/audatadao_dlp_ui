@@ -39,18 +39,6 @@ export function UserOnboarding({ onComplete }: { onComplete: () => void }) {
         async (position) => {
           try {
             const { latitude, longitude, accuracy } = position.coords;
-            const timestamp = new Date(position.timestamp).toISOString();
-            
-            // Сохраняем точные координаты
-            setFormData(prev => ({
-              ...prev,
-              location: {
-                latitude,
-                longitude,
-                accuracy,
-                timestamp,
-              }
-            }));
 
             // Получаем название страны по координатам
             const response = await fetch(
@@ -82,7 +70,7 @@ export function UserOnboarding({ onComplete }: { onComplete: () => void }) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.country || !formData.birthMonth || !formData.birthYear || !formData.isItRelated) {
+    if (!formData.country || !formData.birthMonth || !formData.birthYear) {
       toast.error("Please fill in all fields");
       return;
     }
