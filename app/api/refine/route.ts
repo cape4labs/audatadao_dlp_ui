@@ -11,8 +11,9 @@ export async function POST(request: Request) {
     const pinataApiKey = process.env.NEXT_PUBLIC_PINATA_API_KEY;
     const pinataApiSecret = process.env.NEXT_PUBLIC_PINATA_SECRET_API_KEY;
     const apiVersion = process.env.NEXT_PUBLIC_REFINEMENT_API_VERSION;
-    const pinataGateway = process.env.NEXT_PUBLIC_PINATA_GATEWAY
-    
+    const pinataGateway = process.env.NEXT_PUBLIC_PINATA_GATEWAY;
+
+
     if (!refinementEndpoint) {
       return NextResponse.json(
         { error: "Refinement endpoint not configured" },

@@ -156,7 +156,7 @@ export default function UploadPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                       <Image
-                        src={"/icons/shield.svg"}
+                        src={"/icons/shield.png"}
                         alt="user"
                         width={20}
                         height={20}

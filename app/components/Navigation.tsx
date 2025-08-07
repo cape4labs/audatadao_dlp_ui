@@ -52,7 +52,7 @@ export function Navigation() {
                   className="flex items-center gap-1"
                 >
                   <Image
-                    src={isActive("/") ? "/icons/home-white.svg" : "icons/home.svg"}
+                    src={isActive("/") ? "/icons/home-white.png" : "icons/home-black.png"}
                     alt="home"
                     width={20}
                     height={20}
@@ -69,7 +69,7 @@ export function Navigation() {
                     className="flex items-center gap-1"
                   >
                   <Image
-                    src={isActive("/upload") ? "/icons/upload-white.svg" : "icons/upload.svg"}
+                    src={isActive("/upload") ? "/icons/upload-white.png" : "icons/upload-black.png"}
                     alt="upload"
                     width={20}
                     height={20}
@@ -86,7 +86,7 @@ export function Navigation() {
             <>
               <div className="hidden sm:flex items-center gap-2 text-sm text-gray-600">
                   <Image
-                    src={"/icons/wallet.svg"}
+                    src={"/icons/wallet.png"}
                     alt="Wallet"
                     width={20}
                     height={20}
@@ -112,7 +112,13 @@ export function Navigation() {
                 className="hidden md:flex items-center gap-1"
                 onClick={handleSignOut}
               >
-                <LogOut className="h-4 w-4" />
+                  <Image
+                    src={"/icons/exit.png"}
+                    alt="exit"
+                    width={20}
+                    height={20}
+                    className="object-contain"
+                  />   
                 <span>Disconnect</span>
               </Button>
             </>
@@ -129,8 +135,14 @@ export function Navigation() {
                 size="sm" 
                 className="w-full justify-start"
               >
-                <Home className="h-4 w-4 mr-2" />
-                Home
+                  <Image
+                    src={isActive("/upload") ? "/icons/home-white.png" : "icons/home-black.png"}
+                    alt="upload"
+                    width={20}
+                    height={20}
+                    className={isActive("/") ? "white" : "fill-black"}
+                  />                   
+                  Home
               </Button>
             </Link>
             
@@ -140,8 +152,14 @@ export function Navigation() {
                 size="sm" 
                 className="w-full justify-start"
               >
-                <Upload className="h-4 w-4 mr-2" />
-                Upload
+                  <Image
+                    src={isActive("/upload") ? "/icons/upload-white.png" : "icons/upload-black.png"}
+                    alt="upload"
+                    width={20}
+                    height={20}
+                    className={isActive("/") ? "white" : "fill-black"}
+                  />   
+                  Upload
               </Button>
             </Link>
             

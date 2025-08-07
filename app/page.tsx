@@ -128,7 +128,7 @@ export default function Home() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                   <Image
-                      src={"/icons/user.svg"}
+                      src={"/icons/user.png"}
                       alt="user"
                       width={20}
                       height={20}
@@ -145,7 +145,7 @@ export default function Home() {
                 {/* Wallet Address */}
                 <div className="flex items-center gap-3 p-4 border rounded-lg h-full">
                   <Image
-                    src={"/icons/wallet.svg"}
+                    src={"/icons/wallet.png"}
                     alt="Wallet"
                     width={20}
                     height={20}
@@ -162,7 +162,7 @@ export default function Home() {
                 {/* Member Since */}
                 <div className="flex items-center gap-3 p-4 border rounded-lg h-full">
                   <Image
-                    src={"/icons/calendar.svg"}
+                    src={"/icons/calendar.png"}
                     alt="Wallet"
                     width={20}
                     height={20}
@@ -201,7 +201,7 @@ export default function Home() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Image
-                      src={"/icons/user.svg"}
+                      src={"/icons/user.png"}
                       alt="user"
                       width={20}
                       height={20}
