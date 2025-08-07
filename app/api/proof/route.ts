@@ -46,6 +46,8 @@ export async function POST(request: NextRequest) {
         encryption_key: requestBody.encryption_key,
     }; 
 
+    console.log(body.proof_url)
+
     const contributionProofResponse = await fetch(
     `${jobUrl}/RunProof`,
     {

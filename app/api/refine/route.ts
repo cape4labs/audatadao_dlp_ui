@@ -9,8 +9,8 @@ export async function POST(request: Request) {
     const encryptionKey = requestBody.encryption_key;
     const refinerId = process.env.REFINER_ID || requestBody.refiner_id;
     const pinataApiKey = process.env.PINATA_API_KEY;
-    const pinataApiSecret = "29aaac77b8e5fd3a3de8a5f8666f1586911a88d8cf55240e51639200a4fbd784";
-    const apiVersion = process.env.REFINEMENT_API_VERSION?.toUpperCase() || "V1";
+    const pinataApiSecret = process.env.PINATA_SECRET_API_KEY;
+    const apiVersion = process.env.REFINEMENT_API_VERSION;
     const pinataGateway = process.env.PINATA_GATEWAY
     
     if (!refinementEndpoint) {

@@ -8,9 +8,6 @@ import { useAccount, useConfig, useWriteContract } from "wagmi";
 // Fixed message for signing
 export const SIGN_MESSAGE = "Please sign to retrieve your encryption key";
 
-const DB_URI = process.env.DB_URI
-const DLP_ID = process.env.DLP_ID
-
 export type ProofResult = {
   fileId: number;
   jobId: number;
@@ -194,17 +191,21 @@ export const useTeeProof = () => {
       // Get consistent encryption parameters
       const { ivHex, ephemeralKeyHex } = getEncryptionParameters();
 
+      const propfUrl = process.env.NEXT_PUBLIC_PROOF_URL
+      const dlpId = process.env.DLP_ID
+      const dbUri = process.env.DB_URI
+
       // Create the proof request
       const nonce = Date.now().toString();
       const requestBody: ProofRequestBody = {
         job_id: latestJobId,
-        file_id: fileId,
+        file_id: Number(fileId),
         nonce,
-        proof_url: process.env.NEXT_PUBLIC_PROOF_URL || "",
+        proof_url: String(propfUrl),
         encryption_seed: SIGN_MESSAGE,
         env_vars: {
-         DLP_ID: 140,
-         DB_URI: "postgresql://uZxnXtjLASNyTXSfxRfEOWYFA:7BMOlhIL7jzlMmDNPR1bbCdm2@5.129.230.182:5432/prod",
+         DLP_ID: Number(dlpId),
+         DB_URI: String(dbUri),
         },
         validate_permissions: [
           {
