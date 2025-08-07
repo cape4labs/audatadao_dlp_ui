@@ -191,7 +191,7 @@ export const useTeeProof = () => {
       // Get consistent encryption parameters
       const { ivHex, ephemeralKeyHex } = getEncryptionParameters();
 
-      const propfUrl = process.env.NEXT_PUBLIC_PROOF_URL
+      const proofUrl = process.env.NEXT_PUBLIC_PROOF_URL
       const dlpId = process.env.NEXT_PUBLIC_DLP_ID
       const dbUri = process.env.NEXT_PUBLIC_DB_URI
 
@@ -201,7 +201,7 @@ export const useTeeProof = () => {
         job_id: latestJobId,
         file_id: Number(fileId),
         nonce,
-        proof_url: String(propfUrl),
+        proof_url: String(proofUrl),
         encryption_seed: SIGN_MESSAGE,
         env_vars: {
          DLP_ID: Number(dlpId),

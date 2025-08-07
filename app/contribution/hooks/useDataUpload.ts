@@ -61,7 +61,7 @@ export function useDataUpload() {
             birth_year: data.birthYear,
             occupation: "IT",
             country: data.country,
-            region: "Aqtobe",
+            region: "asd",
           },
         };
 
