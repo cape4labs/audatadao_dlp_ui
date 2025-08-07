@@ -56,6 +56,8 @@ export async function POST(request: NextRequest) {
         body: JSON.stringify(body), 
     }
     );
+    console.log(jobUrl)
+    console.log(body)
 
     if (!contributionProofResponse.ok) {
       const errorText = await contributionProofResponse.text();
@@ -69,9 +71,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       data: {
-        "ok": "ok"
+        "res": res
       },
-    });
+    }, {status: 200});
 
   } catch (error) {
     console.error("Upload error:", error);
