@@ -257,16 +257,19 @@ export function useContributionFlow() {
   // Step 5: Claim Reward
   const executeClaimRewardStep = async (fileId: number) => {
     setCurrentStep(STEPS.CLAIM_REWARD);
+    console.log(fileId);
     const rewardResult = await requestReward(fileId);
+    console.log(rewardResult);
 
     if (!rewardResult) {
       setError("Failed to claim reward");
       return null;
     }
 
-    updateContributionData({
+    data = updateContributionData({
       rewardTxHash: rewardResult?.transactionHash,
     });
+    console.log(data);
 
     markStepComplete(STEPS.CLAIM_REWARD);
     return rewardResult;
