@@ -266,7 +266,7 @@ export function useContributionFlow() {
       return null;
     }
 
-    data = updateContributionData({
+    const data = updateContributionData({
       rewardTxHash: rewardResult?.transactionHash,
     });
     console.log(data);
