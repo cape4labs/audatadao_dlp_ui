@@ -42,7 +42,7 @@ export const contributionSteps: Step[] = [
   {
     id: 3,
     title: "Request Validation",
-    description: "Submitting job to validation nodes",
+    description: "Checking for audio valid",
     icon: <Server className="h-5 w-5" />,
     statusMessage: "Checking is your audio valid...",
   },
