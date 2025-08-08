@@ -6,21 +6,27 @@ export async function POST(request: NextRequest) {
 
     const file = formData.get("file") as File;
 
-    formData.append("file", file)
+    formData.append("file", file);
 
-    const pinataResponse = await fetch("https://api.pinata.cloud/pinning/pinFileToIPFS", {
-      method: "POST",
-      headers: {
-        "pinata_api_key": `${process.env.NEXT_PUBLIC_PINATA_API_KEY}`,
-        "pinata_secret_api_key": `${process.env.NEXT_PUBLIC_PINATA_SECRET_API_KEY}`,
+    const pinataResponse = await fetch(
+      "https://api.pinata.cloud/pinning/pinFileToIPFS",
+      {
+        method: "POST",
+        headers: {
+          pinata_api_key: `${process.env.NEXT_PUBLIC_PINATA_API_KEY}`,
+          pinata_secret_api_key: `${process.env.NEXT_PUBLIC_PINATA_SECRET_API_KEY}`,
+        },
+        body: formData,
       },
-      body: formData,
-    });
+    );
 
     if (!pinataResponse.ok) {
       const errorText = await pinataResponse.text();
       console.error("Pinata upload error:", pinataResponse.status, errorText);
-      return NextResponse.json({ error: `Pinata upload failed: ${pinataResponse.statusText}` }, { status: 500 });
+      return NextResponse.json(
+        { error: `Pinata upload failed: ${pinataResponse.statusText}` },
+        { status: 500 },
+      );
     }
 
     const pinataResult = await pinataResponse.json();
@@ -32,9 +38,11 @@ export async function POST(request: NextRequest) {
         fileSize: file.size,
       },
     });
-
   } catch (error) {
     console.error("Upload error:", error);
-    return NextResponse.json({ error: "Failed to upload file" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to upload file" },
+      { status: 500 },
+    );
   }
 }

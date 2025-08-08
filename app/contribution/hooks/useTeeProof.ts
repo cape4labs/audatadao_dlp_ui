@@ -41,9 +41,9 @@ interface ProofRequestBody {
   proof_url: string;
   encryption_seed: string;
   env_vars: {
-    DLP_ID: number,
-    DB_URI: string,
-  },
+    DLP_ID: number;
+    DB_URI: string;
+  };
   validate_permissions: {
     address: string;
     public_key: string;
@@ -83,7 +83,7 @@ export const useTeeProof = () => {
     Controller("TeePoolProxy");
 
   const { address: dataLiquidityPoolAddress } = Controller(
-    "DataLiquidityPoolProxy"
+    "DataLiquidityPoolProxy",
   );
 
   // Helper to get job IDs for a file from TeePool contract
@@ -148,7 +148,7 @@ export const useTeeProof = () => {
   const requestContributionProof = async (
     fileId: number,
     encryptionKey: string,
-    signature: string
+    signature: string,
   ) => {
     setIsProcessing(true);
     setError(null);
@@ -191,9 +191,9 @@ export const useTeeProof = () => {
       // Get consistent encryption parameters
       const { ivHex, ephemeralKeyHex } = getEncryptionParameters();
 
-      const proofUrl = process.env.NEXT_PUBLIC_PROOF_URL
-      const dlpId = process.env.NEXT_PUBLIC_DLP_ID
-      const dbUri = process.env.NEXT_PUBLIC_DB_URI
+      const proofUrl = process.env.NEXT_PUBLIC_PROOF_URL;
+      const dlpId = process.env.NEXT_PUBLIC_DLP_ID;
+      const dbUri = process.env.NEXT_PUBLIC_DB_URI;
 
       // Create the proof request
       const nonce = Date.now().toString();
@@ -204,8 +204,8 @@ export const useTeeProof = () => {
         proof_url: String(proofUrl),
         encryption_seed: SIGN_MESSAGE,
         env_vars: {
-         DLP_ID: Number(dlpId),
-         DB_URI: String(dbUri),
+          DLP_ID: Number(dlpId),
+          DB_URI: String(dbUri),
         },
         validate_permissions: [
           {
@@ -225,19 +225,16 @@ export const useTeeProof = () => {
       // }
       requestBody.encryption_key = signature;
 
-      requestBody.teeUrl = jobDetails.teeUrl
+      requestBody.teeUrl = jobDetails.teeUrl;
 
       // Make direct request to the TEE's RunProof endpoint
-      const contributionProofResponse = await fetch(
-        `api/proof`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(requestBody), 
-        }
-      );
+      const contributionProofResponse = await fetch(`api/proof`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestBody),
+      });
 
       if (!contributionProofResponse.ok) {
         const errorData = await contributionProofResponse.json();
@@ -255,7 +252,7 @@ export const useTeeProof = () => {
     } catch (err) {
       console.error("Error in proof process:", err);
       setError(
-        err instanceof Error ? err.message : "Failed to process TEE proof"
+        err instanceof Error ? err.message : "Failed to process TEE proof",
       );
       throw err;
     } finally {

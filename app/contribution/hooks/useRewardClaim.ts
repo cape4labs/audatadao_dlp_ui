@@ -1,8 +1,8 @@
-import { useState } from 'react';
-import { useAccount, useConfig, useWriteContract } from 'wagmi';
-import { waitForTransactionReceipt } from '@wagmi/core';
-import { TransactionReceipt } from 'viem';
-import { Controller } from '@/contracts/instances/controller';
+import { useState } from "react";
+import { useAccount, useConfig, useWriteContract } from "wagmi";
+import { waitForTransactionReceipt } from "@wagmi/core";
+import { TransactionReceipt } from "viem";
+import { Controller } from "@/contracts/instances/controller";
 
 // Interface for blockchain error objects
 interface BlockchainErrorObject {
@@ -27,11 +27,13 @@ export const useRewardClaim = () => {
   /**
    * Request reward for a file and wait for receipt
    */
-  const requestReward = async (fileId: number | bigint): Promise<TransactionReceipt | null> => {
+  const requestReward = async (
+    fileId: number | bigint,
+  ): Promise<TransactionReceipt | null> => {
     setIsClaiming(true);
     setError(null);
     setContractError(null);
-    
+
     try {
       if (!address) {
         throw new Error("Wallet not connected");
@@ -39,7 +41,9 @@ export const useRewardClaim = () => {
 
       // Get contract instance
       const dataLiquidityPool = Controller("DataLiquidityPoolProxy");
-      
+
+      console.log("contribution/hooks/useRewardClaim.ts 42", dataLiquidityPool);
+
       // Request reward using wagmi hooks
       const hash = await writeContractAsync({
         address: dataLiquidityPool.address,
@@ -47,18 +51,23 @@ export const useRewardClaim = () => {
         functionName: "requestReward",
         args: [BigInt(fileId), BigInt(1)], // Convert both values to bigint
       });
-      
+
+      console.log("contribution/hooks/useRewardClaim.ts 52", hash);
+
       // Wait for transaction receipt
       const txReceipt = await waitForTransactionReceipt(config, {
         hash,
         confirmations: 1,
       });
-      
+
+      console.log("contribution/hooks/useRewardClaim.ts 63", txReceipt);
+
       setReceipt(txReceipt);
       return txReceipt;
     } catch (err) {
       console.error("Error claiming reward:", err);
-      const error = err instanceof Error ? err : new Error("Failed to claim reward");
+      const error =
+        err instanceof Error ? err : new Error("Failed to claim reward");
       setError(error);
 
       // Extract contract-specific error message
@@ -69,7 +78,7 @@ export const useRewardClaim = () => {
       } else if (typeof err === "object" && err !== null) {
         // Some blockchain errors have custom formats
         const errorObj = err as BlockchainErrorObject;
-        const errorMessage = 
+        const errorMessage =
           errorObj.reason || errorObj.message || JSON.stringify(err);
         setContractError(errorMessage);
       } else {
@@ -90,4 +99,4 @@ export const useRewardClaim = () => {
     contractError,
     receipt,
   };
-}; 
+};

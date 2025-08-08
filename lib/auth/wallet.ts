@@ -5,10 +5,7 @@ import { injected, metaMask } from "wagmi/connectors";
 // Configure Wagmi
 const config = createConfig({
   chains: [mokshaTestnet, vanaMainnet],
-  connectors: [
-    injected(), 
-    metaMask(), 
-  ],
+  connectors: [injected(), metaMask()],
   transports: {
     [mokshaTestnet.id]: http(),
     [vanaMainnet.id]: http(),

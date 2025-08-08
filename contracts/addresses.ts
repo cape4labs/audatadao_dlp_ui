@@ -31,7 +31,7 @@ export const getContractAddress = (chainId: number, contract: VanaContract) => {
   const contractAddress = addresses[chainId]?.[contract];
   if (!contractAddress) {
     throw new Error(
-      `Contract address not found for ${contract} on chain ${chainId}`
+      `Contract address not found for ${contract} on chain ${chainId}`,
     );
   }
   return contractAddress;

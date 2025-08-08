@@ -1,9 +1,13 @@
-import React, { useState } from 'react';
-import { useAccount, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
-import { DataRegistry } from '@/contracts/instances/data-registry';
-import { Controller } from '@/contracts/instances/controller';
-import { createClient } from '@/contracts/client';
-import { toast } from 'sonner';
+import React, { useState } from "react";
+import {
+  useAccount,
+  useWriteContract,
+  useWaitForTransactionReceipt,
+} from "wagmi";
+import { DataRegistry } from "@/contracts/instances/data-registry";
+import { Controller } from "@/contracts/instances/controller";
+import { createClient } from "@/contracts/client";
+import { toast } from "sonner";
 
 interface BlockchainData {
   fileHash: string;
@@ -18,7 +22,7 @@ export function useBlockchainIntegration() {
   const [transactionHash, setTransactionHash] = useState<string | null>(null);
 
   const { address: dataLiquidityPoolAddress } = Controller(
-    "DataLiquidityPoolProxy"
+    "DataLiquidityPoolProxy",
   );
 
   const { writeContract, data: hash, isPending, error } = useWriteContract();
@@ -27,9 +31,12 @@ export function useBlockchainIntegration() {
     hash,
   });
 
-  const registerDataOnBlockchain = async (blockchainData: BlockchainData, encryptionKey: string) => {
+  const registerDataOnBlockchain = async (
+    blockchainData: BlockchainData,
+    encryptionKey: string,
+  ) => {
     if (!address) {
-      toast.error('Wallet not connected');
+      toast.error("Wallet not connected");
       return;
     }
 
@@ -49,7 +56,7 @@ export function useBlockchainIntegration() {
       writeContract({
         address: dataRegistry.address,
         abi: dataRegistry.abi,
-        functionName: 'addFileWithPermissions',
+        functionName: "addFileWithPermissions",
         args: [
           fileUrl, // file URL
           address, // ownerAddress - the user's address
@@ -63,10 +70,10 @@ export function useBlockchainIntegration() {
         account: address,
       });
 
-      toast.success('Transaction submitted to blockchain');
+      toast.success("Transaction submitted to blockchain");
     } catch (error) {
-      console.error('Error registering data on blockchain:', error);
-      toast.error('Failed to register data on blockchain');
+      console.error("Error registering data on blockchain:", error);
+      toast.error("Failed to register data on blockchain");
       setIsRegistering(false);
     }
   };
@@ -76,15 +83,15 @@ export function useBlockchainIntegration() {
     if (isSuccess && hash && !transactionHash) {
       setTransactionHash(hash);
       setIsRegistering(false);
-      toast.success('Data successfully registered on blockchain!');
+      toast.success("Data successfully registered on blockchain!");
     }
   }, [isSuccess, hash, transactionHash]);
 
   // Обработка ошибки
   React.useEffect(() => {
     if (error) {
-      console.error('Blockchain transaction error:', error);
-      toast.error('Blockchain transaction failed');
+      console.error("Blockchain transaction error:", error);
+      toast.error("Blockchain transaction failed");
       setIsRegistering(false);
     }
   }, [error]);
@@ -96,4 +103,4 @@ export function useBlockchainIntegration() {
     isSuccess,
     error,
   };
-} 
+}

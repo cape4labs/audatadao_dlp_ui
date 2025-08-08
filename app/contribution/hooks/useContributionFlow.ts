@@ -93,7 +93,7 @@ export function useContributionFlow() {
           blockNumber: txReceipt.blockNumber
             ? Number(txReceipt.blockNumber)
             : undefined,
-        }
+        },
       });
 
       // Process proof and reward in sequence
@@ -105,7 +105,7 @@ export function useContributionFlow() {
       setError(
         error instanceof Error
           ? error.message
-          : "Failed to process your contribution. Please try again."
+          : "Failed to process your contribution. Please try again.",
       );
     }
   };
@@ -120,7 +120,7 @@ export function useContributionFlow() {
       setError(
         signError instanceof Error
           ? signError.message
-          : "Failed to sign the message. Please try again."
+          : "Failed to sign the message. Please try again.",
       );
       return null;
     }
@@ -130,7 +130,7 @@ export function useContributionFlow() {
   const executeUploadDataStep = async (
     userAddress: string,
     file: Blob,
-    signature: string
+    signature: string,
   ) => {
     setCurrentStep(STEPS.UPLOAD_DATA);
 
@@ -148,7 +148,7 @@ export function useContributionFlow() {
   // Step 2: Register on blockchain
   const executeBlockchainRegistrationStep = async (
     uploadResult: UploadResponse,
-    signature: string
+    signature: string,
   ) => {
     setCurrentStep(STEPS.BLOCKCHAIN_REGISTRATION);
 
@@ -176,13 +176,13 @@ export function useContributionFlow() {
   const executeProofAndRewardSteps = async (
     fileId: number,
     encryptedKey: string,
-    signature: string
+    signature: string,
   ) => {
     // Step 3: Request TEE Proof
     const proofResult = await executeTeeProofStep(
       fileId,
       encryptedKey,
-      signature
+      signature,
     );
 
     if (!proofResult) {
@@ -201,13 +201,13 @@ export function useContributionFlow() {
   const executeTeeProofStep = async (
     fileId: number,
     encryptedKey: string,
-    signature: string
+    signature: string,
   ) => {
     setCurrentStep(STEPS.REQUEST_TEE_PROOF);
     const proofResult = await requestContributionProof(
       fileId,
       encryptedKey,
-      signature
+      signature,
     );
 
     if (!proofResult) {
@@ -226,7 +226,7 @@ export function useContributionFlow() {
   // Step 4: Process Proof
   const executeProcessProofStep = async (
     proofResult: ProofResult,
-    signature: string
+    signature: string,
   ) => {
     setCurrentStep(STEPS.PROCESS_PROOF);
 
@@ -248,7 +248,7 @@ export function useContributionFlow() {
       setError(
         refineError instanceof Error
           ? refineError.message
-          : "Failed to process TEE proof or claim reward"
+          : "Failed to process TEE proof or claim reward",
       );
       return null;
     }
@@ -257,9 +257,9 @@ export function useContributionFlow() {
   // Step 5: Claim Reward
   const executeClaimRewardStep = async (fileId: number) => {
     setCurrentStep(STEPS.CLAIM_REWARD);
-    console.log(fileId);
+    console.log("contribution/hooks/useContributionFlow.ts 260", fileId);
     const rewardResult = await requestReward(fileId);
-    console.log(rewardResult);
+    console.log("contribution/hooks/useContributionFlow.ts 262", rewardResult);
 
     if (!rewardResult) {
       setError("Failed to claim reward");
@@ -269,7 +269,7 @@ export function useContributionFlow() {
     const data = updateContributionData({
       rewardTxHash: rewardResult?.transactionHash,
     });
-    console.log(data);
+    console.log("contribution/hooks/useContributionFlow.ts 272", data);
 
     markStepComplete(STEPS.CLAIM_REWARD);
     return rewardResult;

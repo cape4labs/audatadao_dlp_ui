@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ job_id: string }> }
+  { params }: { params: Promise<{ job_id: string }> },
 ) {
   try {
     const { job_id } = await params;
@@ -11,19 +11,19 @@ export async function GET(
     if (!refinementEndpoint) {
       return NextResponse.json(
         { error: "Refinement endpoint not configured" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
     if (!job_id) {
       return NextResponse.json(
         { error: "Job ID is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     const statusUrl = `${refinementEndpoint}/refine/${job_id}`;
-    
+
     const response = await fetch(statusUrl, {
       method: "GET",
       headers: {
@@ -38,7 +38,7 @@ export async function GET(
     console.error("Error checking refinement job status:", error);
     return NextResponse.json(
       { error: "Failed to check job status" },
-      { status: 500 }
+      { status: 500 },
     );
   }
-} 
+}

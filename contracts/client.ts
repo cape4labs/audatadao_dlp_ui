@@ -8,7 +8,7 @@ export const defaultFromBlock = BigInt(292220);
 let _client: ReturnType<typeof createClient>;
 
 export const createClient = (
-  chainId: keyof typeof chains = activeChainId
+  chainId: keyof typeof chains = activeChainId,
 ): ReturnType<typeof createPublicClient> & { chain: Chain } => {
   if (!_client || _client.chain?.id !== chainId) {
     const chain = chains[chainId];

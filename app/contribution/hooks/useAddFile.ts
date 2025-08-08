@@ -26,7 +26,7 @@ export function useAddFile() {
   const [receipt, setReceipt] = useState<TransactionReceipt | null>(null);
 
   const { address: dataLiquidityPoolAddress } = Controller(
-    "DataLiquidityPoolProxy"
+    "DataLiquidityPoolProxy",
   );
 
   /**
@@ -34,7 +34,7 @@ export function useAddFile() {
    */
   const addFile = async (
     fileUrl: string,
-    encryptionKey: string
+    encryptionKey: string,
   ): Promise<TransactionReceipt | null> => {
     setIsAdding(true);
     setError(null);
@@ -42,7 +42,7 @@ export function useAddFile() {
 
     try {
       const dataRegistry = DataRegistry();
-      
+
       // Send transaction to add file with permissions to DataRegistry
       const hash = await writeContractAsync({
         address: dataRegistry.address,

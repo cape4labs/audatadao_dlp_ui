@@ -107,10 +107,10 @@ export function ContributionSteps({
                   status === "complete"
                     ? "bg-green-100 text-green-600"
                     : status === "current"
-                    ? "bg-blue-100 text-blue-600"
-                    : status === "error"
-                    ? "bg-red-100 text-red-600"
-                    : "bg-gray-100 text-gray-500"
+                      ? "bg-blue-100 text-blue-600"
+                      : status === "error"
+                        ? "bg-red-100 text-red-600"
+                        : "bg-gray-100 text-gray-500"
                 }`}
               >
                 {renderStatusIcon(status, step.id)}
@@ -149,7 +149,7 @@ export function ContributionSteps({
 // Export helper function to get step message for a given step ID and signing state
 export function getStepMessage(
   stepId: number,
-  isSigning: boolean = false
+  isSigning: boolean = false,
 ): string {
   const step = contributionSteps.find((s) => s.id === stepId);
 

@@ -9,7 +9,7 @@ import * as openpgp from "openpgp";
  */
 export async function clientSideEncrypt(
   data: Blob,
-  signature: string
+  signature: string,
 ): Promise<Blob> {
   const dataBuffer = await data.arrayBuffer();
   const message = await openpgp.createMessage({
@@ -41,14 +41,14 @@ export async function clientSideEncrypt(
  */
 export const encryptWithWalletPublicKey = async (
   data: string,
-  publicKey: string
+  publicKey: string,
 ): Promise<string> => {
   // Get consistent encryption parameters
   const { iv, ephemeralKey } = getEncryptionParameters();
 
   const publicKeyBytes = Buffer.from(
     publicKey.startsWith("0x") ? publicKey.slice(2) : publicKey,
-    "hex"
+    "hex",
   );
   const uncompressedKey =
     publicKeyBytes.length === 64
@@ -61,7 +61,7 @@ export const encryptWithWalletPublicKey = async (
     {
       iv: Buffer.from(iv),
       ephemPrivateKey: Buffer.from(ephemeralKey),
-    }
+    },
   );
 
   const encryptedHex = Buffer.concat([
@@ -82,10 +82,10 @@ export const encryptWithWalletPublicKey = async (
  */
 export function formatVanaFileId(
   url: string,
-  timestamp: number = Date.now()
+  timestamp: number = Date.now(),
 ): string {
   return `vana_submission_${timestamp}_${url.substring(
-    url.lastIndexOf("/") + 1
+    url.lastIndexOf("/") + 1,
   )}`;
 }
 

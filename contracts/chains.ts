@@ -85,9 +85,11 @@ export const activeChainId = chainId;
 if (!activeChain) throw new Error(`Chain with id ${chainId} not found`);
 
 export function getTransactionUrl(txHash: string): string {
-  let baseUrl = activeChain.blockExplorers?.default?.url || activeChain.blockExplorers?.etherscan?.url;
+  let baseUrl =
+    activeChain.blockExplorers?.default?.url ||
+    activeChain.blockExplorers?.etherscan?.url;
   if (!baseUrl) {
-    console.warn('No block explorer configured for chain', activeChain.id);
+    console.warn("No block explorer configured for chain", activeChain.id);
     baseUrl = "https://moksha.vanascan.io";
   }
   return `${baseUrl}/tx/${txHash}`;

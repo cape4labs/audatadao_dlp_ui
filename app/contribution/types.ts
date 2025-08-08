@@ -21,4 +21,4 @@ export interface ContributionData {
   rewardClaimed?: boolean;
   rewardTxHash?: string;
   teeProofData?: any;
-} 
+}

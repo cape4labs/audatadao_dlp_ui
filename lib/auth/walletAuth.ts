@@ -1,6 +1,6 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import { Address } from 'viem';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
+import { Address } from "viem";
 
 export interface WalletUser {
   address: Address;
@@ -14,7 +14,7 @@ interface WalletAuthState {
   isConnected: boolean;
   isLoading: boolean;
   error: string | null;
-  
+
   // Actions
   connect: (address: Address, chainId: number) => Promise<void>;
   disconnect: () => void;
@@ -49,28 +49,36 @@ export const useWalletAuth = create<WalletAuthState>()(
 
         try {
           // Try to register with external backend, but don't fail if it's not available
-          const response = await fetch('http://audata.space:8000/api/v1/users/signup', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
+          const response = await fetch(
+            "http://audata.space:8000/api/v1/users/signup",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                address: address.toString(),
+                chainId: String(chainId),
+              }),
             },
-            body: JSON.stringify({
-              "address": address.toString(),
-              "chainId": String(chainId),
-            }),
-          });
-          
+          );
+
           if (response.ok) {
             const result = await response.json();
-            console.log('Wallet registered successfully with backend:', result);
+            console.log("Wallet registered successfully with backend:", result);
           } else if (response.status === 400) {
-            console.log('User is already registered');
+            console.log("User is already registered");
           } else {
-            console.error('Failed to register wallet with backend:', response.statusText);
+            console.error(
+              "Failed to register wallet with backend:",
+              response.statusText,
+            );
           }
-
         } catch (error) {
-          console.warn('Backend not available, but wallet is connected locally:', error);
+          console.warn(
+            "Backend not available, but wallet is connected locally:",
+            error,
+          );
           // Don't set error state since local connection is still successful
         } finally {
           set({ isLoading: false });
@@ -84,7 +92,7 @@ export const useWalletAuth = create<WalletAuthState>()(
           error: null,
         });
 
-        localStorage.clear()
+        localStorage.clear();
       },
 
       updateActivity: () => {
@@ -109,11 +117,11 @@ export const useWalletAuth = create<WalletAuthState>()(
       },
     }),
     {
-      name: 'wallet-auth-storage',
+      name: "wallet-auth-storage",
       partialize: (state) => ({
         user: state.user,
         isConnected: state.isConnected,
       }),
-    }
-  )
-); 
+    },
+  ),
+);

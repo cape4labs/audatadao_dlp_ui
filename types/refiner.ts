@@ -47,4 +47,4 @@ export interface UserOnboardingData {
   birthYear: string;
   isItRelated: boolean;
   submittedAt: string;
-} 
+}

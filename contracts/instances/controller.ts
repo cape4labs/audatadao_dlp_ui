@@ -9,7 +9,7 @@ const controllers = new Map<VanaContract, GetContractReturnType<Abi>>();
 
 export const Controller = <T extends VanaContract>(
   contract: T,
-  client: ReturnType<typeof createClient> = createClient()
+  client: ReturnType<typeof createClient> = createClient(),
 ): GetContractReturnType<ContractAbis[T]> => {
   let controller = controllers.get(contract);
 

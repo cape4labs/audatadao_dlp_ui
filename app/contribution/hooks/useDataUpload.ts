@@ -37,76 +37,78 @@ export function useDataUpload() {
     setIsUploading(true);
 
     try {
-        const timestamp = Date.now();
+      const timestamp = Date.now();
 
-        let formData = new FormData();
+      let formData = new FormData();
 
-        const metadataRes = await fetch(`api/user/onboarding?walletAddress=${userAddress}`);
-        if (!metadataRes.ok) {
-          console.log(metadataRes)
-        }
+      const metadataRes = await fetch(
+        `api/user/onboarding?walletAddress=${userAddress}`,
+      );
+      if (!metadataRes.ok) {
+        console.log(metadataRes);
+      }
 
-        const metadataJson = await metadataRes.json();
+      const metadataJson = await metadataRes.json();
 
-        const data = metadataJson.data
+      const data = metadataJson.data;
 
-        const userMetadata: UserMetadata = {
-          language_code: "ru",
-          audio_length: "123",
-          audio_source: "telegram",
-          audio_type: "speech",
-          user: {
-            wallet_address: data.userAddress,
-            birth_month: data.birthMonth,
-            birth_year: data.birthYear,
-            occupation: "IT",
-            country: data.country,
-            region: "asd",
-          },
-        };
+      const userMetadata: UserMetadata = {
+        language_code: "ru",
+        audio_length: "123",
+        audio_source: "telegram",
+        audio_type: "speech",
+        user: {
+          wallet_address: data.userAddress,
+          birth_month: data.birthMonth,
+          birth_year: data.birthYear,
+          occupation: "IT",
+          country: data.country,
+          region: "asd",
+        },
+      };
 
-        const fileName = file.text.name;
+      const fileName = file.text.name;
 
-        const zip = new JSZip();
-        
-        const fileBuffer = await file.arrayBuffer();
-        zip.file(`${fileName}.ogg`, Buffer.from(fileBuffer));
-    
-        const jsonFile = new Blob([JSON.stringify(userMetadata, null, 2)], {
-          type: "application/json",
-        });
-    
-        const jsonBuffer = await jsonFile.arrayBuffer();
-        zip.file("data.json", jsonBuffer);
-    
-        const zipContent = await zip.generateAsync({ type: "uint8array" });
-        const zipBlob = new Blob([zipContent], { type: "application/zip" });
-        const zipFile = new File([zipBlob], "archive.zip", { type: "application/zip" });
-    
+      const zip = new JSZip();
 
-        const ecnryptFile = await clientSideEncrypt(zipFile, signature)
+      const fileBuffer = await file.arrayBuffer();
+      zip.file(`${fileName}.ogg`, Buffer.from(fileBuffer));
 
-        formData.append("file", ecnryptFile)
+      const jsonFile = new Blob([JSON.stringify(userMetadata, null, 2)], {
+        type: "application/json",
+      });
 
-        const pinataResponse = await fetch("api/upload", {
-          method: "POST",
-          body: formData,
-        });
+      const jsonBuffer = await jsonFile.arrayBuffer();
+      zip.file("data.json", jsonBuffer);
 
-        if (!pinataResponse.ok) {
-            console.error("Upload failed:", pinataResponse.statusText);
-            throw new Error("Failed to upload file to Pinata");
-        }
+      const zipContent = await zip.generateAsync({ type: "uint8array" });
+      const zipBlob = new Blob([zipContent], { type: "application/zip" });
+      const zipFile = new File([zipBlob], "archive.zip", {
+        type: "application/zip",
+      });
 
-        const pinataResult = await pinataResponse.json();
+      const ecnryptFile = await clientSideEncrypt(zipFile, signature);
 
-        const fileUrl = pinataResult.data.pinataUrl;
+      formData.append("file", ecnryptFile);
 
-        return {
-          downloadUrl: fileUrl,
-          vanaFileId: formatVanaFileId(fileUrl, timestamp)
+      const pinataResponse = await fetch("api/upload", {
+        method: "POST",
+        body: formData,
+      });
 
-        };
+      if (!pinataResponse.ok) {
+        console.error("Upload failed:", pinataResponse.statusText);
+        throw new Error("Failed to upload file to Pinata");
+      }
+
+      const pinataResult = await pinataResponse.json();
+
+      const fileUrl = pinataResult.data.pinataUrl;
+
+      return {
+        downloadUrl: fileUrl,
+        vanaFileId: formatVanaFileId(fileUrl, timestamp),
+      };
     } finally {
       setIsUploading(false);
     }

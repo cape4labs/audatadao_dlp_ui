@@ -18,7 +18,11 @@ export function useContractStatus() {
 
   const dataRegistry = DataRegistry();
 
-  const { data: isPaused, isLoading, error } = useReadContract({
+  const {
+    data: isPaused,
+    isLoading,
+    error,
+  } = useReadContract({
     address: dataRegistry.address,
     abi: dataRegistry.abi,
     functionName: "paused",
@@ -33,4 +37,4 @@ export function useContractStatus() {
   }, [isPaused, isLoading, error]);
 
   return status;
-} 
+}

@@ -58,10 +58,10 @@ export function useLocalFileUpload() {
 
       // Create a local URL for the encrypted blob
       const downloadUrl = URL.createObjectURL(encryptedBlob);
-      
+
       // Generate a unique file ID (using timestamp and user ID)
       const fileId = `local_${userInfo.id || "unknown"}_${timestamp}`;
-      
+
       // Generate vana file ID
       const vanaFileId = formatVanaFileId(downloadUrl, timestamp);
 
@@ -82,4 +82,4 @@ export function useLocalFileUpload() {
     processLocalFile,
     isUploading,
   };
-} 
+}

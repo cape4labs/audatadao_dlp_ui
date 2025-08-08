@@ -6,7 +6,7 @@ import { Providers } from "./providers";
 export const metadata: Metadata = {
   title: "VANA DLP Wallet Connector",
   description: "Connect your wallet and contribute data to the VANA network",
-  icons: "icon.jpg"
+  icons: "icon.jpg",
 };
 
 export default function RootLayout({
@@ -16,7 +16,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="antialiased" style={{ fontFamily: 'HomeVideo, sans-serif' }}>
+      <body
+        className="antialiased"
+        style={{ fontFamily: "HomeVideo, sans-serif" }}
+      >
         <Providers>{children}</Providers>
         <Toaster />
       </body>

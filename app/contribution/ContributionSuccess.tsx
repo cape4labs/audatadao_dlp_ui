@@ -33,10 +33,10 @@ export function ContributionSuccess({
             {fullyCompleted
               ? "Your data has been successfully contributed and your reward has been claimed."
               : proofCompleted
-              ? "Your data has been successfully contributed and verified by the TEE."
-              : proofRequested
-              ? "Your data has been contributed and proof request has bCoeen submitted."
-              : "Your data has been successfully contributed to the blockchain."}
+                ? "Your data has been successfully contributed and verified by the TEE."
+                : proofRequested
+                  ? "Your data has been contributed and proof request has bCoeen submitted."
+                  : "Your data has been successfully contributed to the blockchain."}
           </p>
         </div>
       </div>
@@ -57,7 +57,9 @@ export function ContributionSuccess({
             </span>
             {contributionData.transactionReceipt?.hash && (
               <a
-                href={getTransactionUrl(contributionData.transactionReceipt.hash)}
+                href={getTransactionUrl(
+                  contributionData.transactionReceipt.hash,
+                )}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-blue-600 hover:text-blue-800 ml-1"
@@ -114,10 +116,7 @@ export function ContributionSuccess({
       <ContributionSteps currentStep={0} completedSteps={completedSteps} />
 
       {userInfo && (
-        <ContributionSummary
-          userInfo={userInfo}
-          isEncrypted={true}
-        />
+        <ContributionSummary userInfo={userInfo} isEncrypted={true} />
       )}
     </div>
   );

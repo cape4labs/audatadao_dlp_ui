@@ -2,7 +2,13 @@
 
 import Image from "next/image";
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import { useWalletAuth } from "@/lib/auth/walletAuth";
@@ -16,7 +22,7 @@ interface UploadedFile {
   size: number;
   type: string;
   lastModified: number;
-  status: 'pending' | 'processing' | 'completed' | 'error';
+  status: "pending" | "processing" | "completed" | "error";
   uploadedAt: string;
   fileHash?: string;
   pinataUrl: string; // добавьте это поле
@@ -34,9 +40,10 @@ interface OnboardingData {
 
 export default function Home() {
   const { user } = useWalletAuth();
-  const [onboardingData, setOnboardingData] = useState<OnboardingData | null>(null);
+  const [onboardingData, setOnboardingData] = useState<OnboardingData | null>(
+    null,
+  );
   const [onboardingLoading, setOnboardingLoading] = useState(true);
-
 
   const loadOnboarding = async () => {
     if (!user?.address) return;
@@ -51,11 +58,13 @@ export default function Home() {
         return;
       }
 
-      const res = await fetch(`api/user/onboarding?walletAddress=${user.address}`);
+      const res = await fetch(
+        `api/user/onboarding?walletAddress=${user.address}`,
+      );
 
       if (res.ok) {
         const result = await res.json();
-        const data = result.data; 
+        const data = result.data;
 
         if (data) {
           setOnboardingData({
@@ -86,7 +95,6 @@ export default function Home() {
 
   if (!user?.address) {
     return (
-      
       <div className="flex flex-col min-h-screen">
         <Navigation />
         <div className="container mx-auto px-4 py-8">
@@ -127,14 +135,14 @@ export default function Home() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                  <Image
-                      src={"/icons/user.png"}
-                      alt="user"
-                      width={20}
-                      height={20}
-                      className="object-contain"
-                    />                 
-                    User Profile
+                <Image
+                  src={"/icons/user.png"}
+                  alt="user"
+                  width={20}
+                  height={20}
+                  className="object-contain"
+                />
+                User Profile
               </CardTitle>
               <CardDescription>
                 Your VANA DLP contribution profile and statistics
@@ -150,7 +158,7 @@ export default function Home() {
                     width={20}
                     height={20}
                     className="object-contain"
-                  />                  
+                  />
                   <div>
                     <p className="text-sm font-medium">Wallet Address</p>
                     <p className="text-xs text-gray-500 font-mono">
@@ -167,7 +175,7 @@ export default function Home() {
                     width={20}
                     height={20}
                     className="object-contain"
-                  />                        
+                  />
                   <div>
                     <p className="text-sm font-medium">Member Since</p>
                     <p className="text-xs text-gray-500">
@@ -182,9 +190,20 @@ export default function Home() {
                   <div className="text-xs text-gray-700">
                     {onboardingData ? (
                       <>
-                        <div>Country: <b>{onboardingData.country}</b></div>
-                        <div>Birth: <b>{onboardingData.birthMonth} {onboardingData.birthYear}</b></div>
-                        <div>IT Related: <b>{onboardingData.isItRelated ? 'Yes' : 'No'}</b></div>
+                        <div>
+                          Country: <b>{onboardingData.country}</b>
+                        </div>
+                        <div>
+                          Birth:{" "}
+                          <b>
+                            {onboardingData.birthMonth}{" "}
+                            {onboardingData.birthYear}
+                          </b>
+                        </div>
+                        <div>
+                          IT Related:{" "}
+                          <b>{onboardingData.isItRelated ? "Yes" : "No"}</b>
+                        </div>
                       </>
                     ) : (
                       <div className="text-gray-500">Not completed yet</div>
@@ -201,23 +220,24 @@ export default function Home() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Image
-                      src={"/icons/user.png"}
-                      alt="user"
-                      width={20}
-                      height={20}
-                      className="object-contain"
-                    />    
-                    Complete Your Profile
+                    src={"/icons/user.png"}
+                    alt="user"
+                    width={20}
+                    height={20}
+                    className="object-contain"
+                  />
+                  Complete Your Profile
                 </CardTitle>
                 <CardDescription>
-                  Please provide some information to help us personalize your experience
+                  Please provide some information to help us personalize your
+                  experience
                 </CardDescription>
               </CardHeader>
-                <CardContent>
-                  <UserOnboarding onComplete={loadOnboarding} />
-                </CardContent>
-              </Card>
-        )}
+              <CardContent>
+                <UserOnboarding onComplete={loadOnboarding} />
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </div>

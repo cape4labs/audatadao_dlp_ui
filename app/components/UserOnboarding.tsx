@@ -4,7 +4,13 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
 import { useWalletAuth } from "@/lib/auth/walletAuth";
@@ -42,11 +48,14 @@ export function UserOnboarding({ onComplete }: { onComplete: () => void }) {
 
             // Получаем название страны по координатам
             const response = await fetch(
-              `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`
+              `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`,
             );
             const data = await response.json();
             setUserLocation(data.countryName || "");
-            setFormData(prev => ({ ...prev, country: data.countryName || "" }));
+            setFormData((prev) => ({
+              ...prev,
+              country: data.countryName || "",
+            }));
           } catch (error) {
             console.error("Error getting location:", error);
           }
@@ -54,13 +63,15 @@ export function UserOnboarding({ onComplete }: { onComplete: () => void }) {
         (error) => {
           console.error("Geolocation error:", error);
           // Если геолокация недоступна, показываем сообщение
-          toast.error("Location access denied. Please enter your country manually.");
+          toast.error(
+            "Location access denied. Please enter your country manually.",
+          );
         },
         {
           enableHighAccuracy: true,
           timeout: 10000,
-          maximumAge: 300000 // 5 минут
-        }
+          maximumAge: 300000, // 5 минут
+        },
       );
     } else {
       toast.error("Geolocation is not supported by your browser.");
@@ -69,7 +80,7 @@ export function UserOnboarding({ onComplete }: { onComplete: () => void }) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.country || !formData.birthMonth || !formData.birthYear) {
       toast.error("Please fill in all fields");
       return;
@@ -86,27 +97,33 @@ export function UserOnboarding({ onComplete }: { onComplete: () => void }) {
       // Try to submit to local API route first, then fallback to external API
       try {
         // Try local API route first
-        const localResponse = await fetch('/api/user/onboarding', {
-          method: 'POST',
+        const localResponse = await fetch("/api/user/onboarding", {
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: JSON.stringify(onboardingData),
         });
-        
+
         if (localResponse.ok) {
           const result = await localResponse.json();
-          console.log('Onboarding data submitted to local API:', result);
+          console.log("Onboarding data submitted to local API:", result);
           toast.success("Onboarding completed successfully!");
-        } 
+        }
       } catch (apiError) {
-        console.warn('APIs not available, but onboarding data saved locally:', apiError);
+        console.warn(
+          "APIs not available, but onboarding data saved locally:",
+          apiError,
+        );
         toast.success("Onboarding completed (offline mode)");
       }
-      
+
       // Save onboarding data to localStorage as fallback
-      localStorage.setItem(`user_onboarding_${user?.address}`, JSON.stringify(onboardingData));
-      
+      localStorage.setItem(
+        `user_onboarding_${user?.address}`,
+        JSON.stringify(onboardingData),
+      );
+
       onComplete();
     } catch (error) {
       console.error("Error submitting onboarding:", error);
@@ -117,8 +134,18 @@ export function UserOnboarding({ onComplete }: { onComplete: () => void }) {
   };
 
   const months = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December"
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
   ];
 
   const currentYear = new Date().getFullYear();
@@ -133,7 +160,9 @@ export function UserOnboarding({ onComplete }: { onComplete: () => void }) {
           <Input
             id="country"
             value={formData.country}
-            onChange={(e) => setFormData(prev => ({ ...prev, country: e.target.value }))}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, country: e.target.value }))
+            }
             placeholder="Your country"
             required
           />
@@ -149,7 +178,9 @@ export function UserOnboarding({ onComplete }: { onComplete: () => void }) {
           <Label htmlFor="birthMonth">Birth Month</Label>
           <Select
             value={formData.birthMonth}
-            onValueChange={(value) => setFormData(prev => ({ ...prev, birthMonth: value }))}
+            onValueChange={(value) =>
+              setFormData((prev) => ({ ...prev, birthMonth: value }))
+            }
           >
             <SelectTrigger>
               <SelectValue placeholder="Select month" />
@@ -169,7 +200,9 @@ export function UserOnboarding({ onComplete }: { onComplete: () => void }) {
           <Label htmlFor="birthYear">Birth Year</Label>
           <Select
             value={formData.birthYear}
-            onValueChange={(value) => setFormData(prev => ({ ...prev, birthYear: value }))}
+            onValueChange={(value) =>
+              setFormData((prev) => ({ ...prev, birthYear: value }))
+            }
           >
             <SelectTrigger>
               <SelectValue placeholder="Select year" />
@@ -190,19 +223,22 @@ export function UserOnboarding({ onComplete }: { onComplete: () => void }) {
           <RadioGroup
             value={formData.isItRelated ? "true" : "false"}
             onValueChange={(value) =>
-              setFormData(prev => ({ ...prev, isItRelated: value === "true" }))
+              setFormData((prev) => ({
+                ...prev,
+                isItRelated: value === "true",
+              }))
             }
           >
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="true" id="yes" />
-            <Label htmlFor="yes">Yes</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="false" id="no" />
-            <Label htmlFor="no">No</Label>
-          </div>
-        </RadioGroup>
-      </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="true" id="yes" />
+              <Label htmlFor="yes">Yes</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="false" id="no" />
+              <Label htmlFor="no">No</Label>
+            </div>
+          </RadioGroup>
+        </div>
 
         <Button type="submit" className="w-full" disabled={isLoading}>
           {isLoading ? "Submitting..." : "Complete Onboarding"}
@@ -210,4 +246,4 @@ export function UserOnboarding({ onComplete }: { onComplete: () => void }) {
       </form>
     </div>
   );
-} 
+}

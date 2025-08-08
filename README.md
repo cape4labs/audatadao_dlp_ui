@@ -22,17 +22,21 @@ A Next.js application for VANA Data Liquidity Pool integration with wallet authe
 ## Getting Started
 
 1. **Install dependencies**:
+
    ```bash
    npm install
    ```
 
 2. **Set up environment variables**:
+
    ```bash
    cp env.example .env.local
    ```
+
    Then edit `.env.local` with your configuration.
 
 3. **Run the development server**:
+
    ```bash
    npm run dev
    ```
@@ -56,14 +60,17 @@ REFINER_API_KEY=your_refiner_api_key_here
 ## API Endpoints
 
 ### Wallet Registration
+
 - `POST /api/wallet/register` - Register wallet connection
 - `GET /api/wallet/register?address={address}` - Get wallet data
 
 ### User Onboarding
+
 - `POST /api/user/onboarding` - Submit onboarding data
 - `GET /api/user/onboarding?walletAddress={address}` - Get onboarding status
 
 ### File Upload
+
 - `POST /api/refine/upload` - Upload .ogg files to refiner
 - `GET /api/refine/upload?walletAddress={address}` - Get uploaded files
 
@@ -99,18 +106,23 @@ REFINER_API_KEY=your_refiner_api_key_here
 ### Required Backend Endpoints
 
 #### 1. Wallet Registration
+
 Create endpoint: `POST /api/wallets`
+
 - Accepts: `{ address, chainId, connectedAt, lastActivity }`
 - Returns: `{ success: true, walletId }`
 
 #### 2. User Onboarding
+
 Create endpoint: `POST /api/users/onboarding`
+
 - Accepts: `{ walletAddress, country, birthMonth, birthYear, isItRelated }`
 - Returns: `{ success: true, onboardingId }`
 
 ### Storj Integration
 
 #### 1. Storj Setup
+
 - Create Storj account and bucket
 - Configure environment variables:
   ```env
@@ -120,6 +132,7 @@ Create endpoint: `POST /api/users/onboarding`
 - Update bucket name in `lib/storj.ts`
 
 #### 2. Refiner Integration
+
 - Configure refiner endpoint:
   ```env
   REFINER_ID=144
@@ -148,12 +161,14 @@ Create endpoint: `POST /api/users/onboarding`
 ## Development
 
 ### Adding New Features
+
 - Create components in `app/components/`
 - Add API routes in `app/api/`
 - Update types in `types/` directory
 - Test with development server
 
 ### Backend Integration
+
 - Configure environment variables
 - Implement API endpoints on your backend
 - Update fetch calls in API routes
@@ -162,6 +177,7 @@ Create endpoint: `POST /api/users/onboarding`
 ## Deployment
 
 1. **Build the application**:
+
    ```bash
    npm run build
    ```
