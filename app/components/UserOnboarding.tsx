@@ -22,11 +22,6 @@ interface UserOnboardingData {
   isItRelated: true | false;
 }
 
-// interface CountryData {
-//   name: string;
-//   code: string;
-// }
-
 export function UserOnboarding({ onComplete }: { onComplete: () => void }) {
   const { user } = useWalletAuth();
   const [isLoading, setIsLoading] = useState(false);
@@ -36,6 +31,8 @@ export function UserOnboarding({ onComplete }: { onComplete: () => void }) {
     birthMonth: "",
     birthYear: "",
     isItRelated: false,
+    region: "",
+    countryCode: "",
   });
 
   // Определяем местоположение пользователя
@@ -44,7 +41,7 @@ export function UserOnboarding({ onComplete }: { onComplete: () => void }) {
       navigator.geolocation.getCurrentPosition(
         async (position) => {
           try {
-            const { latitude, longitude, accuracy } = position.coords;
+            const { latitude, longitude } = position.coords;
 
             // Получаем название страны по координатам
             const response = await fetch(
@@ -55,6 +52,8 @@ export function UserOnboarding({ onComplete }: { onComplete: () => void }) {
             setFormData((prev) => ({
               ...prev,
               country: data.countryName || "",
+              region: data.principalSubdivision || "",
+              countryCode: data.countryCode || "",
             }));
           } catch (error) {
             console.error("Error getting location:", error);

@@ -53,7 +53,7 @@ export function useDataUpload() {
       const data = metadataJson.data;
 
       const userMetadata: UserMetadata = {
-        language_code: "ru",
+        language_code: data.countryCode,
         audio_length: "123",
         audio_source: "telegram",
         audio_type: "speech",
@@ -61,9 +61,9 @@ export function useDataUpload() {
           wallet_address: data.userAddress,
           birth_month: data.birthMonth,
           birth_year: data.birthYear,
-          occupation: "IT",
+          occupation: data.isItRelated ? "IT" : "non-IT",
           country: data.country,
-          region: "asd",
+          region: data.region,
         },
       };
 

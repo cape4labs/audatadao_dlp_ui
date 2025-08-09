@@ -18,6 +18,7 @@
     "@shadcn/ui": "^0.0.4",
     "@tanstack/react-query": "^5.68.0",
     "aws-sdk": "^2.1692.0",
+    "busboy": "^1.6.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "eccrypto": "^1.1.6",
@@ -42,6 +43,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
+    "@types/busboy": "^1.5.4",
     "@types/eccrypto": "^1.1.6",
     "@types/node": "^20",
     "@types/react": "^19",

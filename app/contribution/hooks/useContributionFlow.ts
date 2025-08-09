@@ -7,6 +7,7 @@ import { useAddFile } from "./useAddFile";
 import { useDataRefinement } from "./useDataRefinement";
 import { useDataUpload } from "./useDataUpload";
 import { useRewardClaim } from "./useRewardClaim";
+import { useStatisticsUpload } from "./useStatisticsUpload";
 import { UploadResponse } from "./useDataUpload";
 import {
   getDlpPublicKey,
@@ -39,6 +40,7 @@ export function useContributionFlow() {
   const { requestContributionProof, isProcessing } = useTeeProof();
   const { requestReward, isClaiming } = useRewardClaim();
   const { refine, isLoading: isRefining } = useDataRefinement();
+  const { uploadStatistics, isStatisticsUploading } = useStatisticsUpload();
 
   const isLoading =
     isUploading ||
@@ -68,6 +70,8 @@ export function useContributionFlow() {
       // Execute steps in sequence
       const signature = await executeSignMessageStep();
       if (!signature) throw new Error("Signature step failed");
+
+      console.log(file);
 
       const uploadResult = await executeUploadDataStep(
         userAddress,

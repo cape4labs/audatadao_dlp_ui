@@ -1,48 +1,93 @@
 import { NextRequest, NextResponse } from "next/server";
+import Busboy from "busboy";
 
-export async function POST(request: NextRequest) {
-  try {
-    const formData = await request.formData();
+export const runtime = "nodejs";
 
-    const file = formData.get("file") as File;
+export async function POST(req: NextRequest) {
+  return new Promise((resolve, reject) => {
+    const headers = Object.fromEntries(req.headers.entries());
+    const busboy = Busboy({ headers, limits: { fileSize: 51 * 1024 * 1024 } });
 
-    formData.append("file", file);
+    let uploadedFileName = "";
+    let uploadedFileSize = 0;
 
-    const pinataResponse = await fetch(
-      "https://api.pinata.cloud/pinning/pinFileToIPFS",
-      {
+    busboy.on("file", (fieldname, file, info) => {
+      const { filename, mimeType } = info;
+      uploadedFileName = filename;
+
+      const pinataForm = new FormData();
+      pinataForm.append("file", file, { filename, contentType: mimeType });
+
+      fetch("https://api.pinata.cloud/pinning/pinFileToIPFS", {
         method: "POST",
         headers: {
-          pinata_api_key: `${process.env.NEXT_PUBLIC_PINATA_API_KEY}`,
-          pinata_secret_api_key: `${process.env.NEXT_PUBLIC_PINATA_SECRET_API_KEY}`,
+          pinata_api_key: process.env.NEXT_PUBLIC_PINATA_API_KEY!,
+          pinata_secret_api_key: process.env.NEXT_PUBLIC_PINATA_SECRET_API_KEY!,
         },
-        body: formData,
-      },
-    );
+        body: pinataForm as any,
+      })
+        .then(async (res) => {
+          if (!res.ok) {
+            const errText = await res.text();
+            return reject(
+              NextResponse.json(
+                { error: `Pinata upload failed: ${errText}` },
+                { status: 500 }
+              )
+            );
+          }
+          const result = await res.json();
+          resolve(
+            NextResponse.json({
+              data: {
+                pinataUrl: `https://moccasin-hilarious-canid-233.mypinata.cloud/ipfs/${result.IpfsHash}`,
+                fileName: uploadedFileName,
+                fileSize: uploadedFileSize,
+              },
+            })
+          );
+        })
+        .catch((err) => {
+          reject(
+            NextResponse.json(
+              { error: `Pinata upload error: ${err.message}` },
+              { status: 500 }
+            )
+          );
+        });
 
-    if (!pinataResponse.ok) {
-      const errorText = await pinataResponse.text();
-      console.error("Pinata upload error:", pinataResponse.status, errorText);
-      return NextResponse.json(
-        { error: `Pinata upload failed: ${pinataResponse.statusText}` },
-        { status: 500 },
+      file.on("data", (chunk) => {
+        uploadedFileSize += chunk.length;
+      });
+    });
+
+    busboy.on("error", (err) => {
+      reject(
+        NextResponse.json(
+          { error: `Busboy error: ${err}` },
+          { status: 500 }
+        )
+      );
+    });
+
+    const reader = req.body?.getReader();
+    if (!reader) {
+      return reject(
+        NextResponse.json({ error: "No request body" }, { status: 400 })
       );
     }
 
-    const pinataResult = await pinataResponse.json();
+    async function read() {
+      const { done, value } = await reader.read();
+      if (done) {
+        busboy.end();
+        return;
+      }
+      busboy.write(value);
+      await read();
+    }
 
-    return NextResponse.json({
-      data: {
-        pinataUrl: `https://moccasin-hilarious-canid-233.mypinata.cloud/ipfs/${pinataResult.IpfsHash}`,
-        fileName: file.name,
-        fileSize: file.size,
-      },
-    });
-  } catch (error) {
-    console.error("Upload error:", error);
-    return NextResponse.json(
-      { error: "Failed to upload file" },
-      { status: 500 },
-    );
-  }
+    read();
+  });
 }
+
