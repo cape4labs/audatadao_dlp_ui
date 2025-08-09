@@ -18,7 +18,7 @@ interface User {
 
 interface UserMetadata {
   language_code: string;
-  audio_length: string;
+  audio_length: number;
   audio_source: string;
   audio_type: string;
   user: User | null;
