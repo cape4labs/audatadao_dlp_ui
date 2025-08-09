@@ -20,6 +20,8 @@ interface UserOnboardingData {
   birthMonth: string;
   birthYear: string;
   isItRelated: true | false;
+  region: string;
+  countryCode: string;
 }
 
 export function UserOnboarding({ onComplete }: { onComplete: () => void }) {
