@@ -71,10 +71,13 @@ export function useContributionFlow() {
       const signature = await executeSignMessageStep();
       if (!signature) throw new Error("Signature step failed");
 
+      const duration = await getBlobDuration(file);
+
       const uploadResult = await executeUploadDataStep(
         userAddress,
         file,
         signature,
+        duration,
       );
       if (!uploadResult) throw new Error("Upload step failed");
 
@@ -97,8 +100,6 @@ export function useContributionFlow() {
             : undefined,
         },
       });
-
-      const duration = await getBlobDuration(file);
 
       // Process proof and reward in sequence
       await executeProofAndRewardSteps(fileId, duration, userAddress, encryptedKey, signature );
@@ -135,10 +136,11 @@ export function useContributionFlow() {
     userAddress: string,
     file: Blob,
     signature: string,
+    duration: number,
   ) => {
     setCurrentStep(STEPS.UPLOAD_DATA);
 
-    const uploadResult = await uploadData(userAddress, file, signature);
+    const uploadResult = await uploadData(userAddress, file, signature, duration);
     if (!uploadResult) {
       setError("Failed to upload data to Google Drive");
       return null;

@@ -33,6 +33,7 @@ export function useDataUpload() {
     userAddress: string,
     file: Blob,
     signature: string,
+    duration: number,
   ): Promise<UploadResponse | null> => {
     setIsUploading(true);
 
@@ -54,7 +55,7 @@ export function useDataUpload() {
 
       const userMetadata: UserMetadata = {
         language_code: data.countryCode || "",
-        audio_length: "123",
+        audio_length: duration,
         audio_source: "telegram",
         audio_type: "speech",
         user: {
