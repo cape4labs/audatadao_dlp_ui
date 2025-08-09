@@ -41,8 +41,6 @@ export function useContributionFlow() {
   const { requestReward, isClaiming } = useRewardClaim();
   const { refine, isLoading: isRefining } = useDataRefinement();
   const { uploadStatistics } = useStatisticsUpload();
-  const [ audioDuration, setAudioDuration ] = useState<number>();
-  const [ userAddress, setUserAddress ] = useState<string>();
 
   const isLoading =
     isUploading ||
@@ -100,8 +98,10 @@ export function useContributionFlow() {
         },
       });
 
+      const duration = await getBlobDuration(file);
+
       // Process proof and reward in sequence
-      await executeProofAndRewardSteps(fileId, encryptedKey, signature);
+      await executeProofAndRewardSteps(fileId, duration, userAddress, encryptedKey, signature );
 
       setIsSuccess(true);
     } catch (error) {
@@ -137,10 +137,6 @@ export function useContributionFlow() {
     signature: string,
   ) => {
     setCurrentStep(STEPS.UPLOAD_DATA);
-
-    const duration = await getBlobDuration(file);
-    setUserAddress(userAddress);
-    setAudioDuration(duration);
 
     const uploadResult = await uploadData(userAddress, file, signature);
     if (!uploadResult) {
@@ -183,6 +179,8 @@ export function useContributionFlow() {
   // Steps 3-5: TEE Proof and Reward
   const executeProofAndRewardSteps = async (
     fileId: number,
+    audioDuration: number,
+    userAddress: string,
     encryptedKey: string,
     signature: string,
   ) => {
@@ -202,7 +200,7 @@ export function useContributionFlow() {
     await executeProcessProofStep(proofResult, signature);
 
     // Step 5: Claim Reward
-    await executeClaimRewardStep(fileId);
+    await executeClaimRewardStep(fileId, audioDuration, userAddress);
   };
 
   // Step 3: Request TEE Proof
@@ -263,7 +261,7 @@ export function useContributionFlow() {
   };
 
   // Step 5: Claim Reward
-  const executeClaimRewardStep = async (fileId: number) => {
+  const executeClaimRewardStep = async (fileId: number, audioDuration: number, userAddress: string) => {
     setCurrentStep(STEPS.CLAIM_REWARD);
     console.log("contribution/hooks/useContributionFlow.ts 260", fileId);
     const rewardResult = await requestReward(fileId);
@@ -280,6 +278,8 @@ export function useContributionFlow() {
     console.log("contribution/hooks/useContributionFlow.ts 272", data);
 
     markStepComplete(STEPS.CLAIM_REWARD);
+
+
     uploadStatistics(userAddress, audioDuration)
     return rewardResult;
   };

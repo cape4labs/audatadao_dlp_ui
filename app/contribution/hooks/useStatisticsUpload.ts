@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { json } from "stream/consumers";
 
 interface UseStatisticsUploadReturn {
   uploadStatistics: (userAddress: string | undefined, audioLength: number | undefined) => Promise<void>,
@@ -15,17 +16,14 @@ export function useStatisticsUpload(): UseStatisticsUploadReturn {
     try {
       setIsUploading(true);
 
-      const timestamp = Date.now();
-
       const response = await fetch(`/api/stat`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          user_address: userAddress,
-          audio_length: audioLength,
-          time: timestamp,
+          userAddress: userAddress,
+          audioLength: audioLength,
         }),
       });
 
