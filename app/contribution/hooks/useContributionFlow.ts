@@ -40,7 +40,9 @@ export function useContributionFlow() {
   const { requestContributionProof, isProcessing } = useTeeProof();
   const { requestReward, isClaiming } = useRewardClaim();
   const { refine, isLoading: isRefining } = useDataRefinement();
-  const { uploadStatistics, isStatisticsUploading } = useStatisticsUpload();
+  const { uploadStatistics } = useStatisticsUpload();
+  const [ audioDuration, setAudioDuration ] = useState<number>();
+  const [ userAddress, setUserAddress ] = useState<string>();
 
   const isLoading =
     isUploading ||
@@ -70,8 +72,6 @@ export function useContributionFlow() {
       // Execute steps in sequence
       const signature = await executeSignMessageStep();
       if (!signature) throw new Error("Signature step failed");
-
-      console.log(file);
 
       const uploadResult = await executeUploadDataStep(
         userAddress,
@@ -137,6 +137,10 @@ export function useContributionFlow() {
     signature: string,
   ) => {
     setCurrentStep(STEPS.UPLOAD_DATA);
+
+    const duration = await getBlobDuration(file);
+    setUserAddress(userAddress);
+    setAudioDuration(duration);
 
     const uploadResult = await uploadData(userAddress, file, signature);
     if (!uploadResult) {
@@ -276,6 +280,7 @@ export function useContributionFlow() {
     console.log("contribution/hooks/useContributionFlow.ts 272", data);
 
     markStepComplete(STEPS.CLAIM_REWARD);
+    uploadStatistics(userAddress, audioDuration)
     return rewardResult;
   };
 
@@ -290,6 +295,22 @@ export function useContributionFlow() {
       return { ...prev, ...newData };
     });
   };
+
+  const getBlobDuration = (blob: Blob): Promise<number> => {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(blob);
+    const audio = document.createElement('audio');
+    audio.src = url;
+    audio.addEventListener('loadedmetadata', () => {
+      URL.revokeObjectURL(url);
+      resolve(audio.duration); // в секундах
+    });
+    audio.addEventListener('error', (e) => {
+      URL.revokeObjectURL(url);
+      reject(e);
+    });
+  });
+};
 
   return {
     isSuccess,

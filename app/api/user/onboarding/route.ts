@@ -61,3 +61,33 @@ export async function POST(request: NextRequest) {
   }
 }
 
+
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const walletAddress = searchParams.get('walletAddress');
+
+    if (!walletAddress) {
+      return NextResponse.json(
+        { error: "Wallet address parameter is required" },
+        { status: 400 }
+      );
+    }
+
+    const res = await fetch(`http://audata.space:8000/api/v1/users/metadata/?user_wallet_address=${walletAddress}`); 
+    
+    console.log(res.status, res.statusText);
+    
+    return NextResponse.json({ 
+      success: true,
+      data: res.ok ? await res.json() : null, 
+    });
+
+  } catch (error) {
+    console.error("Error fetching onboarding data:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch onboarding data" },
+      { status: 500 }
+    );
+  }
+} 

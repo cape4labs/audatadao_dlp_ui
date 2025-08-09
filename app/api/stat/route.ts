@@ -5,9 +5,9 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
 
     // Validate the request body
-    const { userAddress, audioLength, time } = body;
+    const { userAddress, audioLength } = body;
 
-    if (!userAddress || !audioLength || !time) {
+    if (!userAddress || !audioLength) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 },
@@ -22,7 +22,6 @@ export async function POST(request: NextRequest) {
       body: JSON.stringify({
         userAddress,
         audioLength,
-        time,
       }),
     });
 

@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 interface UseStatisticsUploadReturn {
-  uploadStatistics: (userAddress: string, audioLength: number) => Promise<void>,
+  uploadStatistics: (userAddress: string | undefined, audioLength: number | undefined) => Promise<void>,
   isStatisticsUploading: boolean,
 }
 
@@ -9,8 +9,8 @@ export function useStatisticsUpload(): UseStatisticsUploadReturn {
   const [isStatisticsUploading, setIsUploading] = useState(false);
 
   const uploadStatistics = async (
-    userAddress: string,
-    audioLength: number,
+    userAddress: string | undefined,
+    audioLength: number | undefined,
   ): Promise<void> => {
     try {
       setIsUploading(true);
