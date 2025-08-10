@@ -50,31 +50,29 @@ export async function POST(request: NextRequest) {
     console.log(jobUrl);
     console.log("api/proof/route.ts 61", body);
 
-    after(async () => {
-
-      const contributionProofResponse = await fetch(`${jobUrl}/RunProof`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(body),
-      });
-      
-      
-      if (!contributionProofResponse.ok) {
-        const errorText = await contributionProofResponse.text();
-        console.error("Error:", contributionProofResponse.status, errorText);
-        return NextResponse.json(
-          { error: `Error: ${contributionProofResponse.statusText}` },
-          { status: 500 },
-        );
-      }
-
-      const res = await contributionProofResponse.json();
-
-      console.log("api/proof/route.ts 70", res);
-
+    const contributionProofResponse = await fetch(`${jobUrl}/RunProof`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+    
+    
+    if (!contributionProofResponse.ok) {
+      const errorText = await contributionProofResponse.text();
+      console.error("Error:", contributionProofResponse.status, errorText);
       return NextResponse.json(
+        { error: `Error: ${contributionProofResponse.statusText}` },
+        { status: 500 },
+      );
+    }
+
+    const res = await contributionProofResponse.json();
+
+    console.log("api/proof/route.ts 70", res);
+
+    return NextResponse.json(
       {
         data: {
           res: res,
@@ -82,7 +80,6 @@ export async function POST(request: NextRequest) {
       },
       { status: 200 },
     );
-    })
   } catch (error) {
     console.error("Upload error:", error);
     return NextResponse.json(
