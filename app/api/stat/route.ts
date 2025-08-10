@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     const resultData = await res.json();
 
     if (!res.ok) {
-      console.log(`STATISTICS UPLOADING ERROR: ${resultData}`);
+      console.log("STATISTICS UPLOADING ERROR: ", resultData);
       return NextResponse.json(
         { error: "Failed to upload statistics data" },
         { status: 502 },
