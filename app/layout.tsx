@@ -4,7 +4,7 @@ import "./globals.css";
 import { Providers } from "./providers";
 
 export const metadata: Metadata = {
-  title: "VANA DLP Wallet Connector",
+  title: "AUDATA CONTRIBUTION WINDOW",
   description: "Connect your wallet and contribute data to the VANA network",
   icons: "icon.jpg",
 };

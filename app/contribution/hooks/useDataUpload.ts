@@ -26,9 +26,6 @@ interface UserMetadata {
 
 export function useDataUpload() {
   const [isUploading, setIsUploading] = useState(false);
-  /**
-   * Upload data to Google Drive
-   */
   const uploadData = async (
     userAddress: string,
     file: Blob,

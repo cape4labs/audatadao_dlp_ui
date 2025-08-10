@@ -267,7 +267,7 @@ export function useContributionFlow() {
     setCurrentStep(STEPS.CLAIM_REWARD);
     console.log("contribution/hooks/useContributionFlow.ts 260", fileId);
     const rewardResult = await requestReward(fileId);
-    console.log("contribution/hooks/useContributionFlow.ts 262", rewardResult);
+    console.log("contribution/hooks/useContributionFlow.ts 262 rewardResull", rewardResult);
 
     if (!rewardResult) {
       setError("Failed to claim reward");
@@ -277,12 +277,12 @@ export function useContributionFlow() {
     const data = updateContributionData({
       rewardTxHash: rewardResult?.transactionHash,
     });
-    console.log("contribution/hooks/useContributionFlow.ts 272", data);
 
     markStepComplete(STEPS.CLAIM_REWARD);
 
-
+    // Upload statistics to the database in the end of the contribution
     uploadStatistics(userAddress, audioDuration)
+
     return rewardResult;
   };
 

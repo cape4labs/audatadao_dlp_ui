@@ -28,7 +28,7 @@ export function useStatisticsUpload(): UseStatisticsUploadReturn {
       });
 
       if (!response.ok) {
-        throw new Error(`ERROR GATHERING STATISTICS: ${response}`);
+        throw new Error(`ERROR SENDING STATISTICS: ${response.json()}`);
       }
     } finally {
       setIsUploading(false);
