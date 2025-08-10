@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { after } from 'next/server';  
 
 interface ProofRequestBody {
   job_id: number;
@@ -80,6 +79,7 @@ export async function POST(request: NextRequest) {
       },
       { status: 200 },
     );
+    
   } catch (error) {
     console.error("Upload error:", error);
     return NextResponse.json(
