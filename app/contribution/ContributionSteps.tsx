@@ -41,17 +41,17 @@ export const contributionSteps: Step[] = [
   },
   {
     id: 3,
-    title: "Request Validation",
+    title: "Validate Contribution",
     description: "Proving audios have real value and uniqueness",
     icon: <Server className="h-5 w-5" />,
-    statusMessage: "Checking is your audio valid...",
+    statusMessage: "Checking that your audio is valid...",
   },
   {
     id: 4,
-    title: "Validate Contribution",
-    description: "Running proof-of-contribution in trusted environment",
+    title: "Refine Submitted Data",
+    description: "Converting data to libsql format",
     icon: <Server className="h-5 w-5" />,
-    statusMessage: "Running proof-of-contribution...",
+    statusMessage: "Running refiner...",
   },
   {
     id: 5,
