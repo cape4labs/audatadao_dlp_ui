@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const res = await fetch("http://audata.space:8000/api/v1/users/signup", {
+    const res = await fetch("https://audata.space/api/v1/users/signup", {
         method: "POST",
         headers: {
         "Content-Type": "application/json",
