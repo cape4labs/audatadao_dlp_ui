@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       data: {
-        pinataUrl: `https://moccasin-hilarious-canid-233.mypinata.cloud/ipfs/${pinataResult.IpfsHash}`,
+        pinataUrl: `https://plum-bitter-orangutan-546.mypinata.cloud/ipfs/${pinataResult.IpfsHash}`,
         fileName: file.name,
         fileSize: file.size,
       },
