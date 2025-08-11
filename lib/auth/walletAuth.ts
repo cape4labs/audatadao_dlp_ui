@@ -50,7 +50,7 @@ export const useWalletAuth = create<WalletAuthState>()(
         try {
           // Try to register with external backend, but don't fail if it's not available
           const response = await fetch(
-            "api/users/signup",
+            "api/user/signup",
             {
               method: "POST",
               headers: {
