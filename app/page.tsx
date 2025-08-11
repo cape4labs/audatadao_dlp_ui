@@ -35,7 +35,12 @@ interface OnboardingData {
   birthMonth: string;
   birthYear: string;
   isItRelated: boolean;
-  submittedAt: string;
+  createdAt: string;
+}
+
+interface Stats {
+  userAddress: string;
+  contributeSeconds: string;
 }
 
 export default function Home() {
@@ -43,49 +48,50 @@ export default function Home() {
   const [onboardingData, setOnboardingData] = useState<OnboardingData | null>(
     null,
   );
+  const [stats, setStats] = useState<Stats[] | null>(
+    null,
+  );
   const [onboardingLoading, setOnboardingLoading] = useState(true);
 
   const loadOnboarding = async () => {
-    if (!user?.address) return;
-    setOnboardingLoading(true);
-    try {
-      const localData = localStorage.getItem(`user_onboarding_${user.address}`);
+    
+  if (!user?.address) return;
 
-      if (localData) {
-        const parsedData = JSON.parse(localData);
-        setOnboardingData(parsedData);
-        setOnboardingLoading(false);
-        return;
+  setOnboardingLoading(true);
+
+  try {
+
+    const res = await fetch(`/api/user/onboarding?walletAddress=${user.address}`);
+
+    if (res.ok) {
+      const result = await res.json();
+      const data = result.data;
+      const stats = result.stats;
+
+      console.log(data)
+
+      if (data) {
+        setOnboardingData({
+          id: data.id,
+          userAddress: data.userAddress,
+          country: data.country,
+          birthMonth: data.birthMonth,
+          birthYear: data.birthYear,
+          isItRelated: data.isItRelated,
+          createdAt: data.submittedAt,
+        });
+
+        // stats — массив из 10 пользователей
+        setStats(stats);
       }
-
-      const res = await fetch(
-        `api/user/onboarding?walletAddress=${user.address}`,
-      );
-
-      if (res.ok) {
-        const result = await res.json();
-        const data = result.data;
-
-        if (data) {
-          setOnboardingData({
-            id: data.id,
-            userAddress: data.userAddress,
-            country: data.country,
-            birthMonth: data.birthMonth,
-            birthYear: data.birthYear,
-            isItRelated: data.isItRelated,
-            submittedAt: data.submittedAt,
-          });
-        }
-        setOnboardingLoading(false);
-        return;
-      }
-    } catch (e) {
-      setOnboardingData(null);
-    } finally {
-      setOnboardingLoading(false);
     }
-  };
+  } catch (e) {
+    setOnboardingData(null);
+    setStats(null);
+  } finally {
+    setOnboardingLoading(false);
+  }
+};
 
   useEffect(() => {
     if (user?.address) {
@@ -179,7 +185,17 @@ export default function Home() {
                   <div>
                     <p className="text-sm font-medium">Member Since</p>
                     <p className="text-xs text-gray-500">
-                      {new Date().toLocaleDateString()}
+                      <b>
+                        <p className="text-xs text-gray-500">
+                          {onboardingData?.createdAt
+                            ? new Date(onboardingData.createdAt).toLocaleDateString(undefined, {
+                                year: "numeric",
+                                month: "numeric",
+                                day: "numeric",
+                              })
+                            : "-"}
+                        </p>
+                      </b>
                     </p>
                   </div>
                 </div>
@@ -213,6 +229,56 @@ export default function Home() {
               </div>
             </CardContent>
           </Card>
+
+         <CardContent className="space-y-4">
+          <div className="flex flex-col gap-4">
+            {stats && stats.length > 0 ? (
+              stats.map((stat, index) => (
+                <div
+                  key={stat.userAddress}
+                  className="flex items-center justify-around gap-3 p-4 border rounded-lg w-full"
+                >
+                  <div className="w-8 font-bold">{index + 1}.</div>
+
+                  <div className="flex items-center gap-2">
+                    <Image
+                      src={"/icons/wallet.png"}
+                      alt="Wallet"
+                      width={20}
+                      height={20}
+                      className="object-contain"
+                    />
+                    <div>
+                      <p className="text-sm font-medium">User Wallet</p>
+                      <p className="text-xs text-gray-500 font-mono">
+                        {stat.userAddress.slice(0, 6)}...{stat.userAddress.slice(-4)}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Image
+                      src={"/icons/time.png"}
+                      alt="Minutes upload"
+                      width={20}
+                      height={20}
+                      className="object-contain"
+                    />
+                    <div>
+                      <p className="text-sm font-medium">Minutes Uploaded</p>
+                      <p className="text-xs text-gray-500 font-mono">
+                        {Math.floor(parseInt(stat.contributeSeconds) / 60)} min
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-gray-500">No Leaderboard</div>
+            )}
+          </div>
+        </CardContent>
+
 
           {/* Onboarding Form - показываем только если опрос не пройден */}
           {!onboardingData && (

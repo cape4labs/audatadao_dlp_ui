@@ -76,11 +76,14 @@ export async function GET(request: NextRequest) {
 
     const res = await fetch(`https://audata.space/api/v1/users/metadata/?user_wallet_address=${walletAddress}`); 
 
+    const contributeRes = await fetch(`https://audata.space/api/v1/users/leaders`)
+
     console.log(res.status, res.statusText);
 
     return NextResponse.json({ 
       success: true,
       data: res.ok ? await res.json() : null, 
+      stat: contributeRes.ok ? await res.json : null,
     });
 
   } catch (error) {

@@ -7,6 +7,10 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  webpack: (config) => {
+    config.output.clean = true;
+    return config;
+  },
   output: "standalone", // Необходимо для Docker
 };
 

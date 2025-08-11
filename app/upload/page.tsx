@@ -153,6 +153,8 @@ export default function UploadPage() {
   const languages = [
     "en",
     "ru",
+    "es",
+    "de"
   ]
 
   return (

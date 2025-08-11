@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
 
     console.log("STATISTICS DATA: ", userAddress, audioLength);
 
-    const res = await fetch("https://audata.space/api/v1/users/stat", {
+    const res = await fetch("https://audata.space/api/v1/users/contribute", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -49,3 +49,4 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
