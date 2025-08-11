@@ -28,6 +28,7 @@ export function useDataUpload() {
   const [isUploading, setIsUploading] = useState(false);
   const uploadData = async (
     userAddress: string,
+    audio_language: string,
     file: Blob,
     signature: string,
     duration: number,
@@ -51,7 +52,7 @@ export function useDataUpload() {
       const data = metadataJson.data;
 
       const userMetadata: UserMetadata = {
-        language_code: data.countryCode || " ",
+        language_code: audio_language,
         audio_length: duration,
         audio_source: "telegram",
         audio_type: "speech",
@@ -61,7 +62,7 @@ export function useDataUpload() {
           birth_year: data.birthYear,
           occupation: data.isItRelated ? "IT" : "non-IT",
           country: data.country,
-          region: data.region || " ",
+          region: data.region || "global",
         },
       };
 

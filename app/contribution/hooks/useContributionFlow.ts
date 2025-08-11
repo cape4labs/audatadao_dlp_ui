@@ -61,6 +61,7 @@ export function useContributionFlow() {
 
   const handleContributeData = async (
     userAddress: string,
+    audio_language: string,
     file: Blob,
     isConnected: boolean,
   ) => {
@@ -76,6 +77,7 @@ export function useContributionFlow() {
       const uploadResult = await executeUploadDataStep(
         userAddress,
         file,
+        audio_language,
         signature,
         duration,
       );
@@ -135,12 +137,13 @@ export function useContributionFlow() {
   const executeUploadDataStep = async (
     userAddress: string,
     file: Blob,
+    audio_language: string,
     signature: string,
     duration: number,
   ) => {
     setCurrentStep(STEPS.UPLOAD_DATA);
 
-    const uploadResult = await uploadData(userAddress, file, signature, duration);
+    const uploadResult = await uploadData(userAddress, audio_language, file, signature, duration);
     if (!uploadResult) {
       setError("Failed to upload data to Google Drive");
       return null;

@@ -11,7 +11,13 @@ import {
 } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Upload, Loader2, AlertCircle } from "lucide-react";
-
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
 import { useWalletAuth } from "@/lib/auth/walletAuth";
 import { useDropzone } from "react-dropzone";
@@ -42,7 +48,7 @@ interface UploadStatus {
 export default function UploadPage() {
   const { user } = useWalletAuth();
   const { isConnected } = useAccount();
-
+  const [ audioLanguage, setAudioLanguage ] = useState<string>("");
   const {
     isSuccess,
     error,
@@ -83,7 +89,9 @@ export default function UploadPage() {
       }));
 
       try {
-        await handleContributeData(user.address, file, isConnected);
+
+        console.log(file)
+        await handleContributeData(user.address, audioLanguage, file, isConnected);
 
         setUploadStatus((prev) => ({
           ...prev,
@@ -141,6 +149,11 @@ export default function UploadPage() {
       </div>
     );
   }
+
+  const languages = [
+    "en",
+    "ru",
+  ]
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -238,6 +251,26 @@ export default function UploadPage() {
                 />
                 Upload Audio Files (.ogg)
               </CardTitle>
+              <Select
+                value={audioLanguage}
+                onValueChange={(value) =>
+                  setAudioLanguage(value)
+                }
+              >
+              <CardDescription>
+                Select language of speech in audio
+              </CardDescription>
+                <SelectTrigger>
+                  <SelectValue placeholder="Languages" />
+                </SelectTrigger>
+                <SelectContent>
+                {languages.map((language) => (
+                  <SelectItem key={language} value={language.toString()}>
+                    {language}
+                  </SelectItem>
+                ))}
+                </SelectContent>
+              </Select>
               <CardDescription>
                 Upload your .ogg audio files to contribute to the VANA network.
               </CardDescription>
