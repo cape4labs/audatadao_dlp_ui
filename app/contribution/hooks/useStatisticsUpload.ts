@@ -2,8 +2,11 @@ import { useState } from "react";
 import { json } from "stream/consumers";
 
 interface UseStatisticsUploadReturn {
-  uploadStatistics: (userAddress: string | undefined, audioLength: number | undefined) => Promise<void>,
-  isStatisticsUploading: boolean,
+  uploadStatistics: (
+    userAddress: string | undefined,
+    audioLength: number | undefined,
+  ) => Promise<void>;
+  isStatisticsUploading: boolean;
 }
 
 export function useStatisticsUpload(): UseStatisticsUploadReturn {

@@ -104,7 +104,13 @@ export function useContributionFlow() {
       });
 
       // Process proof and reward in sequence
-      await executeProofAndRewardSteps(fileId, duration, userAddress, encryptedKey, signature );
+      await executeProofAndRewardSteps(
+        fileId,
+        duration,
+        userAddress,
+        encryptedKey,
+        signature,
+      );
 
       setIsSuccess(true);
     } catch (error) {
@@ -143,7 +149,13 @@ export function useContributionFlow() {
   ) => {
     setCurrentStep(STEPS.UPLOAD_DATA);
 
-    const uploadResult = await uploadData(userAddress, audio_language, file, signature, duration);
+    const uploadResult = await uploadData(
+      userAddress,
+      audio_language,
+      file,
+      signature,
+      duration,
+    );
     if (!uploadResult) {
       setError("Failed to upload data to Google Drive");
       return null;
@@ -266,11 +278,18 @@ export function useContributionFlow() {
   };
 
   // Step 5: Claim Reward
-  const executeClaimRewardStep = async (fileId: number, audioDuration: number, userAddress: string) => {
+  const executeClaimRewardStep = async (
+    fileId: number,
+    audioDuration: number,
+    userAddress: string,
+  ) => {
     setCurrentStep(STEPS.CLAIM_REWARD);
     console.log("contribution/hooks/useContributionFlow.ts 260", fileId);
     const rewardResult = await requestReward(fileId);
-    console.log("contribution/hooks/useContributionFlow.ts 262 rewardResull", rewardResult);
+    console.log(
+      "contribution/hooks/useContributionFlow.ts 262 rewardResull",
+      rewardResult,
+    );
 
     if (!rewardResult) {
       setError("Failed to claim reward");
@@ -284,7 +303,7 @@ export function useContributionFlow() {
     markStepComplete(STEPS.CLAIM_REWARD);
 
     // Upload statistics to the database in the end of the contribution
-    uploadStatistics(userAddress, audioDuration)
+    uploadStatistics(userAddress, audioDuration);
 
     return rewardResult;
   };
@@ -302,20 +321,20 @@ export function useContributionFlow() {
   };
 
   const getBlobDuration = (blob: Blob): Promise<number> => {
-  return new Promise((resolve, reject) => {
-    const url = URL.createObjectURL(blob);
-    const audio = document.createElement('audio');
-    audio.src = url;
-    audio.addEventListener('loadedmetadata', () => {
-      URL.revokeObjectURL(url);
-      resolve(audio.duration); // в секундах
+    return new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(blob);
+      const audio = document.createElement("audio");
+      audio.src = url;
+      audio.addEventListener("loadedmetadata", () => {
+        URL.revokeObjectURL(url);
+        resolve(audio.duration); // в секундах
+      });
+      audio.addEventListener("error", (e) => {
+        URL.revokeObjectURL(url);
+        reject(e);
+      });
     });
-    audio.addEventListener('error', (e) => {
-      URL.revokeObjectURL(url);
-      reject(e);
-    });
-  });
-};
+  };
 
   return {
     isSuccess,

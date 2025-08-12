@@ -48,7 +48,7 @@ interface UploadStatus {
 export default function UploadPage() {
   const { user } = useWalletAuth();
   const { isConnected } = useAccount();
-  const [ audioLanguage, setAudioLanguage ] = useState<string>("");
+  const [audioLanguage, setAudioLanguage] = useState<string>("");
   const {
     isSuccess,
     error,
@@ -89,9 +89,13 @@ export default function UploadPage() {
       }));
 
       try {
-
-        console.log(file)
-        await handleContributeData(user.address, audioLanguage, file, isConnected);
+        console.log(file);
+        await handleContributeData(
+          user.address,
+          audioLanguage,
+          file,
+          isConnected,
+        );
 
         setUploadStatus((prev) => ({
           ...prev,
@@ -150,12 +154,7 @@ export default function UploadPage() {
     );
   }
 
-  const languages = [
-    "en",
-    "ru",
-    "es",
-    "de"
-  ]
+  const languages = ["en", "ru", "es", "de"];
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -255,22 +254,20 @@ export default function UploadPage() {
               </CardTitle>
               <Select
                 value={audioLanguage}
-                onValueChange={(value) =>
-                  setAudioLanguage(value)
-                }
+                onValueChange={(value) => setAudioLanguage(value)}
               >
-              <CardDescription>
-                Select language of speech in audio
-              </CardDescription>
+                <CardDescription>
+                  Select language of speech in audio
+                </CardDescription>
                 <SelectTrigger>
                   <SelectValue placeholder="Languages" />
                 </SelectTrigger>
                 <SelectContent>
-                {languages.map((language) => (
-                  <SelectItem key={language} value={language.toString()}>
-                    {language}
-                  </SelectItem>
-                ))}
+                  {languages.map((language) => (
+                    <SelectItem key={language} value={language.toString()}>
+                      {language}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               <CardDescription>

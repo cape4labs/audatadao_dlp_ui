@@ -49,19 +49,16 @@ export const useWalletAuth = create<WalletAuthState>()(
 
         try {
           // Try to register with external backend, but don't fail if it's not available
-          const response = await fetch(
-            "api/user/signup",
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                address: address.toString(),
-                chainId: String(chainId),
-              }),
+          const response = await fetch("api/user/signup", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
             },
-          );
+            body: JSON.stringify({
+              address: address.toString(),
+              chainId: String(chainId),
+            }),
+          });
 
           if (response.ok) {
             const result = await response.json();
