@@ -40,7 +40,7 @@ interface OnboardingData {
 
 interface Stats {
   userAddress: string;
-  contributeSeconds: string;
+  contributedSeconds: string;
 }
 
 export default function Home() {
@@ -66,10 +66,11 @@ export default function Home() {
     if (res.ok) {
       const result = await res.json();
       const data = result.data;
-      const stats = result.stats;
+      const stats = result.stat;
 
       console.log(data)
 
+      console.log(stats)
       if (data) {
         setOnboardingData({
           id: data.id,
@@ -185,16 +186,14 @@ export default function Home() {
                   <div>
                     <p className="text-sm font-medium">Member Since</p>
                     <p className="text-xs text-gray-500">
-                      <b>
-                        <p className="text-xs text-gray-500">
-                          {onboardingData?.createdAt
-                            ? new Date(onboardingData.createdAt).toLocaleDateString(undefined, {
-                                year: "numeric",
-                                month: "numeric",
-                                day: "numeric",
-                              })
-                            : "-"}
-                        </p>
+                      <b className="text-xs text-gray-500">
+                        {onboardingData?.createdAt
+                          ? new Date(onboardingData.createdAt).toLocaleDateString(undefined, {
+                              year: "numeric",
+                              month: "numeric",
+                              day: "numeric",
+                            })
+                          : "-"}
                       </b>
                     </p>
                   </div>
@@ -230,54 +229,73 @@ export default function Home() {
             </CardContent>
           </Card>
 
-         <CardContent className="space-y-4">
-          <div className="flex flex-col gap-4">
-            {stats && stats.length > 0 ? (
-              stats.map((stat, index) => (
-                <div
-                  key={stat.userAddress}
-                  className="flex items-center justify-around gap-3 p-4 border rounded-lg w-full"
-                >
-                  <div className="w-8 font-bold">{index + 1}.</div>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Image
+                  src={"/icons/trophy.png"}
+                  alt="user"
+                  width={20}
+                  height={20}
+                  className="object-contain"
+                />
+                Leaderboard
+              </CardTitle>
+              <CardDescription>
+                Top 10 of our users
+              </CardDescription>
+            </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex flex-col gap-4">
+                  {stats && stats.length > 0 ? (
+                    stats.map((stat, index) => (
+                      <div
+                        key={stat.userAddress}
+                        className="flex items-center justify-around gap-3 p-4 border rounded-lg w-full"
+                      >
+                        <div className="w-8 font-bold">{index + 1}.</div>
 
-                  <div className="flex items-center gap-2">
-                    <Image
-                      src={"/icons/wallet.png"}
-                      alt="Wallet"
-                      width={20}
-                      height={20}
-                      className="object-contain"
-                    />
-                    <div>
-                      <p className="text-sm font-medium">User Wallet</p>
-                      <p className="text-xs text-gray-500 font-mono">
-                        {stat.userAddress.slice(0, 6)}...{stat.userAddress.slice(-4)}
-                      </p>
-                    </div>
-                  </div>
+                        <div className="flex items-center gap-2">
+                          <Image
+                            src={"/icons/wallet.png"}
+                            alt="Wallet"
+                            width={20}
+                            height={20}
+                            className="object-contain"
+                          />
+                          <div>
+                            <p className="text-sm font-medium">User Wallet</p>
+                            <p className="text-xs text-gray-500 font-mono">
+                              {stat.userAddress.slice(0, 6)}...{stat.userAddress.slice(-4)}
+                            </p>
+                          </div>
+                        </div>
 
-                  <div className="flex items-center gap-2">
-                    <Image
-                      src={"/icons/time.png"}
-                      alt="Minutes upload"
-                      width={20}
-                      height={20}
-                      className="object-contain"
-                    />
-                    <div>
-                      <p className="text-sm font-medium">Minutes Uploaded</p>
-                      <p className="text-xs text-gray-500 font-mono">
-                        {Math.floor(parseInt(stat.contributeSeconds) / 60)} min
-                      </p>
-                    </div>
-                  </div>
+                        <div className="flex items-center gap-2">
+                          <Image
+                            src={"/icons/time.png"}
+                            alt="Minutes upload"
+                            width={20}
+                            height={20}
+                            className="object-contain"
+                          />
+                          <div>
+                            <p className="text-sm font-medium">Minutes Uploaded</p>
+                            <p className="text-xs text-gray-500 font-mono">
+                              {Math.floor(parseInt(stat.contributedSeconds) / 60)} min
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-gray-500">No Leaderboard</div>
+                  )}
                 </div>
-              ))
-            ) : (
-              <div className="text-gray-500">No Leaderboard</div>
-            )}
-          </div>
-        </CardContent>
+              </CardContent>
+            </Card>
+
+         
 
 
           {/* Onboarding Form - показываем только если опрос не пройден */}
