@@ -82,7 +82,7 @@ export async function GET(request: NextRequest) {
     }
 
     const res = await fetch(
-      `https://audata.space/api/v1/users/metadata/?user_wallet_address=${walletAddress}`,
+      `https://audata.space/api/v1/users/metadata?user_wallet_address=${walletAddress}`,
     );
 
     const contributeRes = await fetch(
