@@ -9,13 +9,10 @@ const nextConfig = {
 
     return config;
   },
-  images: {
-    unoptimized: true,
-  },
   eslint: {
     ignoreDuringBuilds: true,
   },
   output: "standalone",
 };
 
-export default nextConfig;
+module.exports = nextConfig;
