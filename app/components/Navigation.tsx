@@ -54,7 +54,7 @@ export function Navigation() {
                     src={
                       isActive("/")
                         ? "/icons/home-white.png"
-                        : "icons/home-black.png"
+                        : "/icons/home-black.png"
                     }
                     alt="home"
                     width={20}
@@ -75,7 +75,7 @@ export function Navigation() {
                     src={
                       isActive("/upload")
                         ? "/icons/upload-white.png"
-                        : "icons/upload-black.png"
+                        : "/icons/upload-black.png"
                     }
                     alt="upload"
                     width={20}

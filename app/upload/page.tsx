@@ -89,7 +89,6 @@ export default function UploadPage() {
       }));
 
       try {
-        console.log(file);
         await handleContributeData(
           user.address,
           audioLanguage,
@@ -201,7 +200,7 @@ export default function UploadPage() {
                   </div>
                   <h3 className="font-semibold">1.Upload</h3>
                   <p className="text-sm text-gray-600">
-                    Upload your .ogg voice files to local storage
+                    Upload your .ogg voice files to Pinata storage
                   </p>
                 </div>
                 <div className="text-center space-y-2">
