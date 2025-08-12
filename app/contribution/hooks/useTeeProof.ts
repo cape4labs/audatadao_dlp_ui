@@ -166,6 +166,8 @@ export const useTeeProof = () => {
         args: [fileId],
       });
 
+      console.log("useTeeProof.ts 169", teePoolAddress, teePoolAbi, fileId, hash);
+
       // Wait for transaction receipt
       const contributionProofReceipt = await waitForTransactionReceipt(config, {
         hash,
