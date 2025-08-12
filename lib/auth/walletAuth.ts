@@ -40,6 +40,8 @@ export const useWalletAuth = create<WalletAuthState>()(
           lastActivity: now,
         };
 
+        console.log(userData)
+
         set({
           user: userData,
           isConnected: true,

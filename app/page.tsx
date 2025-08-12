@@ -241,7 +241,7 @@ export default function Home() {
                 />
                 Leaderboard
               </CardTitle>
-              <CardDescription>Top 10 of our users</CardDescription>
+              <CardDescription>Top 5 of our users</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex flex-col gap-4">
