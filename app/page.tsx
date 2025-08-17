@@ -43,12 +43,18 @@ interface Stats {
   contributedSeconds: string;
 }
 
+interface Info {
+  totalSeconds: number;
+  totalUsers: number;
+}
+
 export default function Home() {
   const { user } = useWalletAuth();
   const [onboardingData, setOnboardingData] = useState<OnboardingData | null>(
     null,
   );
   const [stats, setStats] = useState<Stats[] | null>(null);
+  const [info, setInfo] = useState<Info>();
   const [onboardingLoading, setOnboardingLoading] = useState(true);
 
   const loadOnboarding = async () => {
@@ -64,11 +70,10 @@ export default function Home() {
       if (res.ok) {
         const result = await res.json();
         const data = result.data;
-        const stats = result.stat;
+        const leaders = result.stat.leaders.leaders;
+        const info = result.stat;
 
-        console.log(data);
-
-        console.log(stats);
+        console.log(result)
         if (data) {
           setOnboardingData({
             id: data.id,
@@ -80,8 +85,9 @@ export default function Home() {
             createdAt: data.submittedAt,
           });
 
-          // stats — массив из 10 пользователей
-          setStats(stats);
+          setInfo(info)
+          setStats(leaders);
+          console.log(info)
         }
       }
     } catch (e) {
@@ -245,7 +251,7 @@ export default function Home() {
 
                 {/* TODO: */}
                 <div className="text-sm text-gray-600">
-                  Total users: <b>25</b> • Total minutes: <b>519</b>
+                  Total users: <b>{info?.totalUsers ?? 0}</b> • Total minutes: <b>{Math.floor((info?.totalSeconds ?? 0) / 60)}</b>
                 </div>
               </CardHeader>
             <CardContent className="space-y-4">

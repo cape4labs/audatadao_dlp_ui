@@ -86,7 +86,7 @@ export async function GET(request: NextRequest) {
     );
 
     const contributeRes = await fetch(
-      `https://audata.space/api/v1/users/leaders?amount=5`,
+      `https://audata.space/api/v1/users/stat?amount=5`,
     );
 
     console.log(res.status, res.statusText);
