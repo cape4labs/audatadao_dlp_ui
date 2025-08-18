@@ -145,7 +145,7 @@ export default function Home() {
               <CardHeader>
                 <CardTitle>Waitlist HERE!!!</CardTitle>
                 <CardDescription>
-                  Enter your Gmail/Email for money :)
+                  Enter your email
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -155,13 +155,13 @@ export default function Home() {
                 >
                   <Input
                     type="email"
-                    placeholder="your@gmail.com"
+                    placeholder="your email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
                   />
                   <Button type="submit" disabled={loading}>
-                    {loading ? "Sending..." : "Submit Email"}
+                    {loading ? "Sending..." : "Submit"}
                   </Button>
                   {message && (
                     <p className="text-sm text-gray-600">{message}</p>
