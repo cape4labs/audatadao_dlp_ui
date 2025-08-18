@@ -169,14 +169,6 @@ export default function Home() {
                 </form>
               </CardContent>
             </Card>
-            <Alert>
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Wallet Required</AlertTitle>
-              <AlertDescription>
-                Please connect your wallet OR provide your email.
-              </AlertDescription>
-            </Alert>
-
             {/* Wallet login */}
             <div className="flex justify-center pt-2">
               <WalletLoginButton />
