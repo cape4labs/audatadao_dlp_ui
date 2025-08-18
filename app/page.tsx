@@ -15,6 +15,8 @@ import { useWalletAuth } from "@/lib/auth/walletAuth";
 import { Navigation } from "./components/Navigation";
 import { UserOnboarding } from "./components/UserOnboarding";
 import { WalletLoginButton } from "./auth/WalletLoginButton";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 interface UploadedFile {
   id: string;
@@ -56,7 +58,10 @@ export default function Home() {
   const [stats, setStats] = useState<Stats[] | null>(null);
   const [info, setInfo] = useState<Info>();
   const [onboardingLoading, setOnboardingLoading] = useState(true);
-
+  const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
+ 
   const loadOnboarding = async () => {
     if (!user?.address) return;
 
@@ -98,6 +103,32 @@ export default function Home() {
     }
   };
 
+  const handleEmailSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) return;
+    setLoading(true);
+    setMessage("");
+
+    try {
+      const res = await fetch("/api/user/email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+
+      if (res.ok) {
+        setMessage("Success!");
+        setEmail("");
+      } else {
+        setMessage("Error with uploading email");
+      }
+    } catch (err) {
+      setMessage("Error with fetch");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (user?.address) {
       loadOnboarding();
@@ -110,16 +141,47 @@ export default function Home() {
         <Navigation />
         <div className="container mx-auto px-4 py-8">
           <div className="max-w-2xl mx-auto space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Waitlist HERE!!!</CardTitle>
+                <CardDescription>
+                  Enter your Gmail/Email for money :)
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form
+                  onSubmit={handleEmailSubmit}
+                  className="flex flex-col gap-3"
+                >
+                  <Input
+                    type="email"
+                    placeholder="your@gmail.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                  <Button type="submit" disabled={loading}>
+                    {loading ? "Sending..." : "Submit Email"}
+                  </Button>
+                  {message && (
+                    <p className="text-sm text-gray-600">{message}</p>
+                  )}
+                </form>
+              </CardContent>
+            </Card>
             <Alert>
               <AlertCircle className="h-4 w-4" />
               <AlertTitle>Wallet Required</AlertTitle>
               <AlertDescription>
-                Please connect your wallet to view your profile.
+                Please connect your wallet OR provide your email.
               </AlertDescription>
             </Alert>
+
+            {/* Wallet login */}
             <div className="flex justify-center pt-2">
               <WalletLoginButton />
             </div>
+
           </div>
         </div>
       </div>
