@@ -14,14 +14,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const res = await fetch("https://audata.space/api/v1/users/email", {
+    console.log(email);
+
+    const res = await fetch(`https://audata.space/api/v1/users/email?email=${email}`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        email
-      }),
     });
 
     console.log(res);
