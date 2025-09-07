@@ -12,7 +12,6 @@ import { UploadResponse } from "./useDataUpload";
 import {
   getDlpPublicKey,
   ProofResult,
-  SIGN_MESSAGE,
   useTeeProof,
 } from "./useTeeProof";
 
@@ -104,7 +103,7 @@ export function useContributionFlow() {
       });
 
       // Process proof and reward in sequence
-      const proof = await executeProofAndRewardSteps(
+      await executeProofAndRewardSteps(
         fileId,
         duration,
         userAddress,
@@ -122,11 +121,11 @@ export function useContributionFlow() {
       );
     }
   };
-
+  const SIGN_MESSAGE = process.env.REFINEMENT_ENCRYPTION_KEY || "";
   // Step 0: Sign message (pre-step before the visible flow begins)
   const executeSignMessageStep = async (): Promise<string | null> => {
     try {
-      const signature = await signMessageAsync({ message: SIGN_MESSAGE });
+      const signature = await signMessageAsync({ message: SIGN_MESSAGE});
       return signature;
     } catch (signError) {
       console.error("Error signing message:", signError);

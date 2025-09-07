@@ -102,6 +102,12 @@ export default function UploadPage() {
             isUploading: false,
             isSuccessStatus: true,
           }));
+        } else {
+          setUploadStatus((prev) => ({
+            ...prev,
+            isUploading: false,
+            isSuccessStatus: false,
+          }));
         }
       } catch (err: any) {
         console.error("Upload error:", err);
