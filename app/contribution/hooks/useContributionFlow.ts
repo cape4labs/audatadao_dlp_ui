@@ -104,7 +104,7 @@ export function useContributionFlow() {
       });
 
       // Process proof and reward in sequence
-      await executeProofAndRewardSteps(
+      const proof = await executeProofAndRewardSteps(
         fileId,
         duration,
         userAddress,
@@ -160,7 +160,7 @@ export function useContributionFlow() {
     );
     if (!uploadResult) {
       setError("Failed to upload data to Google Drive");
-      return null;
+      throw new Error("Upload result step failed");
     }
 
     setShareUrl(uploadResult.downloadUrl);
@@ -183,8 +183,11 @@ export function useContributionFlow() {
     if (!txReceipt) {
       if (contractError) {
         setError(`Contract error: ${contractError}`);
+        setIsSuccess(false);
+        return { fileId: null, txReceipt: null, encryptedKey: null };
       } else {
         setError("Failed to add file to blockchain");
+        setIsSuccess(false);
       }
       return { fileId: null, txReceipt: null, encryptedKey: null };
     }
@@ -211,13 +214,16 @@ export function useContributionFlow() {
     );
 
     if (!proofResult) {
-      // Ошибка уже установлена внутри executeTeeProofStep
-      return;
+      setIsSuccess(false)
+      throw new Error("Proof request step failed");
     }
 
     // Step 4: Process Proof
-    await executeProcessProofStep(fileId, proofResult, signature);
-
+    const err = await executeProcessProofStep(fileId, proofResult, signature);
+    if (!err) {
+      setIsSuccess(false)
+      throw new Error("Refine step failed");
+    }
     // Step 5: Claim Reward
     await executeClaimRewardStep(fileId, audioDuration, userAddress);
   };
@@ -237,6 +243,7 @@ export function useContributionFlow() {
 
     if (!proofResult) {
       setError("Failed to request TEE proof");
+      setIsSuccess(false);
       return null;
     }
 
@@ -271,12 +278,14 @@ export function useContributionFlow() {
       return refinementResult;
     } catch (refineError) {
       console.error("Error during data refinement:", refineError);
+      
       setError(
         refineError instanceof Error
           ? refineError.message
           : "Failed to process TEE proof or claim reward",
       );
-      return null;
+      setIsSuccess(false);
+      return error;
     }
   };
 
@@ -299,7 +308,7 @@ export function useContributionFlow() {
       return null;
     }
 
-    const data = updateContributionData({
+    updateContributionData({
       rewardTxHash: rewardResult?.transactionHash,
     });
 

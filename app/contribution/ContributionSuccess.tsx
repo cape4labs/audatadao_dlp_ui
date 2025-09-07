@@ -1,6 +1,5 @@
 import { CheckCircle, ExternalLink } from "lucide-react";
 import { ContributionSteps } from "./ContributionSteps";
-import { ContributionSummary } from "./ContributionSummary";
 import { ContributionData, DriveInfo, UserInfo } from "./types";
 import { getTransactionUrl } from "../../contracts/chains";
 
@@ -14,7 +13,6 @@ type ContributionSuccessProps = {
 export function ContributionSuccess({
   contributionData,
   completedSteps,
-  userInfo,
 }: ContributionSuccessProps) {
   // Determine how many steps were completed
   const fullyCompleted = completedSteps.includes(5);
@@ -114,10 +112,6 @@ export function ContributionSuccess({
 
       {/* Stepper UI showing completed steps */}
       <ContributionSteps currentStep={0} completedSteps={completedSteps} />
-
-      {userInfo && (
-        <ContributionSummary userInfo={userInfo} isEncrypted={true} />
-      )}
     </div>
   );
 }
