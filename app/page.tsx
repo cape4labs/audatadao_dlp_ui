@@ -143,7 +143,7 @@ export default function Home() {
           <div className="max-w-2xl mx-auto space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Waitlist HERE!!!</CardTitle>
+                <CardTitle>Waitlist</CardTitle>
                 <CardDescription>
                   Enter your email
                 </CardDescription>
