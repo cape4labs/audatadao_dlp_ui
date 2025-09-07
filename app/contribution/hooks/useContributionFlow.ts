@@ -149,6 +149,8 @@ export function useContributionFlow() {
   ) => {
     setCurrentStep(STEPS.UPLOAD_DATA);
 
+    console.log("\x1b[31mSIGNATURE\x1b[0m -", signature);
+
     const uploadResult = await uploadData(
       userAddress,
       audio_language,
@@ -214,7 +216,7 @@ export function useContributionFlow() {
     }
 
     // Step 4: Process Proof
-    await executeProcessProofStep(proofResult, signature);
+    await executeProcessProofStep(fileId, proofResult, signature);
 
     // Step 5: Claim Reward
     await executeClaimRewardStep(fileId, audioDuration, userAddress);
@@ -248,6 +250,7 @@ export function useContributionFlow() {
 
   // Step 4: Process Proof
   const executeProcessProofStep = async (
+    fileId: number,
     proofResult: ProofResult,
     signature: string,
   ) => {
@@ -259,7 +262,7 @@ export function useContributionFlow() {
 
     try {
       const refinementResult = await refine({
-        file_id: proofResult.fileId,
+        file_id: fileId,
         encryption_key: signature,
       });
 

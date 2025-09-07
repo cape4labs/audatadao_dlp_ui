@@ -75,7 +75,7 @@ export function useDataRefinement(): UseDataRefinementReturn {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          file_id: input.file_id,
+          file_id: Number(input.file_id),
           encryption_key: input.encryption_key,
           refiner_id: input.refiner_id,
         }),
