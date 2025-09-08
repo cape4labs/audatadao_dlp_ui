@@ -21,8 +21,8 @@ export async function POST(request: NextRequest) {
       {
         method: "POST",
         headers: {
-          pinata_api_key: `${process.env.NEXT_PUBLIC_PINATA_API_KEY}`,
-          pinata_secret_api_key: `${process.env.NEXT_PUBLIC_PINATA_SECRET_API_KEY}`,
+          pinata_api_key: `${process.env.PINATA_API_KEY}`,
+          pinata_secret_api_key: `${process.env.PINATA_API_SECRET}`,
         },
         body: formData,
       },
@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       data: {
-        pinataUrl: `${process.env.NEXT_PUBLIC_PINATA_GATEWAY}/${pinataResult.IpfsHash}`,
+        pinataUrl: `${process.env.PINATA_GATEWAY}/${pinataResult.IpfsHash}`,
         fileName: "TEST",
         fileSize: file.size,
       },

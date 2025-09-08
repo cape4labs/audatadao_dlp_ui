@@ -23,6 +23,15 @@ interface ProofRequestBody {
 export async function POST(request: NextRequest) {
   try {
     const requestBody = await request.json();
+    const db_uri = process.env.DB_URI || "";
+
+    if (!db_uri) {
+      return NextResponse.json(
+        { error: "DB_URI is not set" },
+        { status: 500 },
+      );
+    }
+
 
     const jobUrl = requestBody.teeUrl;
 
@@ -34,7 +43,7 @@ export async function POST(request: NextRequest) {
       encryption_seed: requestBody.encryption_seed,
       env_vars: {
         DLP_ID: requestBody.env_vars?.DLP_ID,
-        DB_URI: requestBody.env_vars?.DB_URI,
+        DB_URI: db_uri,
       },
       validate_permissions: requestBody.validate_permissions?.map((p: any) => ({
         address: p.address,

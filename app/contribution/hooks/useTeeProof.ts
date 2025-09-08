@@ -42,7 +42,6 @@ interface ProofRequestBody {
   encryption_seed: string;
   env_vars: {
     DLP_ID: number;
-    DB_URI: string;
   };
   validate_permissions: {
     address: string;
@@ -195,7 +194,6 @@ export const useTeeProof = () => {
 
       const proofUrl = process.env.NEXT_PUBLIC_PROOF_URL;
       const dlpId = process.env.NEXT_PUBLIC_DLP_ID;
-      const dbUri = process.env.NEXT_PUBLIC_DB_URI;
 
       // Create the proof request
       const nonce = Date.now().toString();
@@ -207,7 +205,6 @@ export const useTeeProof = () => {
         encryption_seed: SIGN_MESSAGE,
         env_vars: {
           DLP_ID: Number(dlpId),
-          DB_URI: String(dbUri),
         },
         validate_permissions: [
           {

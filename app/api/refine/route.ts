@@ -10,10 +10,10 @@ export async function POST(request: Request) {
     const fileId = requestBody.file_id;
     const encryptionKey = requestBody.encryption_key;
     const refinerId = process.env.NEXT_PUBLIC_REFINER_ID;
-    const pinataApiKey = process.env.NEXT_PUBLIC_PINATA_API_KEY;
-    const pinataApiSecret = process.env.NEXT_PUBLIC_PINATA_SECRET_API_KEY;
+    const pinataApiKey = process.env.PINATA_API_KEY;
+    const pinataApiSecret = process.env.PINATA_API_SECRET;
     const apiVersion = process.env.NEXT_PUBLIC_REFINEMENT_API_VERSION;
-    const pinataGateway = process.env.NEXT_PUBLIC_PINATA_GATEWAY;
+    const pinataGateway = process.env.PINATA_GATEWAY;
 
     console.log("refine route envs", refinementEndpoint, fileId, encryptionKey, refinerId, pinataApiKey, pinataApiSecret, apiVersion, pinataGateway);
 
