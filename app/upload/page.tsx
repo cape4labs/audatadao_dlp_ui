@@ -85,8 +85,16 @@ export default function UploadPage() {
       setUploadStatus((prev) => ({
         ...prev,
         isUploading: true,
-        error: null,
       }));
+      if (audioLanguage === "") {
+        setUploadStatus((prev) => ({
+          ...prev,
+          isUploading: false,
+          error: "Select audio language",
+          isSuccessStatus: false, 
+        }));
+        return;
+      }
 
       try {
         await handleContributeData(
@@ -107,6 +115,7 @@ export default function UploadPage() {
             ...prev,
             isUploading: false,
             isSuccessStatus: false,
+            error: error,
           }));
         }
       } catch (err: any) {
@@ -317,14 +326,13 @@ export default function UploadPage() {
               </div>
             </CardContent>
             <CardContent className="space-y-4">
-              {error && (
+              {uploadStatus.error && (
                 <Alert variant="destructive">
                   <AlertCircle className="h-4 w-4" />
                   <AlertTitle>Error</AlertTitle>
-                  <AlertDescription>{error}</AlertDescription>
+                  <AlertDescription>{uploadStatus.error}</AlertDescription>
                 </Alert>
               )}
-
               {isSuccess && contributionData ? (
                 <ContributionSuccess
                   contributionData={contributionData}
