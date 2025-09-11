@@ -10,6 +10,7 @@ import { useRewardClaim } from "./useRewardClaim";
 import { useStatisticsUpload } from "./useStatisticsUpload";
 import { UploadResponse } from "./useDataUpload";
 import {
+  SIGN_MESSAGE,
   getDlpPublicKey,
   ProofResult,
   useTeeProof,
@@ -121,11 +122,11 @@ export function useContributionFlow() {
       );
     }
   };
-  const SIGN_MESSAGE = process.env.REFINEMENT_ENCRYPTION_KEY || "";
+
   // Step 0: Sign message (pre-step before the visible flow begins)
   const executeSignMessageStep = async (): Promise<string | null> => {
     try {
-      const signature = await signMessageAsync({ message: SIGN_MESSAGE});
+      const signature = await signMessageAsync({ message: SIGN_MESSAGE });
       return signature;
     } catch (signError) {
       console.error("Error signing message:", signError);
@@ -213,14 +214,14 @@ export function useContributionFlow() {
     );
 
     if (!proofResult) {
-      setIsSuccess(false)
+      setIsSuccess(false);
       throw new Error("Proof request step failed");
     }
 
     // Step 4: Process Proof
-    const err = await executeProcessProofStep(fileId, proofResult, signature);
+    const err = await executeProcessProofStep(proofResult, signature);
     if (!err) {
-      setIsSuccess(false)
+      setIsSuccess(false);
       throw new Error("Refine step failed");
     }
     // Step 5: Claim Reward
@@ -256,7 +257,6 @@ export function useContributionFlow() {
 
   // Step 4: Process Proof
   const executeProcessProofStep = async (
-    fileId: number,
     proofResult: ProofResult,
     signature: string,
   ) => {
@@ -268,7 +268,7 @@ export function useContributionFlow() {
 
     try {
       const refinementResult = await refine({
-        file_id: fileId,
+        file_id: proofResult.fileId,
         encryption_key: signature,
       });
 
@@ -277,7 +277,7 @@ export function useContributionFlow() {
       return refinementResult;
     } catch (refineError) {
       console.error("Error during data refinement:", refineError);
-      
+
       setError(
         refineError instanceof Error
           ? refineError.message

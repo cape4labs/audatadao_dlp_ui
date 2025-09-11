@@ -15,7 +15,17 @@ export async function POST(request: Request) {
     const apiVersion = process.env.NEXT_PUBLIC_REFINEMENT_API_VERSION;
     const pinataGateway = process.env.PINATA_GATEWAY;
 
-    console.log("refine route envs", refinementEndpoint, fileId, encryptionKey, refinerId, pinataApiKey, pinataApiSecret, apiVersion, pinataGateway);
+    console.log(
+      "refine route envs",
+      refinementEndpoint,
+      fileId,
+      encryptionKey,
+      refinerId,
+      pinataApiKey,
+      pinataApiSecret,
+      apiVersion,
+      pinataGateway,
+    );
 
     if (!refinementEndpoint) {
       return NextResponse.json(
@@ -26,7 +36,10 @@ export async function POST(request: Request) {
 
     if (!fileId || !encryptionKey || !refinerId) {
       return NextResponse.json(
-        { error: "Missing required parameters: file_id or encryption_key or refinerId" },
+        {
+          error:
+            "Missing required parameters: file_id or encryption_key or refinerId",
+        },
         { status: 400 },
       );
     }

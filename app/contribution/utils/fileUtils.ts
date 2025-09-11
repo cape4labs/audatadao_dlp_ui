@@ -46,6 +46,8 @@ export function extractFileIdFromReceipt(receipt: TransactionReceipt): number {
       url: fileAddedEvent.args.url,
     });
 
+    console.log("FileAdded event all logs", logs);
+
     return fileId;
   } catch (error) {
     console.error("Error extracting file ID from receipt:", error);

@@ -26,12 +26,8 @@ export async function POST(request: NextRequest) {
     const db_uri = process.env.DB_URI || "";
 
     if (!db_uri) {
-      return NextResponse.json(
-        { error: "DB_URI is not set" },
-        { status: 500 },
-      );
+      return NextResponse.json({ error: "DB_URI is not set" }, { status: 500 });
     }
-
 
     const jobUrl = requestBody.teeUrl;
 

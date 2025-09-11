@@ -6,7 +6,12 @@ import { useState } from "react";
 import { useAccount, useConfig, useWriteContract } from "wagmi";
 
 // Fixed message for signing
-export const SIGN_MESSAGE = "Please sign to retrieve your encryption key";
+export const SIGN_MESSAGE = String(
+  process.env.NEXT_PUBLIC_REFINEMENT_ENCRYPTION_KEY,
+);
+if (!SIGN_MESSAGE) {
+  throw new Error("SIGN_MESSAGE is undefined");
+}
 
 export type ProofResult = {
   fileId: number;
@@ -165,7 +170,13 @@ export const useTeeProof = () => {
         args: [fileId],
       });
 
-      console.log("useTeeProof.ts 169", teePoolAddress, teePoolAbi, fileId, hash);
+      console.log(
+        "useTeeProof.ts 169",
+        teePoolAddress,
+        teePoolAbi,
+        fileId,
+        hash,
+      );
 
       // Wait for transaction receipt
       const contributionProofReceipt = await waitForTransactionReceipt(config, {

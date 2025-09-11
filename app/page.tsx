@@ -61,7 +61,7 @@ export default function Home() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
- 
+
   const loadOnboarding = async () => {
     if (!user?.address) return;
 
@@ -78,7 +78,7 @@ export default function Home() {
         const leaders = result.stat.leaders.leaders;
         const info = result.stat;
 
-        console.log(result)
+        console.log(result);
         if (data) {
           setOnboardingData({
             id: data.id,
@@ -90,9 +90,9 @@ export default function Home() {
             createdAt: data.submittedAt,
           });
 
-          setInfo(info)
+          setInfo(info);
           setStats(leaders);
-          console.log(info)
+          console.log(info);
         }
       }
     } catch (e) {
@@ -144,9 +144,7 @@ export default function Home() {
             <Card>
               <CardHeader>
                 <CardTitle>Waitlist HERE!!!</CardTitle>
-                <CardDescription>
-                  Enter your email
-                </CardDescription>
+                <CardDescription>Enter your email</CardDescription>
               </CardHeader>
               <CardContent>
                 <form
@@ -173,7 +171,6 @@ export default function Home() {
             <div className="flex justify-center pt-2">
               <WalletLoginButton />
             </div>
-
           </div>
         </div>
       </div>
@@ -290,24 +287,25 @@ export default function Home() {
           </Card>
 
           <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Image
-                    src={"/icons/trophy.png"}
-                    alt="user"
-                    width={20}
-                    height={20}
-                    className="object-contain"
-                  />
-                  Leaderboard
-                </CardTitle>
-                <CardDescription>Top 5 of our uploaders</CardDescription>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Image
+                  src={"/icons/trophy.png"}
+                  alt="user"
+                  width={20}
+                  height={20}
+                  className="object-contain"
+                />
+                Leaderboard
+              </CardTitle>
+              <CardDescription>Top 5 of our uploaders</CardDescription>
 
-                {/* TODO: */}
-                <div className="text-sm text-gray-600">
-                  Total users: <b>{info?.totalUsers ?? 0}</b> • Total minutes: <b>{Math.floor((info?.totalSeconds ?? 0) / 60)}</b>
-                </div>
-              </CardHeader>
+              {/* TODO: */}
+              <div className="text-sm text-gray-600">
+                Total users: <b>{info?.totalUsers ?? 0}</b> • Total minutes:{" "}
+                <b>{Math.floor((info?.totalSeconds ?? 0) / 60)}</b>
+              </div>
+            </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex flex-col gap-4">
                 {stats && stats.length > 0 ? (
@@ -329,14 +327,16 @@ export default function Home() {
                         <div>
                           <p className="text-sm font-medium flex items-center gap-2">
                             User Wallet
-                            {stat.userAddress.toLowerCase() === user.address.toLowerCase() && (
+                            {stat.userAddress.toLowerCase() ===
+                              user.address.toLowerCase() && (
                               <span className="text-xs bg-green-500 text-white px-2 py-0.5 rounded-full">
                                 YOU
                               </span>
                             )}
                           </p>
                           <p className="text-xs text-gray-500 font-mono">
-                            {stat.userAddress.slice(0, 6)}...{stat.userAddress.slice(-4)}
+                            {stat.userAddress.slice(0, 6)}...
+                            {stat.userAddress.slice(-4)}
                           </p>
                         </div>
                       </div>
@@ -350,14 +350,16 @@ export default function Home() {
                           className="object-contain"
                         />
                         <div>
-                          <p className="text-sm font-medium">Minutes Uploaded</p>
+                          <p className="text-sm font-medium">
+                            Minutes Uploaded
+                          </p>
                           <p className="text-xs text-gray-500 font-mono">
-                            {Math.floor(parseInt(stat.contributedSeconds) / 60)} min
+                            {Math.floor(parseInt(stat.contributedSeconds) / 60)}{" "}
+                            min
                           </p>
                         </div>
                       </div>
                     </div>
-
                   ))
                 ) : (
                   <div className="text-gray-500">No Leaderboard</div>

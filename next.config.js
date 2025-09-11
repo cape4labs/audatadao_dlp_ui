@@ -1,6 +1,6 @@
 const nextConfig = {
   webpack: (config) => {
-    config.output.publicPath = '/_next/';
+    config.output.publicPath = "/_next/";
     Object.assign(config, {
       output: {
         ...config.output,
