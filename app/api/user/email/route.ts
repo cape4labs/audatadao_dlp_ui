@@ -16,9 +16,12 @@ export async function POST(request: NextRequest) {
 
     console.log(email);
 
-    const res = await fetch(`https://audata.space/api/v1/users/email?email=${email}`, {
-      method: "POST",
-    });
+    const res = await fetch(
+      `https://audata.space/api/v1/users/email?email=${email}`,
+      {
+        method: "POST",
+      },
+    );
 
     console.log(res);
 

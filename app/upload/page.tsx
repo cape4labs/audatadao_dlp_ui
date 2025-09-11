@@ -40,7 +40,7 @@ interface UploadedFile {
 
 interface UploadStatus {
   isUploading: boolean;
-  isSuccess: boolean;
+  isSuccessStatus: boolean;
   error: string | null;
   uploadedFile: UploadedFile | null;
 }
@@ -61,7 +61,7 @@ export default function UploadPage() {
 
   const [uploadStatus, setUploadStatus] = useState<UploadStatus>({
     isUploading: false,
-    isSuccess: false,
+    isSuccessStatus: false,
     error: null,
     uploadedFile: null,
   });
@@ -96,11 +96,19 @@ export default function UploadPage() {
           isConnected,
         );
 
-        setUploadStatus((prev) => ({
-          ...prev,
-          isUploading: false,
-          isSuccess: true,
-        }));
+        if (isSuccess) {
+          setUploadStatus((prev) => ({
+            ...prev,
+            isUploading: false,
+            isSuccessStatus: true,
+          }));
+        } else {
+          setUploadStatus((prev) => ({
+            ...prev,
+            isUploading: false,
+            isSuccessStatus: false,
+          }));
+        }
       } catch (err: any) {
         console.error("Upload error:", err);
 
@@ -309,11 +317,11 @@ export default function UploadPage() {
               </div>
             </CardContent>
             <CardContent className="space-y-4">
-              {uploadStatus.error && (
+              {error && (
                 <Alert variant="destructive">
                   <AlertCircle className="h-4 w-4" />
                   <AlertTitle>Error</AlertTitle>
-                  <AlertDescription>{uploadStatus.error}</AlertDescription>
+                  <AlertDescription>{error}</AlertDescription>
                 </Alert>
               )}
 

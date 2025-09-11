@@ -66,12 +66,10 @@ export function useDataUpload() {
         },
       };
 
-      const fileName = file.text.name;
-
       const zip = new JSZip();
 
       const fileBuffer = await file.arrayBuffer();
-      zip.file(`${fileName}.ogg`, Buffer.from(fileBuffer));
+      zip.file("audio.ogg", Buffer.from(fileBuffer));
 
       const jsonFile = new Blob([JSON.stringify(userMetadata, null, 2)], {
         type: "application/json",

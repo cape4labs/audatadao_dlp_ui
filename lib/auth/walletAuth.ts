@@ -40,7 +40,7 @@ export const useWalletAuth = create<WalletAuthState>()(
           lastActivity: now,
         };
 
-        console.log(userData)
+        console.log(userData);
 
         set({
           user: userData,

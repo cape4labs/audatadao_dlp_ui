@@ -6,7 +6,12 @@ import { useState } from "react";
 import { useAccount, useConfig, useWriteContract } from "wagmi";
 
 // Fixed message for signing
-export const SIGN_MESSAGE = "Please sign to retrieve your encryption key";
+export const SIGN_MESSAGE = String(
+  process.env.NEXT_PUBLIC_REFINEMENT_ENCRYPTION_KEY,
+);
+if (!SIGN_MESSAGE) {
+  throw new Error("SIGN_MESSAGE is undefined");
+}
 
 export type ProofResult = {
   fileId: number;
@@ -42,7 +47,6 @@ interface ProofRequestBody {
   encryption_seed: string;
   env_vars: {
     DLP_ID: number;
-    DB_URI: string;
   };
   validate_permissions: {
     address: string;
@@ -166,7 +170,13 @@ export const useTeeProof = () => {
         args: [fileId],
       });
 
-      console.log("useTeeProof.ts 169", teePoolAddress, teePoolAbi, fileId, hash);
+      console.log(
+        "useTeeProof.ts 169",
+        teePoolAddress,
+        teePoolAbi,
+        fileId,
+        hash,
+      );
 
       // Wait for transaction receipt
       const contributionProofReceipt = await waitForTransactionReceipt(config, {
@@ -195,7 +205,6 @@ export const useTeeProof = () => {
 
       const proofUrl = process.env.NEXT_PUBLIC_PROOF_URL;
       const dlpId = process.env.NEXT_PUBLIC_DLP_ID;
-      const dbUri = process.env.NEXT_PUBLIC_DB_URI;
 
       // Create the proof request
       const nonce = Date.now().toString();
@@ -207,7 +216,6 @@ export const useTeeProof = () => {
         encryption_seed: SIGN_MESSAGE,
         env_vars: {
           DLP_ID: Number(dlpId),
-          DB_URI: String(dbUri),
         },
         validate_permissions: [
           {
