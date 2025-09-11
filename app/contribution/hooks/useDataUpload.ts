@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { clientSideEncrypt, formatVanaFileId } from "../../../lib/crypto/utils";
 import JSZip from "jszip";
+import { debugLog } from "@/lib/logger";
 
 export interface UploadResponse {
   downloadUrl: string;
@@ -44,7 +45,7 @@ export function useDataUpload() {
         `api/user/onboarding?walletAddress=${userAddress}`,
       );
       if (!metadataRes.ok) {
-        console.log(metadataRes);
+        debugLog(metadataRes);
       }
 
       const metadataJson = await metadataRes.json();

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { debugLog } from "@/lib/logger";
 
 export async function POST(request: NextRequest) {
   try {
@@ -44,7 +45,7 @@ export async function POST(request: NextRequest) {
       }),
     });
 
-    console.log(res);
+    debugLog(res);
 
     return NextResponse.json({
       success: true,
@@ -89,7 +90,7 @@ export async function GET(request: NextRequest) {
       `https://audata.space/api/v1/users/stat?amount=5`,
     );
 
-    console.log(res.status, res.statusText);
+    debugLog(res.status, res.statusText);
 
     return NextResponse.json({
       success: true,

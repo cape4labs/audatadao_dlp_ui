@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { Address } from "viem";
+import { debugLog } from "@/lib/logger";
 
 export interface WalletUser {
   address: Address;
@@ -40,7 +41,7 @@ export const useWalletAuth = create<WalletAuthState>()(
           lastActivity: now,
         };
 
-        console.log(userData);
+        debugLog(userData);
 
         set({
           user: userData,
@@ -64,9 +65,9 @@ export const useWalletAuth = create<WalletAuthState>()(
 
           if (response.ok) {
             const result = await response.json();
-            console.log("Wallet registered successfully with backend:", result);
+            debugLog("Wallet registered successfully with backend:", result);
           } else if (response.status === 400) {
-            console.log("User is already registered");
+            debugLog("User is already registered");
           } else {
             console.error(
               "Failed to register wallet with backend:",

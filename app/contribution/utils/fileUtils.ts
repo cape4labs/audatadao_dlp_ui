@@ -1,5 +1,6 @@
 import { parseEventLogs, TransactionReceipt, type Log } from "viem";
 import { getAbi } from "@/contracts/abi";
+import { debugLog } from "@/lib/logger";
 
 // Define the type for the FileAdded event arguments
 type FileAddedEventArgs = {
@@ -40,13 +41,13 @@ export function extractFileIdFromReceipt(receipt: TransactionReceipt): number {
     const fileId = Number(fileAddedEvent.args.fileId);
 
     // Log for debugging purposes
-    console.log("FileAdded event parsed:", {
+    debugLog("FileAdded event parsed:", {
       fileId,
       ownerAddress: fileAddedEvent.args.ownerAddress,
       url: fileAddedEvent.args.url,
     });
 
-    console.log("FileAdded event all logs", logs);
+    debugLog("FileAdded event all logs", logs);
 
     return fileId;
   } catch (error) {

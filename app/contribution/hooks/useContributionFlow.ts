@@ -9,6 +9,7 @@ import { useDataUpload } from "./useDataUpload";
 import { useRewardClaim } from "./useRewardClaim";
 import { useStatisticsUpload } from "./useStatisticsUpload";
 import { UploadResponse } from "./useDataUpload";
+import { debugLog } from "@/lib/logger";
 import {
   SIGN_MESSAGE,
   getDlpPublicKey,
@@ -149,7 +150,7 @@ export function useContributionFlow() {
   ) => {
     setCurrentStep(STEPS.UPLOAD_DATA);
 
-    console.log("\x1b[31mSIGNATURE\x1b[0m -", signature);
+    debugLog("\x1b[31mSIGNATURE\x1b[0m -", signature);
 
     const uploadResult = await uploadData(
       userAddress,
@@ -222,7 +223,7 @@ export function useContributionFlow() {
     const err = await executeProcessProofStep(proofResult, signature);
     if (!err) {
       setIsSuccess(false);
-      throw new Error("Refine step failed");
+      throw new Error("Refinement step failed");
     }
     // Step 5: Claim Reward
     await executeClaimRewardStep(fileId, audioDuration, userAddress);
@@ -295,9 +296,12 @@ export function useContributionFlow() {
     userAddress: string,
   ) => {
     setCurrentStep(STEPS.CLAIM_REWARD);
-    console.log("contribution/hooks/useContributionFlow.ts 260", fileId);
+
+    debugLog("contribution/hooks/useContributionFlow.ts 260", fileId);
+
     const rewardResult = await requestReward(fileId);
-    console.log(
+
+    debugLog(
       "contribution/hooks/useContributionFlow.ts 262 rewardResull",
       rewardResult,
     );

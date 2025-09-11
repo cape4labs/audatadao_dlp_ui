@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { debugLog } from "@/lib/logger";
 
 interface ProofRequestBody {
   job_id: number;
@@ -51,8 +52,8 @@ export async function POST(request: NextRequest) {
       encryption_key: requestBody.encryption_key,
     };
 
-    console.log(jobUrl);
-    console.log("api/proof/route.ts 61", body);
+    debugLog(jobUrl);
+    debugLog("api/proof/route.ts 61", body);
 
     const contributionProofResponse = await fetch(`${jobUrl}/RunProof`, {
       method: "POST",
@@ -73,7 +74,7 @@ export async function POST(request: NextRequest) {
 
     const res = await contributionProofResponse.json();
 
-    console.log("api/proof/route.ts 70", res);
+    debugLog("api/proof/route.ts 70", res);
 
     return NextResponse.json(
       {

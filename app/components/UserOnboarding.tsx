@@ -14,6 +14,7 @@ import {
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
 import { useWalletAuth } from "@/lib/auth/walletAuth";
+import { debugLog } from "@/lib/logger";
 
 interface UserOnboardingData {
   country: string;
@@ -108,7 +109,7 @@ export function UserOnboarding({ onComplete }: { onComplete: () => void }) {
 
         if (localResponse.ok) {
           const result = await localResponse.json();
-          console.log("Onboarding data submitted to local API:", result);
+          debugLog("Onboarding data submitted to local API:", result);
           toast.success("Onboarding completed successfully!");
         }
       } catch (apiError) {

@@ -3,6 +3,7 @@ import { useAccount, useConfig, useWriteContract } from "wagmi";
 import { waitForTransactionReceipt } from "@wagmi/core";
 import { TransactionReceipt } from "viem";
 import { Controller } from "@/contracts/instances/controller";
+import { debugLog } from "@/lib/logger";
 
 // Interface for blockchain error objects
 interface BlockchainErrorObject {
@@ -42,7 +43,7 @@ export const useRewardClaim = () => {
       // Get contract instance
       const dataLiquidityPool = Controller("DataLiquidityPoolProxy");
 
-      console.log("contribution/hooks/useRewardClaim.ts 42", dataLiquidityPool);
+      debugLog("contribution/hooks/useRewardClaim.ts 42", dataLiquidityPool);
 
       // Request reward using wagmi hooks
       const hash = await writeContractAsync({
@@ -52,7 +53,7 @@ export const useRewardClaim = () => {
         args: [BigInt(fileId), BigInt(1)], // Convert both values to bigint
       });
 
-      console.log("contribution/hooks/useRewardClaim.ts 52", hash);
+      debugLog("contribution/hooks/useRewardClaim.ts 52", hash);
 
       // Wait for transaction receipt
       const txReceipt = await waitForTransactionReceipt(config, {
@@ -60,7 +61,7 @@ export const useRewardClaim = () => {
         confirmations: 1,
       });
 
-      console.log("contribution/hooks/useRewardClaim.ts 63", txReceipt);
+      debugLog("contribution/hooks/useRewardClaim.ts 63", txReceipt);
 
       setReceipt(txReceipt);
       return txReceipt;
