@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
+import { debugLog } from "@/lib/logger";
 
 export async function POST(request: Request) {
   try {
     const requestBody = await request.json();
 
-    console.log("refine route requestBody", requestBody);
+    debugLog("refine route requestBody", requestBody);
 
     const refinementEndpoint = `${process.env.NEXT_PUBLIC_REFINEMENT_ENDPOINT}/refine`;
     const fileId = requestBody.file_id;
@@ -15,7 +16,7 @@ export async function POST(request: Request) {
     const apiVersion = process.env.NEXT_PUBLIC_REFINEMENT_API_VERSION;
     const pinataGateway = process.env.PINATA_GATEWAY;
 
-    console.log(
+    debugLog(
       "refine route envs",
       refinementEndpoint,
       fileId,
@@ -55,7 +56,7 @@ export async function POST(request: Request) {
       },
     };
 
-    console.log("refine endpoint payload", payload);
+    debugLog("refine endpoint payload", payload);
 
     // Set headers for the request
     const headers: Record<string, string> = {
@@ -67,7 +68,7 @@ export async function POST(request: Request) {
       headers["Vana-Accept-Version"] = "v2";
     }
 
-    console.log("refine endpoint headers", headers);
+    debugLog("refine endpoint headers", headers);
 
     const response = await fetch(refinementEndpoint, {
       method: "POST",
@@ -75,11 +76,11 @@ export async function POST(request: Request) {
       body: JSON.stringify(payload),
     });
 
-    console.log("refine route response", response);
+    debugLog("refine route response", response);
 
     const data = await response.json();
 
-    console.log("refine route response data", data);
+    debugLog("refine route response data", data);
 
     // For V2, we return the job information for async processing
     if (apiVersion === "V2") {

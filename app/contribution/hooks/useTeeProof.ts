@@ -4,6 +4,7 @@ import { getEncryptionParameters } from "@/lib/crypto/utils";
 import { waitForTransactionReceipt } from "@wagmi/core";
 import { useState } from "react";
 import { useAccount, useConfig, useWriteContract } from "wagmi";
+import { debugLog } from "@/lib/logger";
 
 // Fixed message for signing
 export const SIGN_MESSAGE = String(
@@ -170,7 +171,7 @@ export const useTeeProof = () => {
         args: [fileId],
       });
 
-      console.log(
+      debugLog(
         "useTeeProof.ts 169",
         teePoolAddress,
         teePoolAbi,
@@ -184,7 +185,7 @@ export const useTeeProof = () => {
         confirmations: 1,
       });
 
-      console.log("contributionProofReceipt", contributionProofReceipt);
+      debugLog("contributionProofReceipt", contributionProofReceipt);
 
       // Get job IDs for the file
       const jobIds = await getFileJobIds(fileId);
@@ -198,7 +199,7 @@ export const useTeeProof = () => {
       // Get TEE details for the job
       const jobDetails = await getTeeDetails(latestJobId);
 
-      console.log("jobDetails", jobDetails);
+      debugLog("jobDetails", jobDetails);
 
       // Get consistent encryption parameters
       const { ivHex, ephemeralKeyHex } = getEncryptionParameters();

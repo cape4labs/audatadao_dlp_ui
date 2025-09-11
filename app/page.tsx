@@ -17,6 +17,7 @@ import { UserOnboarding } from "./components/UserOnboarding";
 import { WalletLoginButton } from "./auth/WalletLoginButton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { debugLog } from "@/lib/logger";
 
 interface UploadedFile {
   id: string;
@@ -78,7 +79,7 @@ export default function Home() {
         const leaders = result.stat.leaders.leaders;
         const info = result.stat;
 
-        console.log(result);
+        debugLog(result);
         if (data) {
           setOnboardingData({
             id: data.id,
@@ -92,7 +93,7 @@ export default function Home() {
 
           setInfo(info);
           setStats(leaders);
-          console.log(info);
+          debugLog(info);
         }
       }
     } catch (e) {
@@ -170,9 +171,11 @@ export default function Home() {
               </CardContent>
             </Card>
             {/* Wallet login */}
+            {/*
             <div className="flex justify-center pt-2">
               <WalletLoginButton />
             </div>
+            */}
           </div>
         </div>
       </div>

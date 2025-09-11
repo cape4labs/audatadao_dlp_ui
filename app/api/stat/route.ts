@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { debugLog } from "@/lib/logger";
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,7 +15,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log("STATISTICS DATA: ", userAddress, audioLength);
+    debugLog("STATISTICS DATA: ", userAddress, audioLength);
 
     const res = await fetch("https://audata.space/api/v1/users/contribute", {
       method: "POST",
@@ -30,7 +31,7 @@ export async function POST(request: NextRequest) {
     const resultData = await res.json();
 
     if (!res.ok) {
-      console.log("STATISTICS UPLOADING ERROR: ", resultData);
+      debugLog("STATISTICS UPLOADING ERROR: ", resultData);
       return NextResponse.json(
         { error: "Failed to upload statistics data" },
         { status: 502 },
