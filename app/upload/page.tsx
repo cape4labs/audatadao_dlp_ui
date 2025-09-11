@@ -42,7 +42,7 @@ interface UploadStatus {
   isUploading: boolean;
   isSuccessStatus: boolean;
   error: string | null;
-  uploadedFile: UploadedFile | null;
+  uploadedFiles: UploadedFile[];
 }
 
 export default function UploadPage() {
@@ -63,7 +63,7 @@ export default function UploadPage() {
     isUploading: false,
     isSuccessStatus: false,
     error: null,
-    uploadedFile: null,
+    uploadedFiles: [],
   });
 
   const onDrop = useCallback(
@@ -75,77 +75,94 @@ export default function UploadPage() {
 
       if (!isConnected) {
         toast.error(
-          "Wallet not connected. Please connect your wallet and try again.",
+          "Wallet not connected. Please connect your wallet and try again."
         );
         return;
       }
 
-      const file = acceptedFiles[0];
-
-      setUploadStatus((prev) => ({
-        ...prev,
-        isUploading: true,
-      }));
       if (audioLanguage === "") {
         setUploadStatus((prev) => ({
           ...prev,
           isUploading: false,
           error: "Select audio language",
-          isSuccessStatus: false, 
+          isSuccessStatus: false,
         }));
         return;
       }
 
-      try {
-        await handleContributeData(
-          user.address,
-          audioLanguage,
-          file,
-          isConnected,
-        );
-
-        if (isSuccess) {
-          setUploadStatus((prev) => ({
-            ...prev,
-            isUploading: false,
-            isSuccessStatus: true,
-          }));
-        } else {
-          setUploadStatus((prev) => ({
-            ...prev,
-            isUploading: false,
-            isSuccessStatus: false,
-            error: error,
-          }));
-        }
-      } catch (err: any) {
-        console.error("Upload error:", err);
-
-        const errorCode = err?.response?.data?.detail?.error?.code;
-
-        let userMessage = "Cannot proccess your file. Try again.";
-
-        if (errorCode === "PROOF_OF_CONTRIBUTION_ERROR") {
-          userMessage = "Your audio file is not valid.";
-        }
+      for (const file of acceptedFiles) {
+        const newFile: UploadedFile = {
+          id: crypto.randomUUID(),
+          name: file.name,
+          size: file.size,
+          type: file.type,
+          lastModified: file.lastModified,
+          status: "processing",
+          uploadedAt: new Date().toISOString(),
+        };
 
         setUploadStatus((prev) => ({
           ...prev,
-          isUploading: false,
-          error: userMessage,
+          uploadedFiles: [...prev.uploadedFiles, newFile],
+          isUploading: true,
         }));
 
-        toast.error(userMessage);
+        try {
+          await handleContributeData(
+            user.address,
+            audioLanguage,
+            file,
+            isConnected
+          );
+
+          if (isSuccess) {
+            setUploadStatus((prev) => ({
+            ...prev,
+            uploadedFiles: prev.uploadedFiles.map((f) =>
+              f.id === newFile.id ? { ...f, status: "completed" } : f
+            ),
+            isUploading: false,
+            isSuccessStatus: true,
+          }));
+          } else {
+            setUploadStatus((prev) => ({
+              ...prev,
+              uploadedFiles: prev.uploadedFiles.map((f) =>
+                f.id === newFile.id ? { ...f, status: "error" } : f
+              ),
+              isUploading: false,
+              isSuccessStatus: false,
+              error: error,
+            }));
+          }
+        } catch (err: any) {
+          console.error("Upload error:", err);
+          const errorCode = err?.response?.data?.detail?.error?.code;
+          let userMessage = "Cannot process your file. Try again.";
+          if (errorCode === "PROOF_OF_CONTRIBUTION_ERROR") {
+            userMessage = "Your audio file is not valid.";
+          }
+
+          setUploadStatus((prev) => ({
+            ...prev,
+            uploadedFiles: prev.uploadedFiles.map((f) =>
+              f.id === newFile.id ? { ...f, status: "error" } : f
+            ),
+            isUploading: false,
+            error: userMessage,
+          }));
+
+          toast.error(userMessage);
+        }
       }
     },
-    [user?.address, isConnected, handleContributeData],
+    [user?.address, isConnected, audioLanguage, handleContributeData]
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: { "audio/ogg": [".ogg"] },
-    multiple: false,
-    disabled: uploadStatus.isUploading,
+    multiple: true,
   });
 
   if (!user?.address) {
@@ -325,6 +342,28 @@ export default function UploadPage() {
                 )}
               </div>
             </CardContent>
+
+            {/* Список файлов */}
+            <CardContent className="space-y-2">
+              {uploadStatus.uploadedFiles.length > 0 && (
+                <div className="space-y-2">
+                  {uploadStatus.uploadedFiles.map((file) => (
+                    <div
+                      key={file.id}
+                      className="flex justify-between items-center p-2 border rounded"
+                    >
+                      <span className="text-sm">{file.name}</span>
+                      <span className="text-xs text-gray-500">
+                        {file.status === "processing" && "⏳ Processing"}
+                        {file.status === "completed" && "✅ Completed"}
+                        {file.status === "error" && "❌ Error"}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+
             <CardContent className="space-y-4">
               {uploadStatus.error && (
                 <Alert variant="destructive">
