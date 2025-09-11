@@ -223,7 +223,7 @@ export function useContributionFlow() {
     const err = await executeProcessProofStep(proofResult, signature);
     if (!err) {
       setIsSuccess(false);
-      throw new Error("Refine step failed");
+      throw new Error("Refinement step failed");
     }
     // Step 5: Claim Reward
     await executeClaimRewardStep(fileId, audioDuration, userAddress);
