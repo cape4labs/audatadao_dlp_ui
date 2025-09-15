@@ -79,6 +79,27 @@ export default function UploadPage() {
         );
         return;
       }
+      
+
+      if (localStorage.getItem("user_onboarding") === null) {
+        setUploadStatus((prev) => ({
+          ...prev,
+          isUploading: false,
+          isSuccessStatus: false,
+          error: "Finish onboarding first",
+        }));
+        return;
+      }
+
+      if (audioLanguage === "") {
+        setUploadStatus((prev) => ({
+          ...prev,
+          isUploading: false,
+          isSuccessStatus: false,
+          error: "Select language of speech in audio",
+        }));
+        return;
+      }
 
       if (audioLanguage === "") {
         setUploadStatus((prev) => ({
@@ -153,7 +174,8 @@ export default function UploadPage() {
               f.id === newFile.id ? { ...f, status: "error" } : f
             ),
             isUploading: false,
-            error: userMessage,
+            isSuccessStatus: false,
+            error: error,
           }));
 
           toast.error(userMessage);
