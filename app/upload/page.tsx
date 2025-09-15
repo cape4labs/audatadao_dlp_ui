@@ -79,6 +79,27 @@ export default function UploadPage() {
         );
         return;
       }
+      
+
+      if (localStorage.getItem("user_onboarding") === null) {
+        setUploadStatus((prev) => ({
+          ...prev,
+          isUploading: false,
+          isSuccessStatus: false,
+          error: "Finish onboarding first",
+        }));
+        return;
+      }
+
+      if (audioLanguage === "") {
+        setUploadStatus((prev) => ({
+          ...prev,
+          isUploading: false,
+          isSuccessStatus: false,
+          error: "Select language of speech in audio",
+        }));
+        return;
+      }
 
       const file = acceptedFiles[0];
 
@@ -107,6 +128,7 @@ export default function UploadPage() {
             ...prev,
             isUploading: false,
             isSuccessStatus: false,
+            error: error,
           }));
         }
       } catch (err: any) {
@@ -317,13 +339,14 @@ export default function UploadPage() {
               </div>
             </CardContent>
             <CardContent className="space-y-4">
-              {error && (
+              {uploadStatus.error && (
                 <Alert variant="destructive">
                   <AlertCircle className="h-4 w-4" />
                   <AlertTitle>Error</AlertTitle>
-                  <AlertDescription>{error}</AlertDescription>
+                  <AlertDescription>{uploadStatus.error}</AlertDescription>
                 </Alert>
               )}
+              
 
               {isSuccess && contributionData ? (
                 <ContributionSuccess
