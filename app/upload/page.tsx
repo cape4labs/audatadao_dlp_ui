@@ -25,7 +25,7 @@ import { useAccount } from "wagmi";
 import { Navigation } from "../components/Navigation";
 import { useContributionFlow } from "../contribution/hooks/useContributionFlow";
 import { ContributionSuccess } from "../contribution/ContributionSuccess";
-import { ContributionSteps } from "../contribution/ContributionSteps";
+import { ContributionSteps, contributionSteps } from "../contribution/ContributionSteps";
 import { WalletLoginButton } from "../auth/WalletLoginButton";
 
 interface UploadedFile {
@@ -42,7 +42,7 @@ interface UploadStatus {
   isUploading: boolean;
   isSuccessStatus: boolean;
   error: string | null;
-  uploadedFile: UploadedFile | null;
+  uploadedFiles: UploadedFile[];
 }
 
 export default function UploadPage() {
@@ -63,7 +63,7 @@ export default function UploadPage() {
     isUploading: false,
     isSuccessStatus: false,
     error: null,
-    uploadedFile: null,
+    uploadedFiles: [],
   });
 
   const onDrop = useCallback(
@@ -75,7 +75,7 @@ export default function UploadPage() {
 
       if (!isConnected) {
         toast.error(
-          "Wallet not connected. Please connect your wallet and try again.",
+          "Wallet not connected. Please connect your wallet and try again."
         );
         return;
       }
@@ -101,64 +101,94 @@ export default function UploadPage() {
         return;
       }
 
-      const file = acceptedFiles[0];
+      if (audioLanguage === "") {
+        setUploadStatus((prev) => ({
+          ...prev,
+          isUploading: false,
+          error: "Select audio language",
+          isSuccessStatus: false,
+        }));
+        return;
+      }
 
-      setUploadStatus((prev) => ({
-        ...prev,
-        isUploading: true,
-        error: null,
-      }));
+      for (const file of acceptedFiles) {
+        const newFile: UploadedFile = {
+          id: crypto.randomUUID(),
+          name: file.name,
+          size: file.size,
+          type: file.type,
+          lastModified: file.lastModified,
+          status: "processing",
+          uploadedAt: new Date().toISOString(),
+        };
 
-      try {
-        await handleContributeData(
-          user.address,
-          audioLanguage,
-          file,
-          isConnected,
-        );
+        setUploadStatus((prev) => ({
+          ...prev,
+          uploadedFiles: [...prev.uploadedFiles, newFile],
+          isUploading: true,
+        }));
 
-        if (isSuccess) {
-          setUploadStatus((prev) => ({
+        try {
+          await handleContributeData(
+            user.address,
+            audioLanguage,
+            file,
+            isConnected
+          );
+
+          console.log(currentStep)
+
+          console.log(completedSteps)
+
+          if (isSuccess) {
+            setUploadStatus((prev) => ({
             ...prev,
+            uploadedFiles: prev.uploadedFiles.map((f) =>
+              f.id === newFile.id ? { ...f, status: "completed" } : f
+            ),
             isUploading: false,
             isSuccessStatus: true,
           }));
-        } else {
+          } else {
+            setUploadStatus((prev) => ({
+              ...prev,
+              uploadedFiles: prev.uploadedFiles.map((f) =>
+                f.id === newFile.id ? { ...f, status: "error" } : f
+              ),
+              isUploading: false,
+              isSuccessStatus: false,
+              error: error,
+            }));
+          }
+        } catch (err: any) {
+          console.error("Upload error:", err);
+          const errorCode = err?.response?.data?.detail?.error?.code;
+          let userMessage = "Cannot process your file. Try again.";
+          if (errorCode === "PROOF_OF_CONTRIBUTION_ERROR") {
+            userMessage = "Your audio file is not valid.";
+          }
+
           setUploadStatus((prev) => ({
             ...prev,
+            uploadedFiles: prev.uploadedFiles.map((f) =>
+              f.id === newFile.id ? { ...f, status: "error" } : f
+            ),
             isUploading: false,
             isSuccessStatus: false,
             error: error,
           }));
+
+          toast.error(userMessage);
         }
-      } catch (err: any) {
-        console.error("Upload error:", err);
-
-        const errorCode = err?.response?.data?.detail?.error?.code;
-
-        let userMessage = "Cannot proccess your file. Try again.";
-
-        if (errorCode === "PROOF_OF_CONTRIBUTION_ERROR") {
-          userMessage = "Your audio file is not valid.";
-        }
-
-        setUploadStatus((prev) => ({
-          ...prev,
-          isUploading: false,
-          error: userMessage,
-        }));
-
-        toast.error(userMessage);
       }
     },
-    [user?.address, isConnected, handleContributeData],
+    [user?.address, isConnected, audioLanguage, handleContributeData]
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: { "audio/ogg": [".ogg"] },
-    multiple: false,
-    disabled: uploadStatus.isUploading,
+    multiple: true,
   });
 
   if (!user?.address) {
@@ -316,7 +346,6 @@ export default function UploadPage() {
                 <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
                 {uploadStatus.isUploading ? (
                   <div className="space-y-2">
-                    <Loader2 className="mx-auto h-8 w-8 animate-spin text-blue-500" />
                     <p className="text-sm text-gray-600">Processing files...</p>
                   </div>
                 ) : isDragActive ? (
@@ -338,6 +367,28 @@ export default function UploadPage() {
                 )}
               </div>
             </CardContent>
+
+            {/* Список файлов */}
+            <CardContent className="space-y-2">
+              {uploadStatus.uploadedFiles.length > 0 && (
+                <div className="space-y-2">
+                  {uploadStatus.uploadedFiles.map((file) => (
+                    <div
+                      key={file.id}
+                      className="flex justify-between items-center p-2 border rounded"
+                    >
+                      <span className="text-sm">{file.name}</span>
+                      <span className="text-xs text-gray-500">
+                        {file.status === "processing" && "⏳ Processing"}
+                        {file.status === "completed" && "✅ Completed"}
+                        {file.status === "error" && "❌ Error"}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+
             <CardContent className="space-y-4">
               {uploadStatus.error && (
                 <Alert variant="destructive">
@@ -346,8 +397,6 @@ export default function UploadPage() {
                   <AlertDescription>{uploadStatus.error}</AlertDescription>
                 </Alert>
               )}
-              
-
               {isSuccess && contributionData ? (
                 <ContributionSuccess
                   contributionData={contributionData}
@@ -356,13 +405,31 @@ export default function UploadPage() {
                 />
               ) : (
                 <div className="space-y-4">
-                  {currentStep > 0 && (
-                    <ContributionSteps
-                      currentStep={currentStep}
-                      completedSteps={completedSteps}
-                      hasError={!!error}
-                    />
-                  )}
+                  {contributionSteps.map((step, i) => {
+                    return (
+                      <div key={step.id} className="flex mb-4 last:mb-0">
+                        {/* Step indicator */}
+                        <div className="mr-4 flex flex-col items-center">
+                          <div
+                            className={`flex items-center justify-center w-8 h-8 rounded-full aspect-square bg-gray-200`}
+                          >
+                            {step.id}
+                          </div>
+                          {/* Connector line (except for last item) */}
+                          {i < contributionSteps.length - 1 && (
+                            <div className="w-0.5 h-full bg-gray-200 my-1"></div>
+                          )}
+                        </div>
+                        {/* Step content */}
+                        <div className="flex-1">
+                          <h3 className="text-sm font-medium">{step.title}</h3>
+                          <p className="text-xs text-muted-foreground">
+                            {step.description}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
                   {!isConnected && (
                     <div className="bg-yellow-50 text-yellow-800 p-2 text-xs rounded mt-2">
                       Please connect your wallet to contribute data
