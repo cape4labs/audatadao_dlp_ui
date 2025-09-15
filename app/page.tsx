@@ -91,6 +91,8 @@ export default function Home() {
             createdAt: data.submittedAt,
           });
 
+          localStorage.setItem("user_onboarding", "true")
+
           setInfo(info);
           setStats(leaders);
           debugLog(info);

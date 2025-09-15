@@ -372,19 +372,7 @@ export default function UploadPage() {
             <CardContent className="space-y-2">
               {uploadStatus.uploadedFiles.length > 0 && (
                 <div className="space-y-2">
-                  {uploadStatus.uploadedFiles.map((file) => (
-                    <div
-                      key={file.id}
-                      className="flex justify-between items-center p-2 border rounded"
-                    >
-                      <span className="text-sm">{file.name}</span>
-                      <span className="text-xs text-gray-500">
-                        {file.status === "processing" && "⏳ Processing"}
-                        {file.status === "completed" && "✅ Completed"}
-                        {file.status === "error" && "❌ Error"}
-                      </span>
-                    </div>
-                  ))}
+                  <ContributionSteps currentStep={currentStep} completedSteps={completedSteps} hasError=>
                 </div>
               )}
             </CardContent>
