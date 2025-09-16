@@ -17,7 +17,6 @@ import {
   useTeeProof,
 } from "./useTeeProof";
 
-// Steps aligned with ContributionSteps component (1-based indexing)
 const STEPS = {
   UPLOAD_DATA: 1,
   BLOCKCHAIN_REGISTRATION: 2,
@@ -26,14 +25,19 @@ const STEPS = {
   CLAIM_REWARD: 5,
 };
 
+export interface FileContributionData extends ContributionData {
+  fileId: string;
+  fileName: string;
+  currentStep: number;
+  completedSteps: number[];
+  error: string | null;
+  isSuccess: boolean;
+  shareUrl: string;
+}
+
 export function useContributionFlow() {
-  const [isSuccess, setIsSuccess] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [currentStep, setCurrentStep] = useState<number>(0); // Start at 0 (not yet started)
-  const [completedSteps, setCompletedSteps] = useState<number[]>([]);
-  const [contributionData, setContributionData] =
-    useState<ContributionData | null>(null);
-  const [shareUrl, setShareUrl] = useState<string>("");
+  const [fileContributions, setFileContributions] = useState<Map<string, FileContributionData>>(new Map());
+  const [globalError, setGlobalError] = useState<string | null>(null);
 
   const { signMessageAsync, isPending: isSigningMessage } = useSignMessage();
   const { uploadData, isUploading } = useDataUpload();
@@ -51,31 +55,103 @@ export function useContributionFlow() {
     isSigningMessage ||
     isRefining;
 
+  const initializeFileContribution = (fileId: string, fileName: string) => {
+    setFileContributions(prev => {
+      const newMap = new Map(prev);
+      newMap.set(fileId, {
+        fileId,
+        fileName,
+        currentStep: 0,
+        completedSteps: [],
+        error: null,
+        isSuccess: false,
+        shareUrl: "",
+        contributionId: "",
+        encryptedUrl: "",
+      });
+      return newMap;
+    });
+  };
+
+  const updateFileContribution = (fileId: string, updates: Partial<FileContributionData>) => {
+    setFileContributions(prev => {
+      const newMap = new Map(prev);
+      const current = newMap.get(fileId);
+      if (current) {
+        newMap.set(fileId, { ...current, ...updates });
+      }
+      return newMap;
+    });
+  };
+
+  const setFileCurrentStep = (fileId: string, step: number) => {
+    updateFileContribution(fileId, { currentStep: step });
+  };
+
+  const markFileStepComplete = (fileId: string, step: number) => {
+    setFileContributions(prev => {
+      const newMap = new Map(prev);
+      const current = newMap.get(fileId);
+      if (current) {
+        newMap.set(fileId, {
+          ...current,
+          completedSteps: [...current.completedSteps, step]
+        });
+      }
+      return newMap;
+    });
+  };
+
+  const setFileError = (fileId: string, error: string) => {
+    updateFileContribution(fileId, { error, isSuccess: false });
+  };
+
+  const setFileSuccess = (fileId: string) => {
+    updateFileContribution(fileId, { isSuccess: true, error: null });
+  };
+
+  const getFileContribution = (fileId: string): FileContributionData | null => {
+    return fileContributions.get(fileId) || null;
+  };
+
+  const getAllFileContributions = (): FileContributionData[] => {
+    return Array.from(fileContributions.values());
+  };
+
+  const areAllFilesCompleted = (): boolean => {
+    const contributions = Array.from(fileContributions.values());
+    return contributions.length > 0 && contributions.every(contrib => 
+      contrib.isSuccess || contrib.error !== null
+    );
+  };
+
+  const hasAnySuccess = (): boolean => {
+    return Array.from(fileContributions.values()).some(contrib => contrib.isSuccess);
+  };
+
   const resetFlow = () => {
-    setIsSuccess(false);
-    setError(null);
-    setCurrentStep(0); // Reset to not started
-    setCompletedSteps([]);
-    setContributionData(null);
-    setShareUrl("");
+    setFileContributions(new Map());
+    setGlobalError(null);
   };
 
   const handleContributeData = async (
+    fileId: string, 
     userAddress: string,
     audio_language: string,
-    file: Blob,
+    file: File,
     isConnected: boolean,
   ) => {
     try {
-      setError(null);
+      setGlobalError(null);
+      initializeFileContribution(fileId, file.name);
 
-      // Execute steps in sequence
-      const signature = await executeSignMessageStep();
+      const signature = await executeSignMessageStep(fileId);
       if (!signature) throw new Error("Signature step failed");
 
       const duration = await getBlobDuration(file);
 
       const uploadResult = await executeUploadDataStep(
+        fileId,
         userAddress,
         file,
         audio_language,
@@ -88,12 +164,12 @@ export function useContributionFlow() {
         throw new Error("Wallet connection required to register on blockchain");
       }
 
-      const { fileId, txReceipt, encryptedKey } =
-        await executeBlockchainRegistrationStep(uploadResult, signature);
-      if (!fileId) throw new Error("Blockchain registration step failed");
+      const { blockchainFileId, txReceipt, encryptedKey } =
+        await executeBlockchainRegistrationStep(fileId, uploadResult, signature);
+      if (!blockchainFileId) throw new Error("Blockchain registration step failed");
 
       // Update contribution data with blockchain information
-      updateContributionData({
+      updateFileContribution(fileId, {
         contributionId: uploadResult.vanaFileId,
         encryptedUrl: uploadResult.downloadUrl,
         transactionReceipt: {
@@ -107,34 +183,37 @@ export function useContributionFlow() {
       // Process proof and reward in sequence
       await executeProofAndRewardSteps(
         fileId,
+        blockchainFileId,
         duration,
         userAddress,
         encryptedKey,
         signature,
       );
 
-      setIsSuccess(true);
+      setFileSuccess(fileId);
     } catch (error) {
-      console.error("Error contributing data:", error);
-      setError(
+      console.error(`Error contributing data for file ${file.name}:`, error);
+      setFileError(
+        fileId,
         error instanceof Error
           ? error.message
-          : "Failed to process your contribution. Please try again.",
+          : "Failed to process your contribution. Please try again."
       );
     }
   };
 
   // Step 0: Sign message (pre-step before the visible flow begins)
-  const executeSignMessageStep = async (): Promise<string | null> => {
+  const executeSignMessageStep = async (fileId: string): Promise<string | null> => {
     try {
       const signature = await signMessageAsync({ message: SIGN_MESSAGE });
       return signature;
     } catch (signError) {
       console.error("Error signing message:", signError);
-      setError(
+      setFileError(
+        fileId,
         signError instanceof Error
           ? signError.message
-          : "Failed to sign the message. Please try again.",
+          : "Failed to sign the message. Please try again."
       );
       return null;
     }
@@ -142,13 +221,14 @@ export function useContributionFlow() {
 
   // Step 1: Upload data to Pinata
   const executeUploadDataStep = async (
+    fileId: string,
     userAddress: string,
     file: Blob,
     audio_language: string,
     signature: string,
     duration: number,
   ) => {
-    setCurrentStep(STEPS.UPLOAD_DATA);
+    setFileCurrentStep(fileId, STEPS.UPLOAD_DATA);
 
     debugLog("\x1b[31mSIGNATURE\x1b[0m -", signature);
 
@@ -160,21 +240,22 @@ export function useContributionFlow() {
       duration,
     );
     if (!uploadResult) {
-      setError("Failed to upload data to Google Drive");
+      setFileError(fileId, "Failed to upload data to Google Drive");
       throw new Error("Upload result step failed");
     }
 
-    setShareUrl(uploadResult.downloadUrl);
-    markStepComplete(STEPS.UPLOAD_DATA);
+    updateFileContribution(fileId, { shareUrl: uploadResult.downloadUrl });
+    markFileStepComplete(fileId, STEPS.UPLOAD_DATA);
     return uploadResult;
   };
 
   // Step 2: Register on blockchain
   const executeBlockchainRegistrationStep = async (
+    fileId: string,
     uploadResult: UploadResponse,
     signature: string,
   ) => {
-    setCurrentStep(STEPS.BLOCKCHAIN_REGISTRATION);
+    setFileCurrentStep(fileId, STEPS.BLOCKCHAIN_REGISTRATION);
 
     const publicKey = await getDlpPublicKey();
     const encryptedKey = await encryptWithWalletPublicKey(signature, publicKey);
@@ -183,25 +264,23 @@ export function useContributionFlow() {
 
     if (!txReceipt) {
       if (contractError) {
-        setError(`Contract error: ${contractError}`);
-        setIsSuccess(false);
-        return { fileId: null, txReceipt: null, encryptedKey: null };
+        setFileError(fileId, `Contract error: ${contractError}`);
       } else {
-        setError("Failed to add file to blockchain");
-        setIsSuccess(false);
+        setFileError(fileId, "Failed to add file to blockchain");
       }
-      return { fileId: null, txReceipt: null, encryptedKey: null };
+      return { blockchainFileId: null, txReceipt: null, encryptedKey: null };
     }
 
-    const fileId = extractFileIdFromReceipt(txReceipt);
-    markStepComplete(STEPS.BLOCKCHAIN_REGISTRATION);
+    const blockchainFileId = extractFileIdFromReceipt(txReceipt);
+    markFileStepComplete(fileId, STEPS.BLOCKCHAIN_REGISTRATION);
 
-    return { fileId, txReceipt, encryptedKey };
+    return { blockchainFileId, txReceipt, encryptedKey };
   };
 
   // Steps 3-5: TEE Proof and Reward
   const executeProofAndRewardSteps = async (
-    fileId: number,
+    fileId: string,
+    blockchainFileId: number,
     audioDuration: number,
     userAddress: string,
     encryptedKey: string,
@@ -210,60 +289,61 @@ export function useContributionFlow() {
     // Step 3: Request TEE Proof
     const proofResult = await executeTeeProofStep(
       fileId,
+      blockchainFileId,
       encryptedKey,
       signature,
     );
 
     if (!proofResult) {
-      setIsSuccess(false);
       throw new Error("Proof request step failed");
     }
 
     // Step 4: Process Proof
-    const err = await executeProcessProofStep(proofResult, signature);
-    if (!err) {
-      setIsSuccess(false);
+    const processResult = await executeProcessProofStep(fileId, proofResult, signature);
+    if (!processResult) {
       throw new Error("Refinement step failed");
     }
+
     // Step 5: Claim Reward
-    await executeClaimRewardStep(fileId, audioDuration, userAddress);
+    await executeClaimRewardStep(fileId, blockchainFileId, audioDuration, userAddress);
   };
 
   // Step 3: Request TEE Proof
   const executeTeeProofStep = async (
-    fileId: number,
+    fileId: string,
+    blockchainFileId: number,
     encryptedKey: string,
     signature: string,
   ) => {
-    setCurrentStep(STEPS.REQUEST_TEE_PROOF);
+    setFileCurrentStep(fileId, STEPS.REQUEST_TEE_PROOF);
     const proofResult = await requestContributionProof(
-      fileId,
+      blockchainFileId,
       encryptedKey,
       signature,
     );
 
     if (!proofResult) {
-      setError("Failed to request TEE proof");
-      setIsSuccess(false);
+      setFileError(fileId, "Failed to request TEE proof");
       return null;
     }
 
-    updateContributionData({
+    updateFileContribution(fileId, {
       teeJobId: String(proofResult.jobId),
     });
 
-    markStepComplete(STEPS.REQUEST_TEE_PROOF);
+    markFileStepComplete(fileId, STEPS.REQUEST_TEE_PROOF);
     return proofResult;
   };
 
   // Step 4: Process Proof
   const executeProcessProofStep = async (
+    fileId: string,
     proofResult: ProofResult,
     signature: string,
   ) => {
-    setCurrentStep(STEPS.PROCESS_PROOF);
+    setFileCurrentStep(fileId, STEPS.PROCESS_PROOF);
 
-    updateContributionData({
+    updateFileContribution(fileId, {
       teeProofData: proofResult.proofData,
     });
 
@@ -273,66 +353,52 @@ export function useContributionFlow() {
         encryption_key: signature,
       });
 
-      markStepComplete(STEPS.PROCESS_PROOF);
-
+      markFileStepComplete(fileId, STEPS.PROCESS_PROOF);
       return refinementResult;
     } catch (refineError) {
       console.error("Error during data refinement:", refineError);
-
-      setError(
+      setFileError(
+        fileId,
         refineError instanceof Error
           ? refineError.message
-          : "Failed to process TEE proof or claim reward",
+          : "Failed to process TEE proof"
       );
-      setIsSuccess(false);
-      return error;
+      return null;
     }
   };
 
   // Step 5: Claim Reward
   const executeClaimRewardStep = async (
-    fileId: number,
+    fileId: string,
+    blockchainFileId: number,
     audioDuration: number,
     userAddress: string,
   ) => {
-    setCurrentStep(STEPS.CLAIM_REWARD);
+    setFileCurrentStep(fileId, STEPS.CLAIM_REWARD);
 
-    debugLog("contribution/hooks/useContributionFlow.ts 260", fileId);
+    debugLog("contribution/hooks/useContributionFlow.ts 260", blockchainFileId);
 
-    const rewardResult = await requestReward(fileId);
+    const rewardResult = await requestReward(blockchainFileId);
 
     debugLog(
-      "contribution/hooks/useContributionFlow.ts 262 rewardResull",
+      "contribution/hooks/useContributionFlow.ts 262 rewardResult",
       rewardResult,
     );
 
     if (!rewardResult) {
-      setError("Failed to claim reward");
+      setFileError(fileId, "Failed to claim reward");
       return null;
     }
 
-    updateContributionData({
+    updateFileContribution(fileId, {
       rewardTxHash: rewardResult?.transactionHash,
     });
 
-    markStepComplete(STEPS.CLAIM_REWARD);
+    markFileStepComplete(fileId, STEPS.CLAIM_REWARD);
 
-    // Upload statistics to the database in the end of the contribution
     uploadStatistics(userAddress, audioDuration);
 
     return rewardResult;
-  };
-
-  // Helper functions
-  const markStepComplete = (step: number) => {
-    setCompletedSteps((prev) => [...prev, step]);
-  };
-
-  const updateContributionData = (newData: Partial<ContributionData>) => {
-    setContributionData((prev) => {
-      if (!prev) return newData as ContributionData;
-      return { ...prev, ...newData };
-    });
   };
 
   const getBlobDuration = (blob: Blob): Promise<number> => {
@@ -352,15 +418,24 @@ export function useContributionFlow() {
   };
 
   return {
-    isSuccess,
-    error,
-    currentStep,
-    completedSteps,
-    contributionData,
-    shareUrl,
+    getFileContribution,
+    getAllFileContributions,
+    
+    areAllFilesCompleted,
+    hasAnySuccess,
+    globalError,
     isLoading,
     isSigningMessage,
+    
+
     handleContributeData,
     resetFlow,
+
+    isSuccess: hasAnySuccess(),
+    error: globalError,
+    currentStep: 0, 
+    completedSteps: [], 
+    contributionData: null, 
+    shareUrl: "", 
   };
 }

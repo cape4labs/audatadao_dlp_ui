@@ -14,7 +14,6 @@ export function ContributionSuccess({
   contributionData,
   completedSteps,
 }: ContributionSuccessProps) {
-  // Determine how many steps were completed
   const fullyCompleted = completedSteps.includes(5);
   const proofCompleted = completedSteps.includes(4);
   const proofRequested = completedSteps.includes(3);
@@ -98,20 +97,6 @@ export function ContributionSuccess({
           )}
         </div>
       </div>
-
-      {proofCompleted && contributionData.teeProofData && (
-        <div className="space-y-3 bg-slate-50 p-4 rounded-md text-sm">
-          <h3 className="font-medium">TEE Proof Results</h3>
-          <div className="max-h-48 overflow-y-auto bg-slate-100 p-2 rounded-md font-mono text-xs">
-            <pre className="whitespace-pre-wrap">
-              {JSON.stringify(contributionData.teeProofData, null, 2)}
-            </pre>
-          </div>
-        </div>
-      )}
-
-      {/* Stepper UI showing completed steps */}
-      <ContributionSteps currentStep={0} completedSteps={completedSteps} />
     </div>
   );
 }

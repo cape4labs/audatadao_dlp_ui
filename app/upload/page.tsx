@@ -25,7 +25,7 @@ import { useAccount } from "wagmi";
 import { Navigation } from "../components/Navigation";
 import { useContributionFlow } from "../contribution/hooks/useContributionFlow";
 import { ContributionSuccess } from "../contribution/ContributionSuccess";
-import { ContributionSteps, contributionSteps } from "../contribution/ContributionSteps";
+import { ContributionSteps } from "../contribution/ContributionSteps";
 import { WalletLoginButton } from "../auth/WalletLoginButton";
 
 interface UploadedFile {
@@ -40,7 +40,6 @@ interface UploadedFile {
 
 interface UploadStatus {
   isUploading: boolean;
-  isSuccessStatus: boolean;
   error: string | null;
   uploadedFiles: UploadedFile[];
 }
@@ -50,18 +49,15 @@ export default function UploadPage() {
   const { isConnected } = useAccount();
   const [audioLanguage, setAudioLanguage] = useState<string>("");
   const {
-    isSuccess,
-    error,
-    currentStep,
-    completedSteps,
-    contributionData,
-    shareUrl,
+    getFileContribution,
+    getAllFileContributions,
+    areAllFilesCompleted,
+    hasAnySuccess,
     handleContributeData,
   } = useContributionFlow();
 
   const [uploadStatus, setUploadStatus] = useState<UploadStatus>({
     isUploading: false,
-    isSuccessStatus: false,
     error: null,
     uploadedFiles: [],
   });
@@ -79,13 +75,10 @@ export default function UploadPage() {
         );
         return;
       }
-      
 
       if (localStorage.getItem("user_onboarding") === null) {
         setUploadStatus((prev) => ({
           ...prev,
-          isUploading: false,
-          isSuccessStatus: false,
           error: "Finish onboarding first",
         }));
         return;
@@ -94,93 +87,74 @@ export default function UploadPage() {
       if (audioLanguage === "") {
         setUploadStatus((prev) => ({
           ...prev,
-          isUploading: false,
-          isSuccessStatus: false,
           error: "Select language of speech in audio",
         }));
         return;
       }
 
-      if (audioLanguage === "") {
-        setUploadStatus((prev) => ({
-          ...prev,
-          isUploading: false,
-          error: "Select audio language",
-          isSuccessStatus: false,
-        }));
-        return;
-      }
+      const newFiles: UploadedFile[] = acceptedFiles.map(file => ({
+        id: crypto.randomUUID(),
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        lastModified: file.lastModified,
+        status: "processing",
+        uploadedAt: new Date().toISOString(),
+      }));
 
-      for (const file of acceptedFiles) {
-        const newFile: UploadedFile = {
-          id: crypto.randomUUID(),
-          name: file.name,
-          size: file.size,
-          type: file.type,
-          lastModified: file.lastModified,
-          status: "processing",
-          uploadedAt: new Date().toISOString(),
-        };
+      setUploadStatus((prev) => ({
+        ...prev,
+        uploadedFiles: [...prev.uploadedFiles, ...newFiles],
+        isUploading: true,
+        error: null,
+      }));
 
-        setUploadStatus((prev) => ({
-          ...prev,
-          uploadedFiles: [...prev.uploadedFiles, newFile],
-          isUploading: true,
-        }));
-
+      const uploadPromises = acceptedFiles.map(async (file, index) => {
+        const fileRecord = newFiles[index];
+        
         try {
           await handleContributeData(
+            fileRecord.id, 
             user.address,
             audioLanguage,
             file,
             isConnected
           );
 
-          console.log(currentStep)
-
-          console.log(completedSteps)
-
-          if (isSuccess) {
-            setUploadStatus((prev) => ({
+          setUploadStatus((prev) => ({
             ...prev,
             uploadedFiles: prev.uploadedFiles.map((f) =>
-              f.id === newFile.id ? { ...f, status: "completed" } : f
+              f.id === fileRecord.id ? { ...f, status: "completed" } : f
             ),
-            isUploading: false,
-            isSuccessStatus: true,
           }));
-          } else {
-            setUploadStatus((prev) => ({
-              ...prev,
-              uploadedFiles: prev.uploadedFiles.map((f) =>
-                f.id === newFile.id ? { ...f, status: "error" } : f
-              ),
-              isUploading: false,
-              isSuccessStatus: false,
-              error: error,
-            }));
-          }
+
+          toast.success(`${file.name} processed successfully`);
         } catch (err: any) {
-          console.error("Upload error:", err);
+          console.error(`Upload error for ${file.name}:`, err);
+          
           const errorCode = err?.response?.data?.detail?.error?.code;
-          let userMessage = "Cannot process your file. Try again.";
+          let userMessage = `Cannot process ${file.name}. Try again.`;
           if (errorCode === "PROOF_OF_CONTRIBUTION_ERROR") {
-            userMessage = "Your audio file is not valid.";
+            userMessage = `${file.name} is not a valid audio file.`;
           }
 
           setUploadStatus((prev) => ({
             ...prev,
             uploadedFiles: prev.uploadedFiles.map((f) =>
-              f.id === newFile.id ? { ...f, status: "error" } : f
+              f.id === fileRecord.id ? { ...f, status: "error" } : f
             ),
-            isUploading: false,
-            isSuccessStatus: false,
-            error: error,
           }));
 
           toast.error(userMessage);
         }
-      }
+      });
+
+      await Promise.allSettled(uploadPromises);
+
+      setUploadStatus((prev) => ({
+        ...prev,
+        isUploading: false,
+      }));
     },
     [user?.address, isConnected, audioLanguage, handleContributeData]
   );
@@ -368,15 +342,6 @@ export default function UploadPage() {
               </div>
             </CardContent>
 
-            {/* Список файлов */}
-            <CardContent className="space-y-2">
-              {uploadStatus.uploadedFiles.length > 0 && (
-                <div className="space-y-2">
-                  <ContributionSteps currentStep={currentStep} completedSteps={completedSteps} hasError=>
-                </div>
-              )}
-            </CardContent>
-
             <CardContent className="space-y-4">
               {uploadStatus.error && (
                 <Alert variant="destructive">
@@ -385,46 +350,83 @@ export default function UploadPage() {
                   <AlertDescription>{uploadStatus.error}</AlertDescription>
                 </Alert>
               )}
-              {isSuccess && contributionData ? (
-                <ContributionSuccess
-                  contributionData={contributionData}
-                  completedSteps={completedSteps}
-                  shareUrl={shareUrl}
-                />
-              ) : (
-                <div className="space-y-4">
-                  {contributionSteps.map((step, i) => {
-                    return (
-                      <div key={step.id} className="flex mb-4 last:mb-0">
-                        {/* Step indicator */}
-                        <div className="mr-4 flex flex-col items-center">
-                          <div
-                            className={`flex items-center justify-center w-8 h-8 rounded-full aspect-square bg-gray-200`}
-                          >
-                            {step.id}
-                          </div>
-                          {/* Connector line (except for last item) */}
-                          {i < contributionSteps.length - 1 && (
-                            <div className="w-0.5 h-full bg-gray-200 my-1"></div>
-                          )}
-                        </div>
-                        {/* Step content */}
-                        <div className="flex-1">
-                          <h3 className="text-sm font-medium">{step.title}</h3>
-                          <p className="text-xs text-muted-foreground">
-                            {step.description}
-                          </p>
-                        </div>
-                      </div>
-                    );
-                  })}
-                  {!isConnected && (
-                    <div className="bg-yellow-50 text-yellow-800 p-2 text-xs rounded mt-2">
-                      Please connect your wallet to contribute data
-                    </div>
-                  )}
+
+              {areAllFilesCompleted() && hasAnySuccess() && (
+                <Alert>
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>Upload Complete</AlertTitle>
+                  <AlertDescription>
+                    {getAllFileContributions().filter(f => f.isSuccess).length} of{" "}
+                    {getAllFileContributions().length} files processed successfully.
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {!isConnected && (
+                <div className="bg-yellow-50 text-yellow-800 p-2 text-xs rounded mt-2">
+                  Please connect your wallet to contribute data
                 </div>
               )}
+            </CardContent>
+
+            <CardContent className="space-y-2">
+              {uploadStatus.uploadedFiles.map((file) => {
+                const contribution = getFileContribution(file.id);
+                
+                return (
+                  <div
+                    key={file.id}
+                    className="border rounded-lg p-4 space-y-3"
+                  >
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium">{file.name}</span>
+                      <span className={`text-xs px-2 py-1 rounded ${
+                        file.status === "completed" 
+                          ? "bg-green-100 text-green-800" 
+                          : file.status === "error"
+                          ? "bg-red-100 text-red-800"
+                          : file.status === "processing"
+                          ? "bg-blue-100 text-blue-800"
+                          : "bg-gray-100 text-gray-800"
+                      }`}>
+                        {file.status === "completed" && contribution?.isSuccess ? "Success" : 
+                         file.status === "error" || (contribution?.error && !contribution?.isSuccess) ? "Failed" :
+                         file.status === "processing" ? "Processing" : "Pending"}
+                      </span>
+                    </div>
+                    
+                    <div className="mt-3">
+                      <ContributionSteps
+                        currentStep={contribution?.currentStep || 0}
+                        completedSteps={contribution?.completedSteps || []}
+                        hasError={!!contribution?.error}
+                        compact={true}
+                      />
+                    </div>
+
+                    {contribution?.error && (
+                      <div className="ml-4">
+                        <Alert variant="destructive" className="text-xs">
+                          <AlertCircle className="h-3 w-3" />
+                          <AlertDescription className="text-xs">
+                            {contribution.error}
+                          </AlertDescription>
+                        </Alert>
+                      </div>
+                    )}
+
+                    {contribution?.isSuccess && contribution.shareUrl && (
+                      <div className="ml-4">
+                        <ContributionSuccess
+                          contributionData={contribution}
+                          completedSteps={contribution.completedSteps}
+                          shareUrl={contribution.shareUrl}
+                        />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </CardContent>
           </Card>
         </div>
