@@ -173,11 +173,9 @@ export default function Home() {
               </CardContent>
             </Card>
             {/* Wallet login */}
-            {/*
             <div className="flex justify-center pt-2">
               <WalletLoginButton />
             </div>
-            */}
           </div>
         </div>
       </div>
