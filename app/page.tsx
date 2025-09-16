@@ -145,9 +145,7 @@ export default function Home() {
             <Card>
               <CardHeader>
                 <CardTitle>Waitlist</CardTitle>
-                <CardDescription>
-                  Enter your email
-                </CardDescription>
+                <CardDescription>Enter your email</CardDescription>
               </CardHeader>
               <CardContent>
                 <form
@@ -171,11 +169,9 @@ export default function Home() {
               </CardContent>
             </Card>
             {/* Wallet login */}
-            {/*
             <div className="flex justify-center pt-2">
               <WalletLoginButton />
             </div>
-            */}
           </div>
         </div>
       </div>

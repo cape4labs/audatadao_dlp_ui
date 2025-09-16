@@ -89,7 +89,11 @@ export function useContributionFlow() {
       }
 
       const { fileId, txReceipt, encryptedKey } =
-        await executeBlockchainRegistrationStep(uploadResult, signature);
+        await executeBlockchainRegistrationStep(
+          uploadResult,
+          signature,
+          userAddress,
+        );
       if (!fileId) throw new Error("Blockchain registration step failed");
 
       // Update contribution data with blockchain information
@@ -173,13 +177,20 @@ export function useContributionFlow() {
   const executeBlockchainRegistrationStep = async (
     uploadResult: UploadResponse,
     signature: string,
+    userAddress: string,
   ) => {
     setCurrentStep(STEPS.BLOCKCHAIN_REGISTRATION);
 
     const publicKey = await getDlpPublicKey();
     const encryptedKey = await encryptWithWalletPublicKey(signature, publicKey);
 
-    const txReceipt = await addFile(uploadResult.downloadUrl, encryptedKey);
+    const txReceipt = await addFile(
+      uploadResult.downloadUrl,
+      encryptedKey,
+      userAddress,
+    );
+
+    debugLog("useContributionFlow 193", txReceipt);
 
     if (!txReceipt) {
       if (contractError) {

@@ -145,9 +145,7 @@ export default function Home() {
             <Card>
               <CardHeader>
                 <CardTitle>Waitlist</CardTitle>
-                <CardDescription>
-                  Enter your email
-                </CardDescription>
+                <CardDescription>Enter your email</CardDescription>
               </CardHeader>
               <CardContent>
                 <form
