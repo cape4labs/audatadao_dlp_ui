@@ -128,7 +128,6 @@ export default function UploadPage() {
             ),
           }));
 
-          toast.success(`${file.name} processed successfully`);
         } catch (err: any) {
           console.error(`Upload error for ${file.name}:`, err);
           
@@ -381,9 +380,9 @@ export default function UploadPage() {
                     <div className="flex justify-between items-center">
                       <span className="text-sm font-medium">{file.name}</span>
                       <span className={`text-xs px-2 py-1 rounded ${
-                        file.status === "completed" 
+                        contribution?.isSuccess
                           ? "bg-green-100 text-green-800" 
-                          : file.status === "error"
+                          : (contribution?.error && !contribution?.isSuccess)
                           ? "bg-red-100 text-red-800"
                           : file.status === "processing"
                           ? "bg-blue-100 text-blue-800"
