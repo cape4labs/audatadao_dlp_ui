@@ -135,7 +135,7 @@ export function useContributionFlow() {
   };
 
   const handleContributeData = async (
-    fileId: string, 
+    fileId: string,
     userAddress: string,
     audio_language: string,
     file: File,
@@ -164,13 +164,14 @@ export function useContributionFlow() {
         throw new Error("Wallet connection required to register on blockchain");
       }
 
-      const { fileId, txReceipt, encryptedKey } =
+      const { blockchainFileId, txReceipt, encryptedKey } =
         await executeBlockchainRegistrationStep(
+          fileId,
           uploadResult,
           signature,
           userAddress,
         );
-      if (!fileId) throw new Error("Blockchain registration step failed");
+      if (!blockchainFileId) throw new Error("Blockchain registration step failed");
 
       updateFileContribution(fileId, {
         contributionId: uploadResult.vanaFileId,

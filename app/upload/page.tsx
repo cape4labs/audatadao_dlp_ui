@@ -111,7 +111,7 @@ export default function UploadPage() {
 
       const uploadPromises = acceptedFiles.map(async (file, index) => {
         const fileRecord = newFiles[index];
-        
+        console.log("asdasdasdSDAS")
         try {
           await handleContributeData(
             fileRecord.id, 
