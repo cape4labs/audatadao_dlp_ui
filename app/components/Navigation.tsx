@@ -105,7 +105,7 @@ export function Navigation() {
             </div>
 
             {/* Mobile menu button */}
-            <Button
+            {/* <Button
               variant="ghost"
               size="sm"
               className="md:hidden"
@@ -116,7 +116,7 @@ export function Navigation() {
               ) : (
                 <Menu className="h-4 w-4" />
               )}
-            </Button>
+            </Button> */}
 
             <Button
               variant="ghost"
@@ -136,6 +136,54 @@ export function Navigation() {
           </>
         </div>
       </div>
+
+      {/* {isMobileMenuOpen && (
+        <div className="md:hidden border-t bg-white dark:bg-black">
+          <div className="container mx-auto px-4 py-4 space-y-2">
+            <Link href="/" onClick={() => setIsMobileMenuOpen(false)}>
+              <Button
+                variant={isActive("/") ? "default" : "ghost"}
+                size="sm"
+                className="w-full justify-start"
+              >
+                <Image
+                  src={
+                    isActive("/upload")
+                      ? "/icons/home-black.png"
+                      : "/icons/home-white.png"
+                  }
+                  alt="upload"
+                  width={20}
+                  height={20}
+                  className={isActive("/") ? "white" : "fill-black"}
+                />
+                Home
+              </Button>
+            </Link>
+
+            <Link href="/upload" onClick={() => setIsMobileMenuOpen(false)}>
+              <Button
+                variant={isActive("/upload") ? "default" : "ghost"}
+                size="sm"
+                className="w-full justify-start"
+              >
+                <Image
+                  src={
+                    isActive("/upload")
+                      ? "/icons/upload-white.png"
+                      : "/icons/upload-black.png"
+                  }
+                  alt="upload"
+                  width={20}
+                  height={20}
+                  className={isActive("/") ? "white" : "fill-black"}
+                />
+                Upload
+              </Button>
+            </Link>
+          </div>
+        </div>
+      )} */}
     </header>
   );
 }

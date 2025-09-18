@@ -43,28 +43,24 @@ export const useRewardClaim = () => {
       // Get contract instance
       const dataLiquidityPool = Controller("DataLiquidityPoolProxy");
 
-      debugLog("contribution/hooks/useRewardClaim.ts 42", dataLiquidityPool);
-
-      // Request reward using wagmi hooks
-      const hash = await writeContractAsync({
-        address: dataLiquidityPool.address,
-        abi: dataLiquidityPool.abi,
-        functionName: "requestReward",
-        args: [BigInt(fileId), BigInt(1)], // Convert both values to bigint
+      const res = await fetch("/api/claimReward", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fileId, address }),
+        credentials: "include",
       });
 
-      debugLog("contribution/hooks/useRewardClaim.ts 52", hash);
+      if (!res.ok) {
+        throw new Error(`Backend error: ${await res.text()}`);
+      }
 
-      // Wait for transaction receipt
-      const txReceipt = await waitForTransactionReceipt(config, {
-        hash,
-        confirmations: 1,
-      });
+      const claimRewardResult = await res.json();
+      debugLog("useRewardClaim", claimRewardResult);
+      const claimRewardReceipt = claimRewardResult.receipt;
+      debugLog("contribution/hooks/useRewardClaim.ts 63", claimRewardReceipt);
 
-      debugLog("contribution/hooks/useRewardClaim.ts 63", txReceipt);
-
-      setReceipt(txReceipt);
-      return txReceipt;
+      setReceipt(claimRewardReceipt);
+      return claimRewardReceipt;
     } catch (err) {
       console.error("Error claiming reward:", err);
       const error =

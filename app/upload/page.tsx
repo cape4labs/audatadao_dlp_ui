@@ -40,28 +40,25 @@ interface UploadedFile {
 
 interface UploadStatus {
   isUploading: boolean;
-  isSuccessStatus: boolean;
   error: string | null;
   uploadedFile: UploadedFile | null;
 }
+
 
 export default function UploadPage() {
   const { user } = useWalletAuth();
   const { isConnected } = useAccount();
   const [audioLanguage, setAudioLanguage] = useState<string>("");
   const {
-    isSuccess,
-    error,
-    currentStep,
-    completedSteps,
-    contributionData,
-    shareUrl,
+    getFileContribution,
+    getAllFileContributions,
+    areAllFilesCompleted,
+    hasAnySuccess,
     handleContributeData,
   } = useContributionFlow();
 
   const [uploadStatus, setUploadStatus] = useState<UploadStatus>({
     isUploading: false,
-    isSuccessStatus: false,
     error: null,
     uploadedFile: null,
   });
@@ -77,15 +74,13 @@ export default function UploadPage() {
         toast.error(
           "Wallet not connected. Please connect your wallet and try again.",
         );
+
         return;
       }
-      
 
       if (localStorage.getItem("user_onboarding") === null) {
         setUploadStatus((prev) => ({
           ...prev,
-          isUploading: false,
-          isSuccessStatus: false,
           error: "Finish onboarding first",
         }));
         return;
@@ -94,41 +89,61 @@ export default function UploadPage() {
       if (audioLanguage === "") {
         setUploadStatus((prev) => ({
           ...prev,
-          isUploading: false,
-          isSuccessStatus: false,
           error: "Select language of speech in audio",
         }));
         return;
       }
 
-      const file = acceptedFiles[0];
+      const newFiles: UploadedFile[] = acceptedFiles.map((file) => ({
+        id: crypto.randomUUID(),
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        lastModified: file.lastModified,
+        status: "processing",
+        uploadedAt: new Date().toISOString(),
+      }));
 
       setUploadStatus((prev) => ({
         ...prev,
+        uploadedFiles: [...prev.uploadedFiles, ...newFiles],
         isUploading: true,
         error: null,
       }));
 
-      try {
-        await handleContributeData(
-          user.address,
-          audioLanguage,
-          file,
-          isConnected,
-        );
+      for (let i = 0; i < acceptedFiles.length; i++) {
+        const file = acceptedFiles[i];
+        const fileRecord = newFiles[i];
 
-        if (isSuccess) {
+        try {
+          await handleContributeData(
+            fileRecord.id,
+            user.address,
+            audioLanguage,
+            file,
+            isConnected,
+          );
+
           setUploadStatus((prev) => ({
             ...prev,
-            isUploading: false,
-            isSuccessStatus: true,
+            uploadedFiles: prev.uploadedFiles.map((f) =>
+              f.id === fileRecord.id ? { ...f, status: "completed" } : f,
+            ),
           }));
-        } else {
+        } catch (err: any) {
+          console.error(`Upload error for ${file.name}:`, err);
+
+          const errorCode = err?.response?.data?.detail?.error?.code;
+          let userMessage = `Cannot process ${file.name}. Try again.`;
+          if (errorCode === "PROOF_OF_CONTRIBUTION_ERROR") {
+            userMessage = `${file.name} is not a valid audio file.`;
+          }
+
           setUploadStatus((prev) => ({
             ...prev,
-            isUploading: false,
-            isSuccessStatus: false,
-            error: error,
+            uploadedFiles: prev.uploadedFiles.map((f) =>
+              f.id === fileRecord.id ? { ...f, status: "error" } : f,
+            ),
           }));
         }
       } catch (err: any) {
@@ -150,8 +165,14 @@ export default function UploadPage() {
 
         toast.error(userMessage);
       }
+
+      setUploadStatus((prev) => ({
+        ...prev,
+        isUploading: false,
+      }));
     },
-    [user?.address, isConnected, handleContributeData],
+    [user?.address, isConnected, audioLanguage, handleContributeData],
+
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -269,7 +290,7 @@ export default function UploadPage() {
           </Card>
 
           {/* Upload Card */}
-          <Card>
+          <Card className={uploadStatus.uploadedFiles.length <= 0 ? "h-[40vh] flex flex-col" : "h-[70vh] flex flex-col"}>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Image
@@ -302,76 +323,142 @@ export default function UploadPage() {
               <CardDescription>
                 Upload your .ogg audio files to contribute to the VANA network.
               </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div
-                {...getRootProps()}
-                className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
-                  isDragActive
-                    ? "border-blue-500 bg-blue-50"
-                    : "border-gray-300 hover:border-gray-400"
-                } ${uploadStatus.isUploading ? "opacity-50 cursor-not-allowed" : ""}`}
-              >
-                <input {...getInputProps()} />
-                <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                {uploadStatus.isUploading ? (
-                  <div className="space-y-2">
-                    <Loader2 className="mx-auto h-8 w-8 animate-spin text-blue-500" />
-                    <p className="text-sm text-gray-600">Processing files...</p>
-                  </div>
-                ) : isDragActive ? (
-                  <p className="text-lg font-medium text-blue-600">
-                    Drop the .ogg files here...
-                  </p>
-                ) : (
-                  <div className="space-y-2">
-                    <p className="text-lg font-medium text-gray-900">
-                      Drag & drop .ogg files here
+            </CardHeader>            
+              <CardContent className="space-y-4">
+                <div
+                  {...getRootProps()}
+                  className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
+                    isDragActive
+                      ? "border-blue-500 bg-blue-50"
+                      : "border-gray-300 hover:border-gray-400"
+                  } ${uploadStatus.isUploading ? "opacity-50 cursor-not-allowed" : ""}`}
+                >
+                  <input {...getInputProps()} />
+                  <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                  {uploadStatus.isUploading ? (
+                    <div className="space-y-2">
+                      <p className=" text-gray-600">Processing files...</p>
+                      <p className="text-sm text-gray-600">
+                        You can upload multiple files
+                      </p>
+                    </div>
+                  ) : isDragActive ? (
+                    <p className="text-lg font-medium text-blue-600">
+                      Drop the .ogg files here...
                     </p>
-                    <p className="text-sm text-gray-500">
-                      or click to select files
-                    </p>
-                    <p className="text-xs text-gray-400">
-                      Only .ogg audio files are accepted
-                    </p>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-            <CardContent className="space-y-4">
-              {uploadStatus.error && (
-                <Alert variant="destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertTitle>Error</AlertTitle>
-                  <AlertDescription>{uploadStatus.error}</AlertDescription>
-                </Alert>
-              )}
-              
-
-              {isSuccess && contributionData ? (
-                <ContributionSuccess
-                  contributionData={contributionData}
-                  completedSteps={completedSteps}
-                  shareUrl={shareUrl}
-                />
-              ) : (
-                <div className="space-y-4">
-                  {currentStep > 0 && (
-                    <ContributionSteps
-                      currentStep={currentStep}
-                      completedSteps={completedSteps}
-                      hasError={!!error}
-                    />
-                  )}
-                  {!isConnected && (
-                    <div className="bg-yellow-50 text-yellow-800 p-2 text-xs rounded mt-2">
-                      Please connect your wallet to contribute data
+                  ) : (
+                    <div className="space-y-2">
+                      <p className="text-lg font-medium text-gray-900">
+                        Drag & drop .ogg files here
+                      </p>
+                      <p className="text-sm text-gray-500">or click to select files</p>
+                      <p className="text-xs text-gray-400">
+                        Only .ogg audio files are accepted
+                      </p>
                     </div>
                   )}
                 </div>
-              )}
-            </CardContent>
+              </CardContent>
+            <div className="flex-1 overflow-y-auto overflow-x-hidden space-y-4 p-4">
+              <CardContent className="space-y-4">
+                {uploadStatus.error && (
+                  <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle>Error</AlertTitle>
+                    <AlertDescription>{uploadStatus.error}</AlertDescription>
+                  </Alert>
+                )}
+
+                {areAllFilesCompleted() && hasAnySuccess() && (
+                  <Alert>
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle>Upload Complete</AlertTitle>
+                    <AlertDescription>
+                      {
+                        getAllFileContributions().filter((f) => f.isSuccess)
+                          .length
+                      }{" "}
+                      of {getAllFileContributions().length} files processed
+                      successfully.
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                {!isConnected && (
+                  <div className="bg-yellow-50 text-yellow-800 p-2 text-xs rounded mt-2">
+                    Please connect your wallet to contribute data
+                  </div>
+                )}
+              </CardContent>
+              <CardContent className="space-y-2">
+                {uploadStatus.uploadedFiles.map((file) => {
+                  const contribution = getFileContribution(file.id);
+
+                  return (
+                    <div
+                      key={file.id}
+                      className="border rounded-lg p-4 space-y-3"
+                    >
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium">{file.name}</span>
+                        <span
+                          className={`text-xs px-2 py-1 rounded ${
+                            contribution?.isSuccess
+                              ? "bg-green-100 text-green-800"
+                              : contribution?.error && !contribution?.isSuccess
+                                ? "bg-red-100 text-red-800"
+                                : file.status === "processing"
+                                  ? "bg-blue-100 text-blue-800"
+                                  : "bg-gray-100 text-gray-800"
+                          }`}
+                        >
+                          {file.status === "completed" && contribution?.isSuccess
+                            ? "Success"
+                            : file.status === "error" ||
+                                (contribution?.error && !contribution?.isSuccess)
+                              ? "Failed"
+                              : file.status === "processing"
+                                ? "Processing"
+                                : "Pending"}
+                        </span>
+                      </div>
+
+                      <div className="mt-3">
+                        <ContributionSteps
+                          currentStep={contribution?.currentStep || 0}
+                          completedSteps={contribution?.completedSteps || []}
+                          hasError={!!contribution?.error}
+                          compact={true}
+                        />
+                      </div>
+
+                      {contribution?.error && (
+                        <div className="ml-4">
+                          <Alert variant="destructive" className="text-xs">
+                            <AlertCircle className="h-3 w-3" />
+                            <AlertDescription className="text-xs">
+                              {contribution.error}
+                            </AlertDescription>
+                          </Alert>
+                        </div>
+                      )}
+
+                      {contribution?.isSuccess && contribution.shareUrl && (
+                        <div className="ml-4">
+                          <ContributionSuccess
+                            contributionData={contribution}
+                            completedSteps={contribution.completedSteps}
+                            shareUrl={contribution.shareUrl}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </CardContent>
+            </div>
           </Card>
+
         </div>
       </div>
     </div>

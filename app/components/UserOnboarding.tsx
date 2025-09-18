@@ -121,10 +121,7 @@ export function UserOnboarding({ onComplete }: { onComplete: () => void }) {
       }
 
       // Save onboarding data to localStorage as fallback
-      localStorage.setItem(
-        `user_onboarding`,
-        JSON.stringify(onboardingData),
-      );
+      localStorage.setItem(`user_onboarding`, JSON.stringify(onboardingData));
 
       onComplete();
     } catch (error) {

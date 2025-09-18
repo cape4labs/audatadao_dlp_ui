@@ -66,21 +66,21 @@ interface ContributionStepsProps {
   currentStep: number;
   completedSteps: number[];
   hasError?: boolean;
+  compact?: boolean; // Optional prop for compact display
 }
 
 export function ContributionSteps({
   currentStep,
   completedSteps,
   hasError = false,
+  compact = false,
 }: ContributionStepsProps) {
-  // Helper function to determine the status of each step
   const getStepStatus = (stepId: number): StepStatus => {
     if (completedSteps.includes(stepId)) return "complete";
     if (currentStep === stepId) return hasError ? "error" : "current";
     return "pending";
   };
 
-  // Helper function to render the status icon
   const renderStatusIcon = (status: StepStatus, stepId: number) => {
     switch (status) {
       case "complete":
@@ -90,16 +90,26 @@ export function ContributionSteps({
       case "error":
         return <XCircle className="h-4 w-4" />;
       default:
-        return stepId;
+        return <span className="text-xs font-medium">{stepId}</span>;
     }
   };
 
+  const getConnectorHeight = () => {
+    if (compact) return "h-6"; // Shorter for compact view
+    return "h-8"; // Default height
+  };
+
   return (
-    <div className="py-4">
+    <div className={compact ? "py-2" : "py-4"}>
       {contributionSteps.map((step, i) => {
         const status = getStepStatus(step.id);
+        const isLast = i === contributionSteps.length - 1;
+
         return (
-          <div key={step.id} className="flex mb-4 last:mb-0">
+          <div
+            key={step.id}
+            className={`flex ${compact ? "mb-2" : "mb-4"} last:mb-0`}
+          >
             {/* Step indicator */}
             <div className="mr-4 flex flex-col items-center">
               <div
@@ -116,13 +126,17 @@ export function ContributionSteps({
                 {renderStatusIcon(status, step.id)}
               </div>
               {/* Connector line (except for last item) */}
-              {i < contributionSteps.length - 1 && (
-                <div className="w-0.5 h-full bg-gray-200 my-1"></div>
+              {!isLast && (
+                <div
+                  className={`w-0.5 bg-gray-200 my-1 ${getConnectorHeight()}`}
+                ></div>
               )}
             </div>
             {/* Step content */}
             <div className="flex-1">
-              <h3 className="text-sm font-medium">{step.title}</h3>
+              <h3 className={`font-medium ${compact ? "text-xs" : "text-sm"}`}>
+                {step.title}
+              </h3>
               <p className="text-xs text-muted-foreground">
                 {step.description}
               </p>
@@ -146,7 +160,6 @@ export function ContributionSteps({
   );
 }
 
-// Export helper function to get step message for a given step ID and signing state
 export function getStepMessage(
   stepId: number,
   isSigning: boolean = false,
@@ -157,16 +170,13 @@ export function getStepMessage(
     return "Processing...";
   }
 
-  // If currently signing and there's a signing message defined, return that
   if (isSigning && step.signingMessage) {
     return step.signingMessage;
   }
 
-  // Otherwise return the standard status message
   return step.statusMessage;
 }
 
-// For easier access, also export a function to find a step by ID
 export function getStepById(stepId: number): Step | undefined {
   return contributionSteps.find((s) => s.id === stepId);
 }

@@ -11,11 +11,10 @@ import {
 } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
-import { toast } from "sonner";
 import { useWalletAuth } from "@/lib/auth/walletAuth";
-import { Navigation } from "./components/Navigation";
-import { UserOnboarding } from "./components/UserOnboarding";
-import { WalletLoginButton } from "./auth/WalletLoginButton";
+import { Navigation } from "../components/Navigation";
+import { UserOnboarding } from "../components/UserOnboarding";
+import { WalletLoginButton } from "../auth/WalletLoginButton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { debugLog } from "@/lib/logger";
@@ -29,7 +28,7 @@ interface UploadedFile {
   status: "pending" | "processing" | "completed" | "error";
   uploadedAt: string;
   fileHash?: string;
-  pinataUrl: string; // добавьте это поле
+  pinataUrl: string;
 }
 
 interface OnboardingData {
@@ -92,8 +91,6 @@ export default function Home() {
             createdAt: data.submittedAt,
           });
 
-          localStorage.setItem("user_onboarding", "true");
-
           setInfo(info);
           setStats(leaders);
           debugLog(info);
@@ -121,10 +118,10 @@ export default function Home() {
       });
 
       if (res.ok) {
-        toast.info("Uploading email successfully");
+        setMessage("Success!");
         setEmail("");
       } else {
-        toast.error("Error with uploading email");
+        setMessage("Error with uploading email");
       }
     } catch (err) {
       setMessage("Error with fetch");
@@ -165,6 +162,9 @@ export default function Home() {
                   <Button type="submit" disabled={loading}>
                     {loading ? "Sending..." : "Submit"}
                   </Button>
+                  {message && (
+                    <p className="text-sm text-gray-600">{message}</p>
+                  )}
                 </form>
               </CardContent>
             </Card>

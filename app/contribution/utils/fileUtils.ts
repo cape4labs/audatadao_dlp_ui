@@ -14,6 +14,8 @@ type FileAddedEventArgs = {
  */
 export function extractFileIdFromReceipt(receipt: TransactionReceipt): number {
   try {
+    debugLog("fileUtils 18", receipt);
+
     // Ensure receipt exists and has logs
     if (!receipt || !receipt.logs || receipt.logs.length === 0) {
       throw new Error("Transaction receipt has no logs");
@@ -25,6 +27,8 @@ export function extractFileIdFromReceipt(receipt: TransactionReceipt): number {
       logs: receipt.logs as Log[],
       eventName: "FileAdded",
     });
+
+    debugLog("fileUtils 29", logs);
 
     // Check if the FileAdded event was emitted
     if (logs.length === 0) {
