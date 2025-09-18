@@ -71,7 +71,7 @@ export default function UploadPage() {
 
       if (!isConnected) {
         toast.error(
-          "Wallet not connected. Please connect your wallet and try again."
+          "Wallet not connected. Please connect your wallet and try again.",
         );
         return;
       }
@@ -92,7 +92,7 @@ export default function UploadPage() {
         return;
       }
 
-      const newFiles: UploadedFile[] = acceptedFiles.map(file => ({
+      const newFiles: UploadedFile[] = acceptedFiles.map((file) => ({
         id: crypto.randomUUID(),
         name: file.name,
         size: file.size,
@@ -111,26 +111,25 @@ export default function UploadPage() {
 
       const uploadPromises = acceptedFiles.map(async (file, index) => {
         const fileRecord = newFiles[index];
-        
+        console.log("asdasdasdSDAS");
         try {
           await handleContributeData(
-            fileRecord.id, 
+            fileRecord.id,
             user.address,
             audioLanguage,
             file,
-            isConnected
+            isConnected,
           );
 
           setUploadStatus((prev) => ({
             ...prev,
             uploadedFiles: prev.uploadedFiles.map((f) =>
-              f.id === fileRecord.id ? { ...f, status: "completed" } : f
+              f.id === fileRecord.id ? { ...f, status: "completed" } : f,
             ),
           }));
-
         } catch (err: any) {
           console.error(`Upload error for ${file.name}:`, err);
-          
+
           const errorCode = err?.response?.data?.detail?.error?.code;
           let userMessage = `Cannot process ${file.name}. Try again.`;
           if (errorCode === "PROOF_OF_CONTRIBUTION_ERROR") {
@@ -140,7 +139,7 @@ export default function UploadPage() {
           setUploadStatus((prev) => ({
             ...prev,
             uploadedFiles: prev.uploadedFiles.map((f) =>
-              f.id === fileRecord.id ? { ...f, status: "error" } : f
+              f.id === fileRecord.id ? { ...f, status: "error" } : f,
             ),
           }));
 
@@ -155,7 +154,7 @@ export default function UploadPage() {
         isUploading: false,
       }));
     },
-    [user?.address, isConnected, audioLanguage, handleContributeData]
+    [user?.address, isConnected, audioLanguage, handleContributeData],
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -355,8 +354,12 @@ export default function UploadPage() {
                   <AlertCircle className="h-4 w-4" />
                   <AlertTitle>Upload Complete</AlertTitle>
                   <AlertDescription>
-                    {getAllFileContributions().filter(f => f.isSuccess).length} of{" "}
-                    {getAllFileContributions().length} files processed successfully.
+                    {
+                      getAllFileContributions().filter((f) => f.isSuccess)
+                        .length
+                    }{" "}
+                    of {getAllFileContributions().length} files processed
+                    successfully.
                   </AlertDescription>
                 </Alert>
               )}
@@ -371,7 +374,7 @@ export default function UploadPage() {
             <CardContent className="space-y-2">
               {uploadStatus.uploadedFiles.map((file) => {
                 const contribution = getFileContribution(file.id);
-                
+
                 return (
                   <div
                     key={file.id}
@@ -379,21 +382,28 @@ export default function UploadPage() {
                   >
                     <div className="flex justify-between items-center">
                       <span className="text-sm font-medium">{file.name}</span>
-                      <span className={`text-xs px-2 py-1 rounded ${
-                        contribution?.isSuccess
-                          ? "bg-green-100 text-green-800" 
-                          : (contribution?.error && !contribution?.isSuccess)
-                          ? "bg-red-100 text-red-800"
-                          : file.status === "processing"
-                          ? "bg-blue-100 text-blue-800"
-                          : "bg-gray-100 text-gray-800"
-                      }`}>
-                        {file.status === "completed" && contribution?.isSuccess ? "Success" : 
-                         file.status === "error" || (contribution?.error && !contribution?.isSuccess) ? "Failed" :
-                         file.status === "processing" ? "Processing" : "Pending"}
+                      <span
+                        className={`text-xs px-2 py-1 rounded ${
+                          contribution?.isSuccess
+                            ? "bg-green-100 text-green-800"
+                            : contribution?.error && !contribution?.isSuccess
+                              ? "bg-red-100 text-red-800"
+                              : file.status === "processing"
+                                ? "bg-blue-100 text-blue-800"
+                                : "bg-gray-100 text-gray-800"
+                        }`}
+                      >
+                        {file.status === "completed" && contribution?.isSuccess
+                          ? "Success"
+                          : file.status === "error" ||
+                              (contribution?.error && !contribution?.isSuccess)
+                            ? "Failed"
+                            : file.status === "processing"
+                              ? "Processing"
+                              : "Pending"}
                       </span>
                     </div>
-                    
+
                     <div className="mt-3">
                       <ContributionSteps
                         currentStep={contribution?.currentStep || 0}

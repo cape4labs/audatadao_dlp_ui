@@ -136,7 +136,7 @@ export function Navigation() {
           </>
         </div>
       </div>
-      
+
       {/* {isMobileMenuOpen && (
         <div className="md:hidden border-t bg-white dark:bg-black">
           <div className="container mx-auto px-4 py-4 space-y-2">

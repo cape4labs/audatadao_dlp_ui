@@ -36,7 +36,9 @@ export interface FileContributionData extends ContributionData {
 }
 
 export function useContributionFlow() {
-  const [fileContributions, setFileContributions] = useState<Map<string, FileContributionData>>(new Map());
+  const [fileContributions, setFileContributions] = useState<
+    Map<string, FileContributionData>
+  >(new Map());
   const [globalError, setGlobalError] = useState<string | null>(null);
 
   const { signMessageAsync, isPending: isSigningMessage } = useSignMessage();
@@ -56,7 +58,7 @@ export function useContributionFlow() {
     isRefining;
 
   const initializeFileContribution = (fileId: string, fileName: string) => {
-    setFileContributions(prev => {
+    setFileContributions((prev) => {
       const newMap = new Map(prev);
       newMap.set(fileId, {
         fileId,
@@ -73,8 +75,11 @@ export function useContributionFlow() {
     });
   };
 
-  const updateFileContribution = (fileId: string, updates: Partial<FileContributionData>) => {
-    setFileContributions(prev => {
+  const updateFileContribution = (
+    fileId: string,
+    updates: Partial<FileContributionData>,
+  ) => {
+    setFileContributions((prev) => {
       const newMap = new Map(prev);
       const current = newMap.get(fileId);
       if (current) {
@@ -89,13 +94,13 @@ export function useContributionFlow() {
   };
 
   const markFileStepComplete = (fileId: string, step: number) => {
-    setFileContributions(prev => {
+    setFileContributions((prev) => {
       const newMap = new Map(prev);
       const current = newMap.get(fileId);
       if (current) {
         newMap.set(fileId, {
           ...current,
-          completedSteps: [...current.completedSteps, step]
+          completedSteps: [...current.completedSteps, step],
         });
       }
       return newMap;
@@ -120,13 +125,18 @@ export function useContributionFlow() {
 
   const areAllFilesCompleted = (): boolean => {
     const contributions = Array.from(fileContributions.values());
-    return contributions.length > 0 && contributions.every(contrib => 
-      contrib.isSuccess || contrib.error !== null
+    return (
+      contributions.length > 0 &&
+      contributions.every(
+        (contrib) => contrib.isSuccess || contrib.error !== null,
+      )
     );
   };
 
   const hasAnySuccess = (): boolean => {
-    return Array.from(fileContributions.values()).some(contrib => contrib.isSuccess);
+    return Array.from(fileContributions.values()).some(
+      (contrib) => contrib.isSuccess,
+    );
   };
 
   const resetFlow = () => {
@@ -135,7 +145,7 @@ export function useContributionFlow() {
   };
 
   const handleContributeData = async (
-    fileId: string, 
+    fileId: string,
     userAddress: string,
     audio_language: string,
     file: File,
@@ -164,13 +174,15 @@ export function useContributionFlow() {
         throw new Error("Wallet connection required to register on blockchain");
       }
 
-      const { fileId, txReceipt, encryptedKey } =
+      const { blockchainFileId, txReceipt, encryptedKey } =
         await executeBlockchainRegistrationStep(
+          fileId,
           uploadResult,
           signature,
           userAddress,
         );
-      if (!fileId) throw new Error("Blockchain registration step failed");
+      if (!blockchainFileId)
+        throw new Error("Blockchain registration step failed");
 
       updateFileContribution(fileId, {
         contributionId: uploadResult.vanaFileId,
@@ -200,13 +212,15 @@ export function useContributionFlow() {
         fileId,
         error instanceof Error
           ? error.message
-          : "Failed to process your contribution. Please try again."
+          : "Failed to process your contribution. Please try again.",
       );
     }
   };
 
   // Step 0: Sign message (pre-step before the visible flow begins)
-  const executeSignMessageStep = async (fileId: string): Promise<string | null> => {
+  const executeSignMessageStep = async (
+    fileId: string,
+  ): Promise<string | null> => {
     try {
       const signature = await signMessageAsync({ message: SIGN_MESSAGE });
       return signature;
@@ -216,7 +230,7 @@ export function useContributionFlow() {
         fileId,
         signError instanceof Error
           ? signError.message
-          : "Failed to sign the message. Please try again."
+          : "Failed to sign the message. Please try again.",
       );
       return null;
     }
@@ -309,13 +323,22 @@ export function useContributionFlow() {
     }
 
     // Step 4: Process Proof
-    const processResult = await executeProcessProofStep(fileId, proofResult, signature);
+    const processResult = await executeProcessProofStep(
+      fileId,
+      proofResult,
+      signature,
+    );
     if (!processResult) {
       throw new Error("Refinement step failed");
     }
 
     // Step 5: Claim Reward
-    await executeClaimRewardStep(fileId, blockchainFileId, audioDuration, userAddress);
+    await executeClaimRewardStep(
+      fileId,
+      blockchainFileId,
+      audioDuration,
+      userAddress,
+    );
   };
 
   // Step 3: Request TEE Proof
@@ -371,7 +394,7 @@ export function useContributionFlow() {
         fileId,
         refineError instanceof Error
           ? refineError.message
-          : "Failed to process TEE proof"
+          : "Failed to process TEE proof",
       );
       return null;
     }
@@ -430,22 +453,21 @@ export function useContributionFlow() {
   return {
     getFileContribution,
     getAllFileContributions,
-    
+
     areAllFilesCompleted,
     hasAnySuccess,
     globalError,
     isLoading,
     isSigningMessage,
-    
 
     handleContributeData,
     resetFlow,
 
     isSuccess: hasAnySuccess(),
     error: globalError,
-    currentStep: 0, 
-    completedSteps: [], 
-    contributionData: null, 
-    shareUrl: "", 
+    currentStep: 0,
+    completedSteps: [],
+    contributionData: null,
+    shareUrl: "",
   };
 }
