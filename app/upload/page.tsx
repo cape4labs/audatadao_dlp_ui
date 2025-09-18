@@ -160,7 +160,6 @@ export default function UploadPage() {
     onDrop,
     accept: { "audio/ogg": [".ogg"] },
     multiple: false,
-    disabled: uploadStatus.isUploading,
   });
 
   if (!user?.address) {
