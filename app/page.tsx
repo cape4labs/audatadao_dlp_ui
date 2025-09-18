@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
+import { toast } from "sonner";
 import { useWalletAuth } from "@/lib/auth/walletAuth";
 import { Navigation } from "./components/Navigation";
 import { UserOnboarding } from "./components/UserOnboarding";
@@ -91,6 +92,8 @@ export default function Home() {
             createdAt: data.submittedAt,
           });
 
+          localStorage.setItem("user_onboarding", "true")
+
           setInfo(info);
           setStats(leaders);
           debugLog(info);
@@ -118,10 +121,10 @@ export default function Home() {
       });
 
       if (res.ok) {
-        setMessage("Success!");
+        toast.info("Uploading email successfully")
         setEmail("");
       } else {
-        setMessage("Error with uploading email");
+        toast.error("Error with uploading email")
       }
     } catch (err) {
       setMessage("Error with fetch");
@@ -162,9 +165,6 @@ export default function Home() {
                   <Button type="submit" disabled={loading}>
                     {loading ? "Sending..." : "Submit"}
                   </Button>
-                  {message && (
-                    <p className="text-sm text-gray-600">{message}</p>
-                  )}
                 </form>
               </CardContent>
             </Card>

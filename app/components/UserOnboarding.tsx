@@ -122,7 +122,7 @@ export function UserOnboarding({ onComplete }: { onComplete: () => void }) {
 
       // Save onboarding data to localStorage as fallback
       localStorage.setItem(
-        `user_onboarding_${user?.address}`,
+        `user_onboarding`,
         JSON.stringify(onboardingData),
       );
 
