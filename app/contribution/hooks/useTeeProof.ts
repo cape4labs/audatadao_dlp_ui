@@ -163,29 +163,24 @@ export const useTeeProof = () => {
         throw new Error("Wallet not connected");
       }
 
-      // Request contribution proof using wagmi hooks
-      const hash = await writeContractAsync({
-        address: teePoolAddress,
-        abi: teePoolAbi,
-        functionName: "requestContributionProof",
-        args: [fileId],
+      debugLog("useTeeProof 166 user_address:", address);
+
+      const res = await fetch("/api/proof/tee", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fileId, address }),
+        credentials: "include",
       });
 
-      debugLog(
-        "useTeeProof.ts 169",
-        teePoolAddress,
-        teePoolAbi,
-        fileId,
-        hash,
-      );
+      if (!res.ok) {
+        throw new Error(`Backend error: ${await res.text()}`);
+      }
 
-      // Wait for transaction receipt
-      const contributionProofReceipt = await waitForTransactionReceipt(config, {
-        hash,
-        confirmations: 1,
-      });
+      const contributionProofResult = await res.json();
 
-      debugLog("contributionProofReceipt", contributionProofReceipt);
+      debugLog("useTeeProof 32", contributionProofResult);
+
+      const contributionProofReceipt = contributionProofResult.receipt;
 
       // Get job IDs for the file
       const jobIds = await getFileJobIds(fileId);

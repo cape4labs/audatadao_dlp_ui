@@ -164,11 +164,14 @@ export function useContributionFlow() {
         throw new Error("Wallet connection required to register on blockchain");
       }
 
-      const { blockchainFileId, txReceipt, encryptedKey } =
-        await executeBlockchainRegistrationStep(fileId, uploadResult, signature);
-      if (!blockchainFileId) throw new Error("Blockchain registration step failed");
+      const { fileId, txReceipt, encryptedKey } =
+        await executeBlockchainRegistrationStep(
+          uploadResult,
+          signature,
+          userAddress,
+        );
+      if (!fileId) throw new Error("Blockchain registration step failed");
 
-      // Update contribution data with blockchain information
       updateFileContribution(fileId, {
         contributionId: uploadResult.vanaFileId,
         encryptedUrl: uploadResult.downloadUrl,
@@ -254,13 +257,20 @@ export function useContributionFlow() {
     fileId: string,
     uploadResult: UploadResponse,
     signature: string,
+    userAddress: string,
   ) => {
     setFileCurrentStep(fileId, STEPS.BLOCKCHAIN_REGISTRATION);
 
     const publicKey = await getDlpPublicKey();
     const encryptedKey = await encryptWithWalletPublicKey(signature, publicKey);
 
-    const txReceipt = await addFile(uploadResult.downloadUrl, encryptedKey);
+    const txReceipt = await addFile(
+      uploadResult.downloadUrl,
+      encryptedKey,
+      userAddress,
+    );
+
+    debugLog("useContributionFlow 193", txReceipt);
 
     if (!txReceipt) {
       if (contractError) {
