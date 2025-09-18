@@ -41,7 +41,7 @@ interface UploadedFile {
 interface UploadStatus {
   isUploading: boolean;
   error: string | null;
-  uploadedFiles: UploadedFile[];
+  uploadedFile: UploadedFile | null;
 }
 
 
@@ -60,7 +60,7 @@ export default function UploadPage() {
   const [uploadStatus, setUploadStatus] = useState<UploadStatus>({
     isUploading: false,
     error: null,
-    uploadedFiles: [],
+    uploadedFile: null,
   });
 
   const onDrop = useCallback(
@@ -71,7 +71,10 @@ export default function UploadPage() {
       }
 
       if (!isConnected) {
-        toast.error("Wallet not connected. Please connect your wallet and try again.");
+        toast.error(
+          "Wallet not connected. Please connect your wallet and try again.",
+        );
+
         return;
       }
 
@@ -142,9 +145,25 @@ export default function UploadPage() {
               f.id === fileRecord.id ? { ...f, status: "error" } : f,
             ),
           }));
-
-          toast.error(userMessage);
         }
+      } catch (err: any) {
+        console.error("Upload error:", err);
+
+        const errorCode = err?.response?.data?.detail?.error?.code;
+
+        let userMessage = "Cannot proccess your file. Try again.";
+
+        if (errorCode === "PROOF_OF_CONTRIBUTION_ERROR") {
+          userMessage = "Your audio file is not valid.";
+        }
+
+        setUploadStatus((prev) => ({
+          ...prev,
+          isUploading: false,
+          error: userMessage,
+        }));
+
+        toast.error(userMessage);
       }
 
       setUploadStatus((prev) => ({
@@ -153,12 +172,14 @@ export default function UploadPage() {
       }));
     },
     [user?.address, isConnected, audioLanguage, handleContributeData],
+
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: { "audio/ogg": [".ogg"] },
-    multiple: true,
+    multiple: false,
+    disabled: uploadStatus.isUploading,
   });
 
   if (!user?.address) {
@@ -302,10 +323,7 @@ export default function UploadPage() {
               <CardDescription>
                 Upload your .ogg audio files to contribute to the VANA network.
               </CardDescription>
-            </CardHeader>
-
-            {/* скроллимый контент */}
-            
+            </CardHeader>            
               <CardContent className="space-y-4">
                 <div
                   {...getRootProps()}
@@ -372,7 +390,6 @@ export default function UploadPage() {
                   </div>
                 )}
               </CardContent>
-
               <CardContent className="space-y-2">
                 {uploadStatus.uploadedFiles.map((file) => {
                   const contribution = getFileContribution(file.id);
