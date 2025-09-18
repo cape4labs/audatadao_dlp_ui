@@ -41,7 +41,7 @@ interface UploadedFile {
 interface UploadStatus {
   isUploading: boolean;
   error: string | null;
-  uploadedFile: UploadedFile | null;
+  uploadedFiles: UploadedFile[];
 }
 
 
@@ -60,7 +60,7 @@ export default function UploadPage() {
   const [uploadStatus, setUploadStatus] = useState<UploadStatus>({
     isUploading: false,
     error: null,
-    uploadedFile: null,
+    uploadedFiles: [],
   });
 
   const onDrop = useCallback(
@@ -146,26 +146,7 @@ export default function UploadPage() {
             ),
           }));
         }
-      } catch (err: any) {
-        console.error("Upload error:", err);
-
-        const errorCode = err?.response?.data?.detail?.error?.code;
-
-        let userMessage = "Cannot proccess your file. Try again.";
-
-        if (errorCode === "PROOF_OF_CONTRIBUTION_ERROR") {
-          userMessage = "Your audio file is not valid.";
-        }
-
-        setUploadStatus((prev) => ({
-          ...prev,
-          isUploading: false,
-          error: userMessage,
-        }));
-
-        toast.error(userMessage);
-      }
-
+      } 
       setUploadStatus((prev) => ({
         ...prev,
         isUploading: false,
