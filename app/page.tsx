@@ -92,7 +92,7 @@ export default function Home() {
             createdAt: data.submittedAt,
           });
 
-          localStorage.setItem("user_onboarding", "true")
+          localStorage.setItem("user_onboarding", "true");
 
           setInfo(info);
           setStats(leaders);
@@ -121,10 +121,10 @@ export default function Home() {
       });
 
       if (res.ok) {
-        toast.info("Uploading email successfully")
+        toast.info("Uploading email successfully");
         setEmail("");
       } else {
-        toast.error("Error with uploading email")
+        toast.error("Error with uploading email");
       }
     } catch (err) {
       setMessage("Error with fetch");

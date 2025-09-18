@@ -104,9 +104,12 @@ export function ContributionSteps({
       {contributionSteps.map((step, i) => {
         const status = getStepStatus(step.id);
         const isLast = i === contributionSteps.length - 1;
-        
+
         return (
-          <div key={step.id} className={`flex ${compact ? "mb-2" : "mb-4"} last:mb-0`}>
+          <div
+            key={step.id}
+            className={`flex ${compact ? "mb-2" : "mb-4"} last:mb-0`}
+          >
             {/* Step indicator */}
             <div className="mr-4 flex flex-col items-center">
               <div
@@ -124,7 +127,9 @@ export function ContributionSteps({
               </div>
               {/* Connector line (except for last item) */}
               {!isLast && (
-                <div className={`w-0.5 bg-gray-200 my-1 ${getConnectorHeight()}`}></div>
+                <div
+                  className={`w-0.5 bg-gray-200 my-1 ${getConnectorHeight()}`}
+                ></div>
               )}
             </div>
             {/* Step content */}
