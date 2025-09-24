@@ -29,7 +29,7 @@ interface UploadedFile {
   status: "pending" | "processing" | "completed" | "error";
   uploadedAt: string;
   fileHash?: string;
-  pinataUrl: string; // добавьте это поле
+  pinataUrl: string;
 }
 
 interface OnboardingData {
@@ -147,31 +147,15 @@ export default function Home() {
           <div className="max-w-2xl mx-auto space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Waitlist</CardTitle>
-                <CardDescription>Enter your email</CardDescription>
+                <CardTitle>Wait for the updates!</CardTitle>
+                <CardDescription>Season 0 starts soon</CardDescription>
               </CardHeader>
-              <CardContent>
-                <form
-                  onSubmit={handleEmailSubmit}
-                  className="flex flex-col gap-3"
-                >
-                  <Input
-                    type="email"
-                    placeholder="your email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
-                  <Button type="submit" disabled={loading}>
-                    {loading ? "Sending..." : "Submit"}
-                  </Button>
-                </form>
-              </CardContent>
             </Card>
-            {/* Wallet login */}
+            {/* Wallet login 
             <div className="flex justify-center pt-2">
               <WalletLoginButton />
             </div>
+            */}
           </div>
         </div>
       </div>
