@@ -175,9 +175,6 @@ export default function UploadPage() {
                 Please connect your wallet to upload voice files.
               </AlertDescription>
             </Alert>
-            <div className="flex justify-center pt-2">
-              <WalletLoginButton />
-            </div>
           </div>
         </div>
       </div>
@@ -270,7 +267,7 @@ export default function UploadPage() {
           </Card>
 
           {/* Upload Card */}
-          <Card className={uploadStatus.uploadedFiles.length <= 0 ? "h-[40vh] flex flex-col" : "h-[70vh] flex flex-col"}>
+          <Card className={uploadStatus.uploadedFiles.length <= 0 ? "h-[55vh] flex flex-col" : "h-[70vh] flex flex-col"}>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Image
