@@ -244,8 +244,39 @@ export const useTeeProof = () => {
 
       if (!contributionProofResponse.ok) {
         const errorData = await contributionProofResponse.json();
-        throw new Error(`TEE request failed: ${JSON.stringify(errorData)}`);
+
+        debugLog(errorData);
+
+        // достаём текст ошибки
+        const errorText = errorData?.error ?? "";
+
+        // ищем JSON внутри строки
+        const jsonMatch = errorText.match(/{.*}/s);
+        if (!jsonMatch) {
+          throw new Error("Не удалось найти JSON в errorData.error");
+        }
+
+        let parsedError;
+        try {
+          parsedError = JSON.parse(jsonMatch[0]);
+        } catch (e) {
+          console.error("Ошибка парсинга JSON", e);
+          throw new Error("Invalid error format");
+        }
+
+        const logs = parsedError?.detail?.error?.details?.logs ?? "";
+
+        // достаём кусок от первого score= до score_threshold
+        const match = logs.match(/score=.*?score_threshold[^}]+/s);
+
+        const extracted = match ? match[0] : null;
+
+        debugLog("Extracted part:", extracted);
+
+        throw new Error(`Audio is not valid \n ${extracted}`);
       }
+
+
 
       const proofData = await contributionProofResponse.json();
 
@@ -258,7 +289,7 @@ export const useTeeProof = () => {
     } catch (err) {
       console.error("Error in proof process:", err);
       setError(
-        err instanceof Error ? err.message : "Failed to process TEE proof",
+        "Your audio is not valid"
       );
       throw err;
     } finally {
