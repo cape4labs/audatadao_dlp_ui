@@ -44,7 +44,6 @@ interface UploadStatus {
   uploadedFiles: UploadedFile[];
 }
 
-
 export default function UploadPage() {
   const { user } = useWalletAuth();
   const { isConnected } = useAccount();
@@ -146,14 +145,13 @@ export default function UploadPage() {
             ),
           }));
         }
-      } 
+      }
       setUploadStatus((prev) => ({
         ...prev,
         isUploading: false,
       }));
     },
     [user?.address, isConnected, audioLanguage, handleContributeData],
-
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -173,7 +171,7 @@ export default function UploadPage() {
               <AlertTitle>Wallet Required</AlertTitle>
               <AlertDescription>
                 Please connect your wallet to upload voice files.
-              </AlertDescription> 
+              </AlertDescription>
             </Alert>
           </div>
         </div>
@@ -267,7 +265,13 @@ export default function UploadPage() {
           </Card>
 
           {/* Upload Card */}
-          <Card className={uploadStatus.uploadedFiles.length <= 0 ? "h-[55vh] flex flex-col" : "h-[70vh] flex flex-col"}>
+          <Card
+            className={
+              uploadStatus.uploadedFiles.length <= 0
+                ? "h-[55vh] flex flex-col"
+                : "h-[70vh] flex flex-col"
+            }
+          >
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Image
@@ -300,42 +304,44 @@ export default function UploadPage() {
               <CardDescription>
                 Upload your .ogg audio files to contribute to the VANA network.
               </CardDescription>
-            </CardHeader>            
-              <CardContent className="space-y-4">
-                <div
-                  {...getRootProps()}
-                  className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
-                    isDragActive
-                      ? "border-blue-500 bg-blue-50"
-                      : "border-gray-300 hover:border-gray-400"
-                  } ${uploadStatus.isUploading ? "opacity-50 cursor-not-allowed" : ""}`}
-                >
-                  <input {...getInputProps()} />
-                  <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                  {uploadStatus.isUploading ? (
-                    <div className="space-y-2">
-                      <p className=" text-gray-600">Processing files...</p>
-                      <p className="text-sm text-gray-600">
-                        You can upload multiple files
-                      </p>
-                    </div>
-                  ) : isDragActive ? (
-                    <p className="text-lg font-medium text-blue-600">
-                      Drop the .ogg files here...
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div
+                {...getRootProps()}
+                className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
+                  isDragActive
+                    ? "border-blue-500 bg-blue-50"
+                    : "border-gray-300 hover:border-gray-400"
+                } ${uploadStatus.isUploading ? "opacity-50 cursor-not-allowed" : ""}`}
+              >
+                <input {...getInputProps()} />
+                <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                {uploadStatus.isUploading ? (
+                  <div className="space-y-2">
+                    <p className=" text-gray-600">Processing files...</p>
+                    <p className="text-sm text-gray-600">
+                      You can upload multiple files
                     </p>
-                  ) : (
-                    <div className="space-y-2">
-                      <p className="text-lg font-medium text-gray-900">
-                        Drag & drop .ogg files here
-                      </p>
-                      <p className="text-sm text-gray-500">or click to select files</p>
-                      <p className="text-xs text-gray-400">
-                        Only .ogg audio files are accepted
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
+                  </div>
+                ) : isDragActive ? (
+                  <p className="text-lg font-medium text-blue-600">
+                    Drop the .ogg files here...
+                  </p>
+                ) : (
+                  <div className="space-y-2">
+                    <p className="text-lg font-medium text-gray-900">
+                      Drag & drop .ogg files here
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      or click to select files
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      Only .ogg audio files are accepted
+                    </p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
             <div className="flex-1 overflow-y-auto overflow-x-hidden space-y-4 p-4">
               <CardContent className="space-y-4">
                 {uploadStatus.error && (
@@ -389,10 +395,12 @@ export default function UploadPage() {
                                   : "bg-gray-100 text-gray-800"
                           }`}
                         >
-                          {file.status === "completed" && contribution?.isSuccess
+                          {file.status === "completed" &&
+                          contribution?.isSuccess
                             ? "Success"
                             : file.status === "error" ||
-                                (contribution?.error && !contribution?.isSuccess)
+                                (contribution?.error &&
+                                  !contribution?.isSuccess)
                               ? "Failed"
                               : file.status === "processing"
                                 ? "Processing"
@@ -435,7 +443,6 @@ export default function UploadPage() {
               </CardContent>
             </div>
           </Card>
-
         </div>
       </div>
     </div>
