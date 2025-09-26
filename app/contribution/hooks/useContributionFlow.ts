@@ -157,7 +157,7 @@ export function useContributionFlow() {
       setGlobalError(null);
       initializeFileContribution(fileId, file.name);
 
-      let signature = localStorage.getItem("signature")
+      let signature = localStorage.getItem("signature");
 
       if (signature == null) {
         signature = await executeSignMessageStep(fileId);
@@ -165,7 +165,7 @@ export function useContributionFlow() {
         if (!signature) throw new Error("Signature step failed");
 
         localStorage.setItem("signature", signature);
-      } 
+      }
 
       const duration = await getBlobDuration(file);
 
@@ -190,7 +190,8 @@ export function useContributionFlow() {
           signature,
           userAddress,
         );
-      if (!blockchainFileId) throw new Error("Blockchain registration step failed");
+      if (!blockchainFileId)
+        throw new Error("Blockchain registration step failed");
 
       updateFileContribution(fileId, {
         contributionId: uploadResult.vanaFileId,
@@ -256,9 +257,9 @@ export function useContributionFlow() {
     setFileCurrentStep(fileId, STEPS.UPLOAD_DATA);
 
     debugLog("\x1b[31mSIGNATURE\x1b[0m -", signature);
-    
+
     if (duration <= 4) {
-      throw new Error("Your audio less than 4 seconds"); 
+      throw new Error("Your audio less than 4 seconds");
     }
 
     const uploadResult = await uploadData(
@@ -285,7 +286,6 @@ export function useContributionFlow() {
     signature: string,
     userAddress: string,
   ) => {
-
     setFileCurrentStep(fileId, STEPS.BLOCKCHAIN_REGISTRATION);
 
     const publicKey = await getDlpPublicKey();
@@ -295,7 +295,7 @@ export function useContributionFlow() {
       uploadResult.downloadUrl,
       encryptedKey,
       userAddress,
-      isGasless
+      isGasless,
     );
 
     debugLog("useContributionFlow 193", txReceipt);
