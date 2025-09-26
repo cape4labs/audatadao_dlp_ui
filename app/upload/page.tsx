@@ -173,7 +173,7 @@ export default function UploadPage() {
               <AlertTitle>Wallet Required</AlertTitle>
               <AlertDescription>
                 Please connect your wallet to upload voice files.
-              </AlertDescription>
+              </AlertDescription> 
             </Alert>
           </div>
         </div>

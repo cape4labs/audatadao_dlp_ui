@@ -120,9 +120,6 @@ export function UserOnboarding({ onComplete }: { onComplete: () => void }) {
         toast.success("Onboarding completed (offline mode)");
       }
 
-      // Save onboarding data to localStorage as fallback
-      localStorage.setItem(`user_onboarding`, JSON.stringify(onboardingData));
-
       onComplete();
     } catch (error) {
       console.error("Error submitting onboarding:", error);
