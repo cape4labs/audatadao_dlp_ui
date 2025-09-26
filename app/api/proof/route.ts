@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
       const errorText = await contributionProofResponse.text();
       console.error("Error:", contributionProofResponse.status, errorText);
       return NextResponse.json(
-        { error: `Error: ${contributionProofResponse.statusText}` },
+        { error: `Error: ${errorText}` },
         { status: 500 },
       );
     }
