@@ -256,6 +256,10 @@ export function useContributionFlow() {
     setFileCurrentStep(fileId, STEPS.UPLOAD_DATA);
 
     debugLog("\x1b[31mSIGNATURE\x1b[0m -", signature);
+    
+    if (duration <= 4) {
+      throw new Error("Your audio less than 4 seconds"); 
+    }
 
     const uploadResult = await uploadData(
       userAddress,

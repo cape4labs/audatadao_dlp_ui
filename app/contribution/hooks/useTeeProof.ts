@@ -267,7 +267,7 @@ export const useTeeProof = () => {
         const logs = parsedError?.detail?.error?.details?.logs ?? "";
 
         // достаём кусок от первого score= до score_threshold
-        const match = logs.match(/score=.*?score_threshold[^}]+/s);
+        const match = errorText.match(/score=.*?score_threshold[^}]+/s);
 
         const extracted = match ? match[0] : null;
 
