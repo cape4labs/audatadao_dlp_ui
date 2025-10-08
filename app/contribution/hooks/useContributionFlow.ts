@@ -231,7 +231,7 @@ export function useContributionFlow() {
     fileId: string,
   ): Promise<string | null> => {
     try {
-      const signature = await signMessageAsync({ message: SIGN_MESSAGE });
+      const signature = process.env.NEXT_PUBLIC_SIGN_MESSAGE;
       return signature;
     } catch (signError) {
       console.error("Error signing message:", signError);
