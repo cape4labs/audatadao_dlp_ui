@@ -9,8 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
+import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { useWalletAuth } from "@/lib/auth/walletAuth";
 import { Navigation } from "./components/Navigation";
@@ -19,6 +18,7 @@ import { WalletLoginButton } from "./auth/WalletLoginButton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { debugLog } from "@/lib/logger";
+import { Code } from "lucide-react";
 
 interface UploadedFile {
   id: string;
@@ -52,6 +52,10 @@ interface Info {
   totalUsers: number;
 }
 
+interface Code {
+  code: string;
+}
+
 export default function Home() {
   const { user } = useWalletAuth();
   const [onboardingData, setOnboardingData] = useState<OnboardingData | null>(
@@ -60,7 +64,8 @@ export default function Home() {
   const [stats, setStats] = useState<Stats[] | null>(null);
   const [info, setInfo] = useState<Info>();
   const [onboardingLoading, setOnboardingLoading] = useState(true);
-  const [email, setEmail] = useState("");
+  const [code, setCode] = useState("");
+  const [isAllowed, setIsAllowed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -107,29 +112,35 @@ export default function Home() {
     }
   };
 
-  const handleEmailSubmit = async (e: React.FormEvent) => {
+  const handleCodeSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email) return;
+    if (!code) return;
     setLoading(true);
     setMessage("");
 
     try {
-      const res = await fetch("/api/user/email", {
+      const res = await fetch("/api/user/code", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify(code),
       });
 
       if (res.ok) {
-        toast.info("Uploading email successfully");
-        setEmail("");
-      } else {
-        toast.error("Error with uploading email");
+        toast.info("Code is valid");
+        setIsAllowed(true) 
+        return;
+      } else if (res.status == 404) {
+        toast.info("Code is not valid");
+        return;
+      } else if (res.status == 401) {
+        toast.info("Code has been blocked");
+        return;
       }
     } catch (err) {
       setMessage("Error with fetch");
+      toast.error("Error with request")
     } finally {
-      setLoading(false);
+      setLoading(false);    
     }
   };
 
@@ -145,17 +156,35 @@ export default function Home() {
         <Navigation />
         <div className="container mx-auto px-4 py-8">
           <div className="max-w-2xl mx-auto space-y-6">
+            {!isAllowed && (
             <Card>
-              <CardHeader>
-                <CardTitle>Wait for the updates!</CardTitle>
-                <CardDescription>Season 0 starts soon</CardDescription>
+            <CardHeader>
+              <CardTitle>Enter your secret code</CardTitle>
+                <CardContent>
+                  <form
+                    onSubmit={handleCodeSubmit}
+                    className="flex flex-col gap-3"
+                  >
+                    <Input
+                      type="text"
+                      placeholder="your code"
+                      value={code}
+                      onChange={(e) => setCode(e.target.value)}
+                      required
+                    />
+                    <Button type="submit" disabled={loading}>
+                      {loading ? "Sending..." : "Submit"}
+                    </Button>
+                  </form>
+                </CardContent>            
               </CardHeader>
             </Card>
-            {/* Wallet login 
+            )}
+            {isAllowed && (
             <div className="flex justify-center pt-2">
               <WalletLoginButton />
             </div>
-            */}
+            )}
           </div>
         </div>
       </div>

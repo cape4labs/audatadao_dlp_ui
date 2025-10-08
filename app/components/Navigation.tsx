@@ -105,7 +105,7 @@ export function Navigation() {
             </div>
 
             {/* Mobile menu button */}
-            {/* <Button
+            <Button
               variant="ghost"
               size="sm"
               className="md:hidden"
@@ -116,7 +116,7 @@ export function Navigation() {
               ) : (
                 <Menu className="h-4 w-4" />
               )}
-            </Button> */}
+            </Button>
 
             <Button
               variant="ghost"
@@ -137,7 +137,7 @@ export function Navigation() {
         </div>
       </div>
 
-      {/* {isMobileMenuOpen && (
+      {isMobileMenuOpen && (
         <div className="md:hidden border-t bg-white dark:bg-black">
           <div className="container mx-auto px-4 py-4 space-y-2">
             <Link href="/" onClick={() => setIsMobileMenuOpen(false)}>
@@ -183,7 +183,7 @@ export function Navigation() {
             </Link>
           </div>
         </div>
-      )} */}
+      )}
     </header>
   );
 }
