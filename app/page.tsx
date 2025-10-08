@@ -380,7 +380,7 @@ export default function Home() {
                               .map((addr) => addr.toString().toLowerCase())
                               .includes(stat.userAddress.toLowerCase()) ? (
                                 <span className="text-xs bg-gray-500 text-white px-2 py-0.5 rounded-full">
-                                  DEV
+                                  TESTERS
                                 </span>
                             ) : (
                               stat.userAddress.toLowerCase() === user.address.toLowerCase() && (
