@@ -263,7 +263,11 @@ export const useTeeProof = () => {
 
         const logs = parsedError?.detail?.error?.details?.logs ?? "";
         const match = errorText.match(/score=.*?score_threshold[^}]+/s);
-        const extracted = match ? match[0] : null;
+        let extracted = match ? match[0] : null;
+
+        if (extracted == null) {
+          extracted = parsedError;
+        }
 
         debugLog("Extracted part:", extracted);
 
