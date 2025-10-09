@@ -157,15 +157,10 @@ export function useContributionFlow() {
       setGlobalError(null);
       initializeFileContribution(fileId, file.name);
 
-      let signature = localStorage.getItem("signature");
+      const signature = await executeSignMessageStep(fileId);
 
-      if (signature == null) {
-        signature = await executeSignMessageStep(fileId);
+      if (!signature) throw new Error("Signature step failed");
 
-        if (!signature) throw new Error("Signature step failed");
-
-        localStorage.setItem("signature", signature);
-      }
 
       const duration = await getBlobDuration(file);
 
@@ -231,15 +226,7 @@ export function useContributionFlow() {
     fileId: string,
   ): Promise<string | null> => {
     try {
-      let signature: string | undefined;
-      if (isGasless) {
-        signature = process.env.NEXT_PUBLIC_SIGN_MESSAGE;
-        if (!signature) {
-            throw new Error("Failed to retreive signature variable from env vars when gasless mode is ON.");
-        }
-      } else {
-        signature = await signMessageAsync({ message: SIGN_MESSAGE })
-      }
+      const signature = await signMessageAsync({ message: SIGN_MESSAGE })
       return signature;
     } catch (signError) {
       console.error("Error signing message:", signError);
