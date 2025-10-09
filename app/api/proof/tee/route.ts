@@ -26,7 +26,7 @@ export async function POST(req: Request) {
       abi: teePoolAbi,
       functionName: "requestContributionProof",
       args: [fileId],
-      account: userAddress, // !!!!
+      account: userAddress,
     });
 
     debugLog("proof/tee/route 35", hash);
