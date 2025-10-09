@@ -231,15 +231,7 @@ export function useContributionFlow() {
     fileId: string,
   ): Promise<string | null> => {
     try {
-      let signature: string | undefined;
-      if (isGasless) {
-        signature = process.env.NEXT_PUBLIC_SIGN_MESSAGE;
-        if (!signature) {
-            throw new Error("Failed to retreive signature variable from env vars when gasless mode is ON.");
-        }
-      } else {
-        signature = await signMessageAsync({ message: SIGN_MESSAGE })
-      }
+      const signature = await signMessageAsync({ message: SIGN_MESSAGE })
       return signature;
     } catch (signError) {
       console.error("Error signing message:", signError);
