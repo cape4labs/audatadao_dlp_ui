@@ -157,15 +157,10 @@ export function useContributionFlow() {
       setGlobalError(null);
       initializeFileContribution(fileId, file.name);
 
-      let signature = localStorage.getItem("signature");
+      const signature = await executeSignMessageStep(fileId);
 
-      if (signature == null) {
-        signature = await executeSignMessageStep(fileId);
+      if (!signature) throw new Error("Signature step failed");
 
-        if (!signature) throw new Error("Signature step failed");
-
-        localStorage.setItem("signature", signature);
-      }
 
       const duration = await getBlobDuration(file);
 
