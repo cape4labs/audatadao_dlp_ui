@@ -18,8 +18,7 @@ export default function Mascot({ externalError }: MascotProps) {
         setMessage(`Hi! I'm mascot of audata team! 
                     I will help you with uploading files!`);
         setVisible(true);
-      }, 500); // лёгкая задержка, чтобы страница успела прогрузиться
-
+      }, 500); 
       setTimeout(() => {
         setVisible(false);
         localStorage.setItem("mascot_greeted", "true");
@@ -33,16 +32,14 @@ export default function Mascot({ externalError }: MascotProps) {
     const err = externalError.toLowerCase();
     let text = "";
 
-    // 🧠 Распознаём ошибку анализа аудио
     if (err.includes("score=")) {
-        // Извлекаем числовые значения из строки
         const score = externalError.match(/score=([\d.]+)/)?.[1];
         const authenticity = externalError.match(/authenticity=([\d.]+)/)?.[1];
         const ownership = externalError.match(/ownership=([\d.]+)/)?.[1];
         const quality = externalError.match(/quality=([\d.]+)/)?.[1];
         const uniqueness = externalError.match(/uniqueness=([\d.]+)/)?.[1];
 
-        text = `Your audio was analyzed 🧩
+        text = `Your audio was analyzed 
             • Score: ${score} — overall similarity score
             • Authenticity: ${authenticity} — how real your voice sounds
             • Ownership: ${ownership} — how consistent it is with your previous uploads
@@ -54,9 +51,9 @@ export default function Mascot({ externalError }: MascotProps) {
         }
 
     else if (err.includes("language"))
-        text = "You must select the language of the audio before uploading 🎧";
+        text = "You must select the language of the audio before uploading";
     else if (err.includes("wallet"))
-        text = "Please connect your wallet before uploading 💳";
+        text = "Please connect your wallet before uploading";
     else
         text = externalError;
 
