@@ -27,7 +27,7 @@ export default function Mascot({ externalError }: MascotProps) {
       setTimeout(() => {
         setVisible(false);
         localStorage.setItem("mascot_greeted", "true");
-      }, 7000);
+      }, 20000);
     }
   }, []);
 
@@ -75,7 +75,7 @@ export default function Mascot({ externalError }: MascotProps) {
     setMessage(content);
     setVisible(true);
 
-    const timeout = setTimeout(() => setVisible(false), 15000);
+    const timeout = setTimeout(() => setVisible(false), 30000);
     return () => clearTimeout(timeout);
   }, [externalError]);
 
