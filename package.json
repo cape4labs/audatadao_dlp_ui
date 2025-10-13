@@ -23,6 +23,7 @@
     "clsx": "^2.1.1",
     "eccrypto": "^1.1.6",
     "ethers": "^6.13.5",
+    "framer-motion": "^12.23.24",
     "fs": "^0.0.1-security",
     "jszip": "^3.10.1",
     "lucide-react": "^0.479.0",

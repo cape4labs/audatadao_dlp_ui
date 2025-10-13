@@ -1,5 +1,6 @@
 import { Toaster } from "@/components/ui/sonner";
 import type { Metadata } from "next";
+import Mascot from "@/app/components/Mascot";
 import "./globals.css";
 import { Providers } from "./providers";
 

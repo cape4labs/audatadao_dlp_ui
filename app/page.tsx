@@ -18,7 +18,7 @@ import { WalletLoginButton } from "./auth/WalletLoginButton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { debugLog } from "@/lib/logger";
-import { Code } from "lucide-react";
+import Mascot from "./components/Mascot";
 
 interface UploadedFile {
   id: string;
@@ -270,6 +270,8 @@ export default function Home() {
                     height={20}
                     className="object-contain"
                   />
+                      
+                  <Mascot />
                   <div>
                     <p className="text-sm font-medium">Wallet Address</p>
                     <b className="text-xs text-gray-500 font-mono">

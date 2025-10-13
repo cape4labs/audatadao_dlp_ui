@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
+import Mascot from "../components/Mascot";
 import { useWalletAuth } from "@/lib/auth/walletAuth";
 import { useDropzone } from "react-dropzone";
 import { useAccount } from "wagmi";
@@ -65,15 +66,18 @@ export default function UploadPage() {
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {
       if (!user?.address) {
-        toast.error("Please connect your wallet first");
+        setUploadStatus((prev) => ({
+          ...prev,
+          error: "Connect your wallet first"
+        }))
         return;
       }
 
       if (!isConnected) {
-        toast.error(
-          "Wallet not connected. Please connect your wallet and try again.",
-        );
-
+        setUploadStatus((prev) => ({
+          ...prev,
+          error: "Connect your wallet first"
+        }))
         return;
       }
 
@@ -349,6 +353,7 @@ export default function UploadPage() {
                     <AlertCircle className="h-4 w-4" />
                     <AlertTitle>Error</AlertTitle>
                     <AlertDescription>{uploadStatus.error}</AlertDescription>
+                  <Mascot externalError={uploadStatus.error}/>
                   </Alert>
                 )}
 
@@ -368,9 +373,7 @@ export default function UploadPage() {
                 )}
 
                 {!isConnected && (
-                  <div className="bg-yellow-50 text-yellow-800 p-2 text-xs rounded mt-2">
-                    Please connect your wallet to contribute data
-                  </div>
+                  <Mascot externalError={"Connect your wallet!!!"} />
                 )}
               </CardContent>
               <CardContent className="space-y-2">
@@ -425,6 +428,8 @@ export default function UploadPage() {
                               {contribution.error}
                             </AlertDescription>
                           </Alert>
+                          <Mascot externalError={contribution.error} />
+
                         </div>
                       )}
 
