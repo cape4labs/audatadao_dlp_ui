@@ -337,7 +337,7 @@ export default function Home() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="flex-1 overflow-x-hidden space-y-4 p-4 h-full">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Image
@@ -351,23 +351,26 @@ export default function Home() {
               </CardTitle>
               <CardDescription>Top 5 of our uploaders</CardDescription>
 
-              {/* TODO: */}
               <div className="text-sm text-gray-600">
                 Total users: <b>{info?.totalUsers ?? 0}</b> • Total minutes:{" "}
                 <b>{Math.floor((info?.totalSeconds ?? 0) / 60)}</b>
               </div>
             </CardHeader>
-            <CardContent className="space-y-4">
+
+            {/* Контейнер со скроллом */}
+            <CardContent className="space-y-4 max-h-[400px] overflow-y-auto">
               <div className="flex flex-col gap-4">
                 {stats && stats.length > 0 ? (
                   stats.map((stat, index) => (
                     <div
                       key={stat.userAddress}
-                      className="flex items-center justify-around gap-3 p-4 border rounded-lg w-full"
+                      className="grid grid-cols-[40px_1fr_auto] items-center gap-4 p-4 border rounded-lg w-full"
                     >
-                      <div className="w-8 font-bold">{index + 1}.</div>
+                      {/* Колонка 1 — номер */}
+                      <div className="text-lg font-bold text-center">{index + 1}.</div>
 
-                      <div className="flex items-center gap-2">
+                      {/* Колонка 2 — пользователь */}
+                      <div className="flex items-center gap-3">
                         <Image
                           src={"/icons/wallet.png"}
                           alt="Wallet"
@@ -375,17 +378,18 @@ export default function Home() {
                           height={20}
                           className="object-contain"
                         />
-                       <div>
-                          <p className="text-sm font-medium flex items-center gap-2">
+                        <div>
+                          <p className="text-sm font-medium flex items-center gap-2 uppercase">
                             User Wallet
                             {devWallets
                               .map((addr) => addr.toString().toLowerCase())
                               .includes(stat.userAddress.toLowerCase()) ? (
-                                <span className="text-xs bg-gray-500 text-white px-2 py-0.5 rounded-full">
-                                  TESTERS
-                                </span>
+                              <span className="text-xs bg-gray-500 text-white px-2 py-0.5 rounded-full">
+                                TESTERS
+                              </span>
                             ) : (
-                              stat.userAddress.toLowerCase() === user.address.toLowerCase() && (
+                              stat.userAddress.toLowerCase() ===
+                                user.address.toLowerCase() && (
                                 <span className="text-xs bg-green-500 text-white px-2 py-0.5 rounded-full">
                                   YOU
                                 </span>
@@ -398,7 +402,8 @@ export default function Home() {
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2">
+                      {/* Колонка 3 — минуты */}
+                      <div className="flex items-center gap-2 justify-end text-right">
                         <Image
                           src={"/icons/time.png"}
                           alt="Minutes upload"
@@ -407,12 +412,9 @@ export default function Home() {
                           className="object-contain"
                         />
                         <div>
-                          <p className="text-sm font-medium">
-                            Minutes Uploaded
-                          </p>
+                          <p className="text-sm font-medium uppercase">Minutes Uploaded</p>
                           <p className="text-xs text-gray-500 font-mono">
-                            {Math.floor(parseInt(stat.contributedSeconds) / 60)}{" "}
-                            min
+                            {Math.floor(parseInt(stat.contributedSeconds) / 60)} min
                           </p>
                         </div>
                       </div>
@@ -423,7 +425,9 @@ export default function Home() {
                 )}
               </div>
             </CardContent>
+
           </Card>
+
 
           {/* Onboarding Form - показываем только если опрос не пройден */}
           {!onboardingData && (
