@@ -6,7 +6,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
 
     // Validate the request body
-    const {
+    let {
       userAddress,
       country,
       birthMonth,
@@ -46,6 +46,12 @@ export async function POST(request: NextRequest) {
     });
 
     debugLog(res);
+
+    if (region === "" || countryCode === "" || country === "") {
+      region = "global"
+      countryCode = "GL"
+      country = "global"
+    }
 
     return NextResponse.json({
       success: true,
