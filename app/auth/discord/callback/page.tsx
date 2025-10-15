@@ -1,10 +1,11 @@
 "use client";
 
+import { Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { debugLog } from "@/lib/logger";
 import { useEffect } from "react";
 
-export default function DiscordCallback() {
+function CallbackInner() {
   const params = useSearchParams();
   const code = params.get("code");
   const router = useRouter();
@@ -29,11 +30,11 @@ export default function DiscordCallback() {
 
         const userData = await userRes.json();
         localStorage.setItem("discord_user", JSON.stringify(userData));
-        debugLog(userData)
+        debugLog(userData);
+
         const walletData = localStorage.getItem("wallet-auth-storage");
         if (walletData) {
           const parsed = JSON.parse(walletData);
-          debugLog(parsed)
           await fetch("/api/user/discord", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -43,7 +44,6 @@ export default function DiscordCallback() {
               id: userData.id,
             }),
           });
-
         } else {
           console.warn("No wallet found in localStorage");
         }
@@ -58,4 +58,12 @@ export default function DiscordCallback() {
   }, [code, router]);
 
   return <div>Authenticating with Discord...</div>;
+}
+
+export default function DiscordCallback() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <CallbackInner />
+    </Suspense>
+  );
 }
