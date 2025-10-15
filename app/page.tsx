@@ -40,6 +40,7 @@ interface OnboardingData {
   birthYear: string;
   isItRelated: boolean;
   createdAt: string;
+  discordUsername: string;
 }
 
 interface Stats {
@@ -130,6 +131,7 @@ export default function Home() {
             birthYear: data.birthYear,
             isItRelated: data.isItRelated,
             createdAt: data.submittedAt,
+            discordUsername: data.discord_username,
           });
 
           localStorage.setItem("user_onboarding", "true");
@@ -161,7 +163,6 @@ export default function Home() {
       });
 
       if (res.ok) {
-        toast.info("Code is valid");
         setIsAllowed(true) 
         return;
       } else if (res.status == 404) {
@@ -188,7 +189,9 @@ export default function Home() {
   if (!user?.address) {
     return (
       <div className="flex flex-col min-h-screen">
-        <Navigation />
+        <Navigation
+          discordUsername={onboardingData?.discordUsername || null}
+        />
         <div className="container mx-auto px-4 py-8">
           <div className="max-w-2xl mx-auto space-y-6">
             {!isAllowed && (
@@ -229,7 +232,9 @@ export default function Home() {
   if (onboardingLoading) {
     return (
       <div className="flex flex-col min-h-screen">
-        <Navigation />
+        <Navigation
+          discordUsername={onboardingData?.discordUsername || null}
+        />
         <div className="flex-1 flex items-center justify-center">
           <div className="text-gray-500">Loading profile...</div>
         </div>
@@ -239,7 +244,9 @@ export default function Home() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <Navigation />
+      <Navigation
+        discordUsername={onboardingData?.discordUsername || null}
+      />
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto space-y-8">
           {/* User Profile Header */}
