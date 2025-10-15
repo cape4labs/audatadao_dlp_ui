@@ -29,6 +29,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    
+    if (region == "" || countryCode == "") {
+      region = "global"
+      countryCode = "GL"
+    }
+
     const res = await fetch("https://audata.space/api/v1/users/metadata", {
       method: "POST",
       headers: {
@@ -47,11 +53,6 @@ export async function POST(request: NextRequest) {
 
     debugLog(res);
 
-    if (region === "" || countryCode === "" || country === "") {
-      region = "global"
-      countryCode = "GL"
-      country = "global"
-    }
 
     return NextResponse.json({
       success: true,
