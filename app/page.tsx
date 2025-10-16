@@ -135,6 +135,8 @@ export default function Home() {
           });
 
           localStorage.setItem("user_onboarding", "true");
+          localStorage.setItem("discord_username", onboardingData?.discordUsername || "discord auth")
+
 
           setInfo(info);
           setStats(leaders);
@@ -190,7 +192,7 @@ export default function Home() {
     return (
       <div className="flex flex-col min-h-screen">
         <Navigation
-          discordUsername={onboardingData?.discordUsername || null}
+          discordUsername={onboardingData?.discordUsername || "discord auth"}
         />
         <div className="container mx-auto px-4 py-8">
           <div className="max-w-2xl mx-auto space-y-6">

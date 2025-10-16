@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -56,12 +56,18 @@ export default function UploadPage() {
     hasAnySuccess,
     handleContributeData,
   } = useContributionFlow();
-
+  const [discordUsername, setDiscordUsername] = useState<string>("");
   const [uploadStatus, setUploadStatus] = useState<UploadStatus>({
     isUploading: false,
     error: null,
     uploadedFiles: [],
   });
+
+  useEffect(() => {
+    if (!localStorage.getItem("discord_username")) {
+      setDiscordUsername(localStorage?.getItem("discord_username") || "")
+    }
+  }, [discordUsername]);
 
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {
@@ -187,7 +193,7 @@ export default function UploadPage() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <Navigation />
+      <Navigation discordUsername={discordUsername}/>
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto space-y-8">
           {/* Header */}

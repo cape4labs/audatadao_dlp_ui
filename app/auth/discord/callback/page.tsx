@@ -30,6 +30,8 @@ function CallbackInner() {
 
         const userData = await userRes.json();
         localStorage.setItem("discord_user", JSON.stringify(userData));
+        localStorage.removeItem("discord_username")
+        localStorage.setItem("discord_username", JSON.stringify(userData.username))
         debugLog(userData);
 
         const walletData = localStorage.getItem("wallet-auth-storage");
