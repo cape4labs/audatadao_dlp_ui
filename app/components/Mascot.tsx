@@ -75,7 +75,7 @@ export default function Mascot({ externalError }: MascotProps) {
     setMessage(content);
     setVisible(true);
 
-    const timeout = setTimeout(() => setVisible(false), 30000);
+    const timeout = setTimeout(() => setVisible(false), 60000);
     return () => clearTimeout(timeout);
   }, [externalError]);
 
@@ -88,7 +88,7 @@ export default function Mascot({ externalError }: MascotProps) {
             Hey there! 
             <br /> Any issues? Check the guide how to contribute:{" "}
             <a
-              href="https://audata.gitbook.io/audata-docs"
+              href="https://audata.gitbook.io/audata-docs/guides/guide1"
               target="_blank"
               rel="noopener noreferrer"
               className="text-blue-600 underline"

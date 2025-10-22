@@ -64,7 +64,7 @@ export default function UploadPage() {
   });
 
   useEffect(() => {
-    if (!localStorage.getItem("discord_username")) {
+    if (localStorage.getItem("discord_username")) {
       setDiscordUsername(localStorage?.getItem("discord_username") || "")
     }
   }, [discordUsername]);
@@ -189,7 +189,7 @@ export default function UploadPage() {
     );
   }
 
-  const languages = ["en", "ru", "es", "de"];
+  const languages = ["English", "中文", "हिन्दी", "Español", "العربية", "বাংলা", "Français", "Português", "Русский", "اردو", "Bahasa Indonesia", "Deutsch", "日本語", "ਪੰਜਾਬੀ", "मराठी", "తెలుగు", "Türkçe", "தமிழ்", "吴语", "한국어"];
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -273,7 +273,17 @@ export default function UploadPage() {
               </div>
             </CardContent>
           </Card>
-
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center font-bold gap-2">
+                ATTENTION
+              </CardTitle>
+              <CardDescription className="font-bold">
+                {`Currently, audio files up to 1.5 MB can be uploaded. This is roughly equivalent to 1 minute of standard-quality audio. 
+                For details, please check the`} <a className="text-blue-500" href="https://audata.gitbook.io/audata-docs/guides/guide1">guide</a>               
+              </CardDescription>
+            </CardHeader>
+          </Card>
           {/* Upload Card */}
           <Card
             className={

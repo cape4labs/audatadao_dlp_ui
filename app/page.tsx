@@ -135,8 +135,8 @@ export default function Home() {
           });
 
           localStorage.setItem("user_onboarding", "true");
-          localStorage.setItem("discord_username", onboardingData?.discordUsername || "discord auth")
 
+          localStorage.setItem("discord_username", onboardingData?.discordUsername || "discord auth")
 
           setInfo(info);
           setStats(leaders);
@@ -151,36 +151,36 @@ export default function Home() {
     }
   };
 
-  const handleCodeSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!code) return;
-    setLoading(true);
-    setMessage("");
+  // const handleCodeSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   if (!code) return;
+  //   setLoading(true);
+  //   setMessage("");
 
-    try {
-      const res = await fetch("/api/user/code", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(code),
-      });
+  //   try {
+  //     const res = await fetch("/api/user/code", {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify(code),
+  //     });
 
-      if (res.ok) {
-        setIsAllowed(true) 
-        return;
-      } else if (res.status == 404) {
-        toast.info("Code is not valid");
-        return;
-      } else if (res.status == 401) {
-        toast.info("Code has been blocked");
-        return;
-      }
-    } catch (err) {
-      setMessage("Error with fetch");
-      toast.error("Error with request")
-    } finally {
-      setLoading(false);    
-    }
-  };
+  //     if (res.ok) {
+  //       setIsAllowed(true) 
+  //       return;
+  //     } else if (res.status == 404) {
+  //       toast.info("Code is not valid");
+  //       return;
+  //     } else if (res.status == 401) {
+  //       toast.info("Code has been blocked");
+  //       return;
+  //     }
+  //   } catch (err) {
+  //     setMessage("Error with fetch");
+  //     toast.error("Error with request")
+  //   } finally {
+  //     setLoading(false);    
+  //   }
+  // };
 
   useEffect(() => {
     if (user?.address) {
@@ -197,34 +197,15 @@ export default function Home() {
         <div className="container mx-auto px-4 py-8">
           <div className="max-w-2xl mx-auto space-y-6">
             {!isAllowed && (
-            <Card>
+            <Card className="align-center items-center justify-center">
             <CardHeader>
-              <CardTitle>Enter your secret code</CardTitle>
-                <CardContent>
-                  <form
-                    onSubmit={handleCodeSubmit}
-                    className="flex flex-col gap-3"
-                  >
-                    <Input
-                      type="text"
-                      placeholder="your code"
-                      value={code}
-                      onChange={(e) => setCode(e.target.value)}
-                      required
-                    />
-                    <Button type="submit" disabled={loading}>
-                      {loading ? "Sending..." : "Submit"}
-                    </Button>
-                  </form>
-                </CardContent>            
+              <CardTitle className="">Connect your wallet to enter AudataDAO app</CardTitle>          
               </CardHeader>
             </Card>
             )}
-            {isAllowed && (
             <div className="flex justify-center pt-2">
               <WalletLoginButton />
             </div>
-            )}
           </div>
         </div>
       </div>
@@ -235,7 +216,7 @@ export default function Home() {
     return (
       <div className="flex flex-col min-h-screen">
         <Navigation
-          discordUsername={onboardingData?.discordUsername || null}
+          discordUsername={onboardingData?.discordUsername || "discord auth"}
         />
         <div className="flex-1 flex items-center justify-center">
           <div className="text-gray-500">Loading profile...</div>

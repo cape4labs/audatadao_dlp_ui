@@ -257,6 +257,10 @@ export function useContributionFlow() {
       throw new Error("Your audio less than 4 seconds");
     }
 
+    if (file.size >= 1500000) {
+      throw new Error("Your audio more than 1.5MB")
+    }
+
     const uploadResult = await uploadData(
       userAddress,
       audio_language,
