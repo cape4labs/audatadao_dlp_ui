@@ -64,7 +64,9 @@ export async function POST(request: NextRequest) {
     });
 
     if (!contributionProofResponse.ok) {
-      const errorText = await contributionProofResponse.text();
+      // TODO this is a quick and dirty solution until we fix it
+      let errorText = await contributionProofResponse.text();
+      errorText = errorText.replace(/postgres[^"'\s]*\/\w+/gi, "[REDACTED]");
       console.error("Error:", contributionProofResponse.status, errorText);
       return NextResponse.json(
         { error: `Error: ${errorText}` },
@@ -72,8 +74,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const res = await contributionProofResponse.json();
-
+    let res = await contributionProofResponse.json();
+    // Hide sensitive info from the response
+    // TODO this is a quick and dirty solution until we fix it
+    // Convert to string, strip out any "postgres.../..."
+    // e.g. postgres://user@host/db or postgresql://.../anything
+    res = JSON.parse(
+      JSON.stringify(res).replace(/postgres[^"'\s]*\/\w+/gi, "[REDACTED]")
+    );
     debugLog("api/proof/route.ts 70", res);
 
     return NextResponse.json(
