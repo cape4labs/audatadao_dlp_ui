@@ -250,7 +250,7 @@ export const useTeeProof = () => {
         const errorText = errorData?.error ?? "";
         const jsonMatch = errorText.match(/{.*}/s);
         if (!jsonMatch) {
-          throw new Error("JSON is not found in errorData.error");
+          throw new Error("Failed to upload file");
         }
 
         let parsedError;
@@ -261,7 +261,7 @@ export const useTeeProof = () => {
           throw new Error("Invalid error format");
         }
 
-        const logs = parsedError?.detail?.error?.details?.logs ?? "";
+        const logs = parsedError?.detail?.error?.code ?? "";
         const match = errorText.match(/score=.*?score_threshold[^}]+/s);
         let extracted = match ? match[0] : null;
 
@@ -270,6 +270,10 @@ export const useTeeProof = () => {
         }
 
         debugLog("Extracted part:", extracted);
+
+        if (logs == "CONTAINER_TIMEOUT_ERROR") {
+          throw new Error(`Network error`);
+        }
 
         throw new Error(`Audio is not valid \n ${extracted}`);
       }
