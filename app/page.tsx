@@ -411,7 +411,7 @@ export default function Home() {
                     </div>
                   ))
                 ) : (
-                  <div className="text-gray-500">No Leaderboard</div>
+                  <div className="text-gray-500">New leaderboard for this week</div>
                 )}
               </div>
             </CardContent>
