@@ -337,9 +337,9 @@ export default function Home() {
                   height={20}
                   className="object-contain"
                 />
-                Leaderboard
+                Weekly Leaderboard
               </CardTitle>
-              <CardDescription>Top 5 of our uploaders</CardDescription>
+              <CardDescription>Top 30 of our uploaders</CardDescription>
 
               <div className="text-sm text-gray-600">
                 Total users: <b>{info?.totalUsers ?? 0}</b> • Total minutes:{" "}
