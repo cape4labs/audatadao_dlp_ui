@@ -29,10 +29,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    
     if (region == "" || countryCode == "") {
-      region = "global"
-      countryCode = "GL"
+      region = "global";
+      countryCode = "GL";
     }
 
     const res = await fetch("https://audata.space/api/v1/users/metadata", {
@@ -52,7 +51,6 @@ export async function POST(request: NextRequest) {
     });
 
     debugLog(res);
-
 
     return NextResponse.json({
       success: true,
@@ -94,7 +92,7 @@ export async function GET(request: NextRequest) {
     );
 
     const contributeRes = await fetch(
-      `https://audata.space/api/v1/users/stat_weekly?amount=30`,
+      `https://audata.space/api/v1/users/stat?amount=30`,
     );
 
     debugLog(res.status, res.statusText);
