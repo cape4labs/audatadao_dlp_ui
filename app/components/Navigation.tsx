@@ -14,7 +14,9 @@ interface NavigationProps {
 
 export function Navigation({ discordUsername }: NavigationProps) {
   const { isConnected, disconnect, user } = useWalletAuth();
-  const [discordUser, setDiscordUser] = useState<{ username: string } | null>(null);
+  const [discordUser, setDiscordUser] = useState<{ username: string } | null>(
+    null,
+  );
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -48,7 +50,9 @@ export function Navigation({ discordUsername }: NavigationProps) {
 
   const handleDiscordAuth = () => {
     const clientId = process.env.NEXT_PUBLIC_DISCORD_CLIENT_ID;
-    const redirectUri = encodeURIComponent(process.env.NEXT_PUBLIC_DISCORD_REDIRECT_URI!);
+    const redirectUri = encodeURIComponent(
+      process.env.NEXT_PUBLIC_DISCORD_REDIRECT_URI!,
+    );
     const scope = "identify email";
     window.location.href = `https://discord.com/oauth2/authorize?client_id=${clientId}&response_type=code&scope=${scope}&redirect_uri=${redirectUri}`;
   };
@@ -141,7 +145,11 @@ export function Navigation({ discordUsername }: NavigationProps) {
             className="md:hidden"
             onClick={toggleMobileMenu}
           >
-            {isMobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+            {isMobileMenuOpen ? (
+              <X className="h-4 w-4" />
+            ) : (
+              <Menu className="h-4 w-4" />
+            )}
           </Button>
 
           {/* Disconnect */}
@@ -164,19 +172,25 @@ export function Navigation({ discordUsername }: NavigationProps) {
           )}
 
           {/* Discord Auth / Username */}
-          {isConnected ? 
-          <div>
-            {discordUser ? (
-              <Button variant="default" size="sm" onClick={handleDiscordLogout}>
-                {discordUser.username}
-              </Button>
-            ) : (
-              <Button variant="default" size="sm" onClick={handleDiscordAuth}>
-                Discord Auth
-              </Button>
-            )}
-          </div>
-          : <></>}
+          {isConnected ? (
+            <div>
+              {discordUser ? (
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={handleDiscordLogout}
+                >
+                  {discordUser.username}
+                </Button>
+              ) : (
+                <Button variant="default" size="sm" onClick={handleDiscordAuth}>
+                  Discord Auth
+                </Button>
+              )}
+            </div>
+          ) : (
+            <></>
+          )}
         </div>
       </div>
 

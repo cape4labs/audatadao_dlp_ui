@@ -65,7 +65,7 @@ export default function UploadPage() {
 
   useEffect(() => {
     if (localStorage.getItem("discord_username")) {
-      setDiscordUsername(localStorage?.getItem("discord_username") || "")
+      setDiscordUsername(localStorage?.getItem("discord_username") || "");
     }
   }, [discordUsername]);
 
@@ -74,16 +74,16 @@ export default function UploadPage() {
       if (!user?.address) {
         setUploadStatus((prev) => ({
           ...prev,
-          error: "Connect your wallet first"
-        }))
+          error: "Connect your wallet first",
+        }));
         return;
       }
 
       if (!isConnected) {
         setUploadStatus((prev) => ({
           ...prev,
-          error: "Connect your wallet first"
-        }))
+          error: "Connect your wallet first",
+        }));
         return;
       }
 
@@ -189,11 +189,32 @@ export default function UploadPage() {
     );
   }
 
-  const languages = ["English", "中文", "हिन्दी", "Español", "العربية", "বাংলা", "Français", "Português", "Русский", "اردو", "Bahasa Indonesia", "Deutsch", "日本語", "ਪੰਜਾਬੀ", "मराठी", "తెలుగు", "Türkçe", "தமிழ்", "吴语", "한국어"];
+  const languages = [
+    "English",
+    "中文",
+    "हिन्दी",
+    "Español",
+    "العربية",
+    "বাংলা",
+    "Français",
+    "Português",
+    "Русский",
+    "اردو",
+    "Bahasa Indonesia",
+    "Deutsch",
+    "日本語",
+    "ਪੰਜਾਬੀ",
+    "मराठी",
+    "తెలుగు",
+    "Türkçe",
+    "தமிழ்",
+    "吴语",
+    "한국어",
+  ];
 
   return (
     <div className="flex flex-col min-h-screen">
-      <Navigation discordUsername={discordUsername}/>
+      <Navigation discordUsername={discordUsername} />
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto space-y-8">
           {/* Header */}
@@ -204,6 +225,17 @@ export default function UploadPage() {
               will be encrypted and processed securely.
             </p>
           </div>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center font-bold gap-2">
+                ATTENTION
+              </CardTitle>
+              <CardDescription className="font-bold">
+                The DApp is temporarily disabled 'cause we are working hard to
+                make it better 🍦
+              </CardDescription>
+            </CardHeader>
+          </Card>
 
           {/* How it works */}
           <Card>
@@ -273,17 +305,6 @@ export default function UploadPage() {
               </div>
             </CardContent>
           </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center font-bold gap-2">
-                ATTENTION
-              </CardTitle>
-              <CardDescription className="font-bold">
-                {`Currently, audio files up to 1.5 MB can be uploaded. This is roughly equivalent to 1 minute of standard-quality audio. 
-                For details, please check the`} <a className="text-blue-500" href="https://audata.gitbook.io/audata-docs/guides/guide1">guide</a>               
-              </CardDescription>
-            </CardHeader>
-          </Card>
           {/* Upload Card */}
           <Card
             className={
@@ -327,14 +348,12 @@ export default function UploadPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div
-                {...getRootProps()}
-                className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
+                className={`border-2 border-dashed rounded-lg p-8 text-center cursor-not-allowed transition-colors ${
                   isDragActive
                     ? "border-blue-500 bg-blue-50"
                     : "border-gray-300 hover:border-gray-400"
                 } ${uploadStatus.isUploading ? "opacity-50 cursor-not-allowed" : ""}`}
               >
-                <input {...getInputProps()} />
                 <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
                 {uploadStatus.isUploading ? (
                   <div className="space-y-2">
@@ -369,7 +388,7 @@ export default function UploadPage() {
                     <AlertCircle className="h-4 w-4" />
                     <AlertTitle>Error</AlertTitle>
                     <AlertDescription>{uploadStatus.error}</AlertDescription>
-                  <Mascot externalError={uploadStatus.error}/>
+                    <Mascot externalError={uploadStatus.error} />
                   </Alert>
                 )}
 
@@ -445,7 +464,6 @@ export default function UploadPage() {
                             </AlertDescription>
                           </Alert>
                           <Mascot externalError={contribution.error} />
-
                         </div>
                       )}
 
