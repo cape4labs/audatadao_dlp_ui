@@ -1,7 +1,7 @@
 import { encryptWithWalletPublicKey } from "@/lib/crypto/utils";
 import { useState } from "react";
 import { useSignMessage } from "wagmi";
-import { ContributionData, DriveInfo, UserInfo } from "../types";
+import { ContributionData } from "../types";
 import { extractFileIdFromReceipt } from "../utils/fileUtils";
 import { useAddFile } from "./useAddFile";
 import { useDataRefinement } from "./useDataRefinement";
@@ -161,7 +161,6 @@ export function useContributionFlow() {
 
       if (!signature) throw new Error("Signature step failed");
 
-
       const duration = await getBlobDuration(file);
 
       const uploadResult = await executeUploadDataStep(
@@ -226,7 +225,7 @@ export function useContributionFlow() {
     fileId: string,
   ): Promise<string | null> => {
     try {
-      const signature = await signMessageAsync({ message: SIGN_MESSAGE })
+      const signature = await signMessageAsync({ message: SIGN_MESSAGE });
       return signature;
     } catch (signError) {
       console.error("Error signing message:", signError);
@@ -258,7 +257,7 @@ export function useContributionFlow() {
     }
 
     if (file.size >= 1500000) {
-      throw new Error("Your audio more than 1.5MB")
+      throw new Error("Your audio more than 1.5MB");
     }
 
     const uploadResult = await uploadData(
@@ -366,6 +365,7 @@ export function useContributionFlow() {
       blockchainFileId,
       encryptedKey,
       signature,
+      isGasless,
     );
 
     if (!proofResult) {
@@ -424,7 +424,7 @@ export function useContributionFlow() {
 
     debugLog("contribution/hooks/useContributionFlow.ts 260", blockchainFileId);
 
-    const rewardResult = await requestReward(blockchainFileId);
+    const rewardResult = await requestReward(blockchainFileId, isGasless);
 
     debugLog(
       "contribution/hooks/useContributionFlow.ts 262 rewardResult",

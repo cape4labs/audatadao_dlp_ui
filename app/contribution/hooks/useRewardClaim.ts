@@ -30,6 +30,7 @@ export const useRewardClaim = () => {
    */
   const requestReward = async (
     fileId: number | bigint,
+    isGasless: boolean,
   ): Promise<TransactionReceipt | null> => {
     setIsClaiming(true);
     setError(null);
@@ -43,21 +44,41 @@ export const useRewardClaim = () => {
       // Get contract instance
       const dataLiquidityPool = Controller("DataLiquidityPoolProxy");
 
-      const res = await fetch("/api/claimReward", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fileId, address }),
-        credentials: "include",
-      });
+      let claimRewardReceipt;
 
-      if (!res.ok) {
-        throw new Error(`Backend error: ${await res.text()}`);
+      if (isGasless) {
+        const res = await fetch("/api/claimReward", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ fileId, address }),
+          credentials: "include",
+        });
+
+        if (!res.ok) {
+          throw new Error(`Backend error: ${await res.text()}`);
+        }
+
+        let claimRewardResult = await res.json();
+        debugLog("useRewardClaim api call", claimRewardResult);
+        claimRewardReceipt = claimRewardResult.receipt;
+      } else {
+        const hash = await writeContractAsync({
+          address: dataLiquidityPool.address,
+          abi: dataLiquidityPool.abi,
+          functionName: "requestReward",
+          args: [BigInt(fileId), BigInt(1)], // Convert both values to bigint
+        });
+
+        debugLog("contribution/hooks/useRewardClaim.ts 52", hash);
+
+        // Wait for transaction receipt
+        claimRewardReceipt = await waitForTransactionReceipt(config, {
+          hash,
+          confirmations: 1,
+        });
+
+        debugLog("contribution/hooks/useRewardClaim.ts 63", claimRewardReceipt);
       }
-
-      const claimRewardResult = await res.json();
-      debugLog("useRewardClaim", claimRewardResult);
-      const claimRewardReceipt = claimRewardResult.receipt;
-      debugLog("contribution/hooks/useRewardClaim.ts 63", claimRewardReceipt);
 
       setReceipt(claimRewardReceipt);
       return claimRewardReceipt;

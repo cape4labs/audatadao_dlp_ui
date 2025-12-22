@@ -154,6 +154,7 @@ export const useTeeProof = () => {
     fileId: number,
     encryptionKey: string,
     signature: string,
+    isGasless: boolean,
   ) => {
     setIsProcessing(true);
     setError(null);
@@ -162,25 +163,52 @@ export const useTeeProof = () => {
       if (!address) {
         throw new Error("Wallet not connected");
       }
+      let contributionProofReceipt;
 
-      debugLog("useTeeProof 166 user_address:", address);
+      if (isGasless) {
+        debugLog("useTeeProof 166 user_address:", address);
 
-      const res = await fetch("/api/proof/tee", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fileId, address }),
-        credentials: "include",
-      });
+        const res = await fetch("/api/proof/tee", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ fileId, address }),
+          credentials: "include",
+        });
 
-      if (!res.ok) {
-        throw new Error(`Backend error: ${await res.text()}`);
+        if (!res.ok) {
+          throw new Error(`Backend error: ${await res.text()}`);
+        }
+
+        const contributionProofResult = await res.json();
+
+        debugLog("useTeeProof 32", contributionProofResult);
+
+        contributionProofReceipt = contributionProofResult.receipt;
+      } else {
+        // Request contribution proof using wagmi hooks
+        const hash = await writeContractAsync({
+          address: teePoolAddress,
+          abi: teePoolAbi,
+          functionName: "requestContributionProof",
+          args: [fileId],
+        });
+
+        debugLog(
+          "useTeeProof.ts 169",
+          teePoolAddress,
+          teePoolAbi,
+          fileId,
+          hash,
+        );
+
+        // Wait for transaction receipt
+        contributionProofReceipt = await waitForTransactionReceipt(config, {
+          hash,
+          confirmations: 1,
+        });
+
+        debugLog("contributionProofReceipt", contributionProofReceipt);
       }
-
-      const contributionProofResult = await res.json();
-
-      debugLog("useTeeProof 32", contributionProofResult);
-
-      const contributionProofReceipt = contributionProofResult.receipt;
 
       // Get job IDs for the file
       const jobIds = await getFileJobIds(fileId);
